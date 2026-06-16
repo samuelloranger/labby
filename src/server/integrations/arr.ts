@@ -17,7 +17,7 @@ async function arrFetch(kind: ArrKind, path: string): Promise<Response> {
   });
 }
 
-function imageUrl(kind: ArrKind, item: Record<string, unknown>): string | undefined {
+function imageUrl(item: Record<string, unknown>): string | undefined {
   const image = ((item.images as Record<string, unknown>[] | undefined) ?? []).find(
     (img) => img.coverType === 'poster' && typeof img.remoteUrl === 'string',
   );
@@ -36,7 +36,7 @@ function mapCalendar(kind: ArrKind, item: Record<string, unknown>): ArrItem {
     title,
     date: String(item.inCinemas ?? item.airDateUtc ?? item.airDate ?? '') || null,
     status: String(item.status ?? item.monitored ?? ''),
-    posterUrl: imageUrl(kind, kind === 'radarr' ? item : (series ?? {})),
+    posterUrl: imageUrl(kind === 'radarr' ? item : (series ?? {})),
   };
 }
 
@@ -58,8 +58,13 @@ export async function getArrSummary(kind: ArrKind): Promise<ArrPayload | { error
 
     const [status, queue, wanted, calendar] = await Promise.all([
       getJson<{ version?: string }>(kind, '/api/v3/system/status'),
-      getJson<{ totalRecords?: number; records?: unknown[] }>(kind, '/api/v3/queue?page=1&pageSize=1'),
-      getJson<{ totalRecords?: number }>(kind, '/api/v3/wanted/missing?page=1&pageSize=1').catch(() => null),
+      getJson<{ totalRecords?: number; records?: unknown[] }>(
+        kind,
+        '/api/v3/queue?page=1&pageSize=1',
+      ),
+      getJson<{ totalRecords?: number }>(kind, '/api/v3/wanted/missing?page=1&pageSize=1').catch(
+        () => null,
+      ),
       getJson<Record<string, unknown>[]>(kind, `/api/v3/calendar?${params}`),
     ]);
 

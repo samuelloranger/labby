@@ -7,7 +7,13 @@ export type Site = {
 };
 
 export type Widget =
-  | { type: 'monitor'; title: string; style?: 'compact' | 'default'; variant?: 'rows' | 'tiles'; sites: Site[] }
+  | {
+      type: 'monitor';
+      title: string;
+      style?: 'compact' | 'default';
+      variant?: 'rows' | 'tiles';
+      sites: Site[];
+    }
   | { type: 'docker'; title: string; show?: 'all' | 'running' }
   | { type: 'downloads'; title: string; client: 'qbittorrent' | 'transmission'; max?: number }
   | { type: 'adguard'; title: string }

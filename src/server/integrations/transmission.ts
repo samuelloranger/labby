@@ -82,7 +82,17 @@ export async function getTransmissionTorrents(): Promise<DownloadsPayload | { er
 
   try {
     const json = (await transmissionRpc('torrent-get', {
-      fields: ['id', 'name', 'status', 'percentDone', 'rateDownload', 'rateUpload', 'eta', 'uploadRatio', 'hashString'],
+      fields: [
+        'id',
+        'name',
+        'status',
+        'percentDone',
+        'rateDownload',
+        'rateUpload',
+        'eta',
+        'uploadRatio',
+        'hashString',
+      ],
     })) as { arguments?: { torrents?: Record<string, unknown>[] } };
     const raw = json.arguments?.torrents ?? [];
     const torrents = raw.map(normalizeTorrent);

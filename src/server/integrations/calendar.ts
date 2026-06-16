@@ -16,7 +16,9 @@ function unfold(text: string): string[] {
   return lines;
 }
 
-function parseLine(line: string): { name: string; params: Record<string, string>; value: string } | null {
+function parseLine(
+  line: string,
+): { name: string; params: Record<string, string>; value: string } | null {
   const idx = line.indexOf(':');
   if (idx === -1) return null;
   const [name, ...paramParts] = line.slice(0, idx).split(';');
@@ -29,7 +31,10 @@ function parseLine(line: string): { name: string; params: Record<string, string>
 }
 
 function unescapeText(v: string): string {
-  return v.replace(/\\n/gi, ' ').replace(/\\([,;\\])/g, '$1').trim();
+  return v
+    .replace(/\\n/gi, ' ')
+    .replace(/\\([,;\\])/g, '$1')
+    .trim();
 }
 
 // VALUE=DATE → all-day; trailing Z → UTC; otherwise (floating / TZID) parsed as
@@ -65,7 +70,7 @@ export function expandRecurrence(start: IcsDate, rrule: string, windowEnd: numbe
   if (!freq) return [start.epoch];
   const interval = Math.max(1, parseInt(rule.INTERVAL ?? '1', 10) || 1);
   const count = rule.COUNT ? parseInt(rule.COUNT, 10) : null;
-  const until = rule.UNTIL ? parseIcsDate(rule.UNTIL)?.epoch ?? null : null;
+  const until = rule.UNTIL ? (parseIcsDate(rule.UNTIL)?.epoch ?? null) : null;
 
   const out: number[] = [];
   const d = new Date(start.epoch);
@@ -84,9 +89,20 @@ export function expandRecurrence(start: IcsDate, rrule: string, windowEnd: numbe
   return out;
 }
 
-export function parseICS(text: string, calendar: string, now: number, windowEnd: number): CalendarEvent[] {
+export function parseICS(
+  text: string,
+  calendar: string,
+  now: number,
+  windowEnd: number,
+): CalendarEvent[] {
   const events: CalendarEvent[] = [];
-  let cur: { start?: IcsDate; end?: IcsDate; summary?: string; location?: string; rrule?: string } | null = null;
+  let cur: {
+    start?: IcsDate;
+    end?: IcsDate;
+    summary?: string;
+    location?: string;
+    rrule?: string;
+  } | null = null;
 
   for (const line of unfold(text)) {
     if (line === 'BEGIN:VEVENT') {
@@ -100,7 +116,9 @@ export function parseICS(text: string, calendar: string, now: number, windowEnd:
           : cur.start.allDay
             ? 86_400_000
             : 0;
-        const starts = cur.rrule ? expandRecurrence(cur.start, cur.rrule, windowEnd) : [cur.start.epoch];
+        const starts = cur.rrule
+          ? expandRecurrence(cur.start, cur.rrule, windowEnd)
+          : [cur.start.epoch];
         for (const s of starts) {
           const end = s + durationMs;
           if (end < now || s > windowEnd) continue; // drop fully-past / beyond-window

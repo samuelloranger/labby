@@ -1,15 +1,30 @@
-import { readFile } from 'fs/promises';
-import path from 'path';
-import { mkdir } from 'fs/promises';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg';
 const OUT = path.join(import.meta.dir, '../web/public/icons/di');
 
 const SLUGS = [
-  'adguard-home', 'qbittorrent', 'transmission', 'jellyfin', 'immich', 'gitea',
-  'arcane', 'audiobookshelf', 'beszel', 'uptime-kuma', 'kopia', 'ntfy',
-  'vaultwarden', 'home-assistant', 'caddy', 'glance', 'kan', 'jackett',
-  'reddit', 'hacker-news',
+  'adguard-home',
+  'qbittorrent',
+  'transmission',
+  'jellyfin',
+  'immich',
+  'gitea',
+  'arcane',
+  'audiobookshelf',
+  'beszel',
+  'uptime-kuma',
+  'kopia',
+  'ntfy',
+  'vaultwarden',
+  'home-assistant',
+  'caddy',
+  'glance',
+  'kan',
+  'jackett',
+  'reddit',
+  'hacker-news',
 ];
 
 await mkdir(OUT, { recursive: true });

@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'bun:test';
-import { calcCpuPercent, demuxDockerLogs, dockerHost, normalizeContainerName } from '../integrations/docker';
+import {
+  calcCpuPercent,
+  demuxDockerLogs,
+  dockerHost,
+  normalizeContainerName,
+} from '../integrations/docker';
 
 describe('docker helpers', () => {
   test('dockerHost strips tcp prefix', () => {

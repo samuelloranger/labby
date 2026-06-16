@@ -6,8 +6,16 @@ describe('aggregateForecastDays', () => {
     const base = Date.UTC(2026, 5, 16, 12, 0, 0) / 1000;
     const list = [
       { dt: base, main: { temp: 20, temp_min: 18, temp_max: 22 }, weather: [{ icon: '01d' }] },
-      { dt: base + 3 * 3600, main: { temp: 24, temp_min: 22, temp_max: 26 }, weather: [{ icon: '02d' }] },
-      { dt: base + 24 * 3600, main: { temp: 15, temp_min: 12, temp_max: 16 }, weather: [{ icon: '10d' }] },
+      {
+        dt: base + 3 * 3600,
+        main: { temp: 24, temp_min: 22, temp_max: 26 },
+        weather: [{ icon: '02d' }],
+      },
+      {
+        dt: base + 24 * 3600,
+        main: { temp: 15, temp_min: 12, temp_max: 16 },
+        weather: [{ icon: '10d' }],
+      },
     ];
     const days = aggregateForecastDays(list, 2);
     expect(days).toHaveLength(2);

@@ -1,17 +1,19 @@
+import type { DockerContainer, DockerPayload } from '../types';
 import {
   calcCpuPercent,
+  demuxDockerLogs,
   dockerFetch,
   dockerHost,
-  demuxDockerLogs,
   normalizeContainerName,
   type RawDockerContainer,
 } from './docker';
-import type { DockerContainer, DockerPayload } from '../types';
 
 const RO = () => dockerHost(process.env.DOCKER_RO_HOST);
 const RW = () => dockerHost(process.env.DOCKER_RW_HOST);
 
-export async function listContainers(show: 'all' | 'running' = 'running'): Promise<DockerPayload | { error: string }> {
+export async function listContainers(
+  show: 'all' | 'running' = 'running',
+): Promise<DockerPayload | { error: string }> {
   const base = RO();
   if (!base) return { error: 'DOCKER_RO_HOST not configured' };
 
@@ -48,7 +50,8 @@ export async function listContainers(show: 'all' | 'running' = 'running'): Promi
           id: item.Id,
           name: normalizeContainerName(item.Names),
           image: item.Image,
-          state: item.State === 'running' ? 'running' : item.State === 'exited' ? 'exited' : 'other',
+          state:
+            item.State === 'running' ? 'running' : item.State === 'exited' ? 'exited' : 'other',
           status: item.Status,
           cpuPercent,
           exitCode,
@@ -81,7 +84,10 @@ export async function containerAction(
   }
 }
 
-export async function containerLogs(id: string, tail = 200): Promise<{ logs: string } | { error: string }> {
+export async function containerLogs(
+  id: string,
+  tail = 200,
+): Promise<{ logs: string } | { error: string }> {
   const base = RO();
   if (!base) return { error: 'DOCKER_RO_HOST not configured' };
 

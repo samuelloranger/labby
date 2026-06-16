@@ -27,33 +27,33 @@
               "sites": [
                 {
                   "title": "AdGuard",
-                  "url": "https://adguard.samlo.cloud",
+                  "url": "https://adguard.example.com",
                   "checkUrl": "http://adguardhome:3000",
                   "icon": "di:adguard-home",
                   "okCodes": [200, 301, 302, 401, 403]
                 },
                 {
                   "title": "qBittorrent",
-                  "url": "https://qb.samlo.cloud",
-                  "checkUrl": "http://vpn:8282",
+                  "url": "https://qb.example.com",
+                  "checkUrl": "http://qbittorrent:8080",
                   "icon": "di:qbittorrent",
                   "okCodes": [200, 301, 302, 401, 403]
                 },
                 {
                   "title": "Jellyfin",
-                  "url": "https://jellyfin.samlo.cloud",
+                  "url": "https://jellyfin.example.com",
                   "checkUrl": "http://jellyfin:8096/health",
                   "icon": "di:jellyfin"
                 },
                 {
                   "title": "Immich",
-                  "url": "https://immich.samlo.cloud",
+                  "url": "https://immich.example.com",
                   "checkUrl": "http://immich-server:2283",
                   "icon": "di:immich"
                 },
                 {
                   "title": "Gitea",
-                  "url": "https://gitea.samlo.cloud",
+                  "url": "https://gitea.example.com",
                   "checkUrl": "http://gitea:3000",
                   "icon": "di:gitea"
                 }
@@ -76,14 +76,36 @@
               "title": "Launcher",
               "variant": "tiles",
               "sites": [
-                { "title": "Jellyfin", "url": "https://jellyfin.samlo.cloud", "checkUrl": "http://jellyfin:8096/health", "icon": "di:jellyfin" },
-                { "title": "Immich", "url": "https://immich.samlo.cloud", "checkUrl": "http://immich-server:2283", "icon": "di:immich" },
-                { "title": "Gitea", "url": "https://gitea.samlo.cloud", "checkUrl": "http://gitea:3000", "icon": "di:gitea" },
-                { "title": "Arcane", "url": "https://arcane.samlo.cloud", "checkUrl": "http://arcane:3552", "icon": "di:arcane" },
-                { "title": "Audiobookshelf", "url": "https://audiobookshelf.samlo.cloud", "checkUrl": "http://audiobookshelf:80/healthcheck", "icon": "di:audiobookshelf" },
-                { "title": "Reelward", "url": "https://reelward.samlo.cloud", "checkUrl": "http://reelward:3000", "icon": "lucide:film" },
-                { "title": "Kan", "url": "https://kan.samlo.cloud", "checkUrl": "http://kan-web:3000", "icon": "di:kan" },
-                { "title": "Beszel", "url": "https://beszel.samlo.cloud", "checkUrl": "http://beszel:8090", "icon": "di:beszel" }
+                {
+                  "title": "Jellyfin",
+                  "url": "https://jellyfin.example.com",
+                  "checkUrl": "http://jellyfin:8096/health",
+                  "icon": "di:jellyfin"
+                },
+                {
+                  "title": "Immich",
+                  "url": "https://immich.example.com",
+                  "checkUrl": "http://immich-server:2283",
+                  "icon": "di:immich"
+                },
+                {
+                  "title": "Gitea",
+                  "url": "https://gitea.example.com",
+                  "checkUrl": "http://gitea:3000",
+                  "icon": "di:gitea"
+                },
+                {
+                  "title": "Audiobookshelf",
+                  "url": "https://audiobookshelf.example.com",
+                  "checkUrl": "http://audiobookshelf:80/healthcheck",
+                  "icon": "di:audiobookshelf"
+                },
+                {
+                  "title": "Beszel",
+                  "url": "https://beszel.example.com",
+                  "checkUrl": "http://beszel:8090",
+                  "icon": "di:beszel"
+                }
               ]
             }
           ]
@@ -95,26 +117,36 @@
               "type": "monitor",
               "title": "Infra",
               "sites": [
-                { "title": "Arcane", "url": "https://arcane.samlo.cloud", "checkUrl": "http://arcane:3552", "icon": "di:arcane" },
-                { "title": "Beszel", "url": "https://beszel.samlo.cloud", "checkUrl": "http://beszel:8090", "icon": "di:beszel" },
-                { "title": "Uptime Kuma", "url": "https://uptime.samlo.cloud", "checkUrl": "http://uptime-kuma:3001", "icon": "di:uptime-kuma" },
-                { "title": "Kopia", "url": "https://kopia.samlo.cloud", "checkUrl": "http://kopia:51515", "icon": "di:kopia" },
-                { "title": "ntfy", "url": "https://ntfy.samlo.cloud", "checkUrl": "http://ntfy:80", "icon": "di:ntfy" },
-                { "title": "Vaultwarden", "url": "https://vault.samlo.cloud", "checkUrl": "http://vaultwarden:80/alive", "icon": "di:vaultwarden" },
-                { "title": "Home Assistant", "url": "https://ha.samlo.cloud", "checkUrl": "http://192.168.50.30:8123", "icon": "di:home-assistant" }
-              ]
-            },
-            {
-              "type": "monitor",
-              "title": "Apps",
-              "sites": [
-                { "title": "Gitea", "url": "https://gitea.samlo.cloud", "checkUrl": "http://gitea:3000", "icon": "di:gitea" },
-                { "title": "Vaultwarden", "url": "https://vault.samlo.cloud", "checkUrl": "http://vaultwarden:80/alive", "icon": "di:vaultwarden" },
-                { "title": "Kan", "url": "https://kan.samlo.cloud", "checkUrl": "http://kan-web:3000", "icon": "di:kan" },
-                { "title": "Budget", "url": "https://budget.samlo.cloud", "checkUrl": "http://budget:3001", "icon": "lucide:wallet" },
-                { "title": "Jollyboard", "url": "https://jollyboard.samlo.cloud", "checkUrl": "http://jollyboard-frontend:3000", "icon": "lucide:layout-dashboard" },
-                { "title": "Bunnyfile", "url": "https://bunnyfile.samlo.cloud", "checkUrl": "http://bunnyfile:3001", "icon": "lucide:folder" },
-                { "title": "C411", "url": "https://c411.samlo.cloud", "checkUrl": "http://c411-manager:3011", "icon": "lucide:radio" }
+                {
+                  "title": "Beszel",
+                  "url": "https://beszel.example.com",
+                  "checkUrl": "http://beszel:8090",
+                  "icon": "di:beszel"
+                },
+                {
+                  "title": "Uptime Kuma",
+                  "url": "https://uptime.example.com",
+                  "checkUrl": "http://uptime-kuma:3001",
+                  "icon": "di:uptime-kuma"
+                },
+                {
+                  "title": "ntfy",
+                  "url": "https://ntfy.example.com",
+                  "checkUrl": "http://ntfy:80",
+                  "icon": "di:ntfy"
+                },
+                {
+                  "title": "Vaultwarden",
+                  "url": "https://vault.example.com",
+                  "checkUrl": "http://vaultwarden:80/alive",
+                  "icon": "di:vaultwarden"
+                },
+                {
+                  "title": "Home Assistant",
+                  "url": "https://ha.example.com",
+                  "checkUrl": "http://homeassistant:8123",
+                  "icon": "di:home-assistant"
+                }
               ]
             },
             { "type": "adguard", "title": "AdGuard" },

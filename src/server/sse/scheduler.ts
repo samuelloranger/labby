@@ -8,8 +8,8 @@ import {
 } from '../config/schema';
 import { getAdGuardStats } from '../integrations/adguard';
 import { getArrSummary } from '../integrations/arr';
-import { getCalendarEvents } from '../integrations/calendar';
 import { getBeszelSystems } from '../integrations/beszel';
+import { getCalendarEvents } from '../integrations/calendar';
 import { listContainers } from '../integrations/docker-client';
 import { getJellyfinSessions } from '../integrations/jellyfin';
 import { checkSites } from '../integrations/monitor';

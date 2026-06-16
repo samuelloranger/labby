@@ -55,7 +55,10 @@ describe('DashboardSchema', () => {
         },
       ],
     });
-    expect(config.pages[0].columns[0].widgets[0]).toMatchObject({ type: 'weather', city: 'Paris,FR' });
+    expect(config.pages[0].columns[0].widgets[0]).toMatchObject({
+      type: 'weather',
+      city: 'Paris,FR',
+    });
   });
 
   test('parses media service widgets', () => {
