@@ -39,7 +39,9 @@ function unescapeText(v: string): string {
 export function parseIcsDate(value: string, params: Record<string, string> = {}): IcsDate | null {
   const v = value.trim();
   if (params.VALUE === 'DATE' || /^\d{8}$/.test(v)) {
-    return { epoch: new Date(+v.slice(0, 4), +v.slice(4, 6) - 1, +v.slice(6, 8)).getTime(), allDay: true };
+    // All-day is date-only: anchor at UTC midnight so the client reads the same
+    // calendar date regardless of server or viewer timezone.
+    return { epoch: Date.UTC(+v.slice(0, 4), +v.slice(4, 6) - 1, +v.slice(6, 8)), allDay: true };
   }
   const m = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
   if (!m) return null;

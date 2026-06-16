@@ -13,10 +13,10 @@
   const groups = $derived.by<Group[]>(() => {
     const out: Group[] = [];
     for (const ev of events) {
-      const key = dayKey(ev.start);
+      const key = dayKey(ev);
       let g = out.find((x) => x.key === key);
       if (!g) {
-        g = { key, label: dayLabel(ev.start), events: [] };
+        g = { key, label: dayLabel(ev), events: [] };
         out.push(g);
       }
       g.events.push(ev);
@@ -24,22 +24,32 @@
     return out;
   });
 
-  function dayKey(ms: number): string {
-    const d = new Date(ms);
-    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  // All-day events are date-only and timezone-agnostic: the feed encodes them as
+  // VALUE=DATE (UTC midnight), so read their day in UTC. Timed events are real
+  // instants, shown in the viewer's local zone.
+  function dayParts(ev: CalendarEvent): { y: number; m: number; d: number } {
+    const date = new Date(ev.start);
+    return ev.allDay
+      ? { y: date.getUTCFullYear(), m: date.getUTCMonth(), d: date.getUTCDate() }
+      : { y: date.getFullYear(), m: date.getMonth(), d: date.getDate() };
+  }
+
+  function dayKey(ev: CalendarEvent): string {
+    const p = dayParts(ev);
+    return `${p.y}-${p.m}-${p.d}`;
   }
 
   function startOfDay(d: Date): number {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   }
 
-  function dayLabel(ms: number): string {
-    const today = startOfDay(new Date());
-    const day = startOfDay(new Date(ms));
-    const diff = Math.round((day - today) / 86_400_000);
+  function dayLabel(ev: CalendarEvent): string {
+    const p = dayParts(ev);
+    const day = new Date(p.y, p.m, p.d);
+    const diff = Math.round((day.getTime() - startOfDay(new Date())) / 86_400_000);
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Tomorrow';
-    return new Date(ms).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+    return day.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   }
 
   function timeLabel(ev: CalendarEvent): string {
