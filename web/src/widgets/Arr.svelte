@@ -35,6 +35,7 @@
     </div>
 
     {#if items.length}
+      <div class="list-head">Upcoming releases</div>
       <div class="mini-list">
         {#each items as item (item.id)}
           <div class="mini-row">
@@ -50,3 +51,14 @@
   {/if}
 </section>
 {/if}
+
+<style>
+  .list-head {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+</style>
