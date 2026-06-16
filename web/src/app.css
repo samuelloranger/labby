@@ -1049,6 +1049,19 @@ header.top {
 .beszel-storage[open] .chev {
   transform: rotate(180deg);
 }
+.beszel-storage[open] .beszel-disks {
+  animation: drawer-reveal 0.22s var(--ease);
+}
+@keyframes drawer-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .beszel-disks {
   display: flex;
