@@ -1950,19 +1950,3 @@ body::before {
     transform: translate(5%, 4%) rotate(8deg) scale(1.15);
   }
 }
-
-/* Konami code easter egg → do a barrel roll */
-:root.barrel body {
-  animation: barrel-roll 1s var(--ease);
-}
-:root.barrel {
-  overflow-x: hidden;
-}
-@keyframes barrel-roll {
-  from {
-    transform: rotate(0);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
