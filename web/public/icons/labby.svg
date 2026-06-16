@@ -1,11 +1,10 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Labby">
-  <rect width="512" height="512" rx="116" fill="#161310"/>
-  <!-- flask -->
-  <path fill="#ff9500" d="M216 116h80a14 14 0 0 1 0 28h-2v62l84 168a40 40 0 0 1-36 58H172a40 40 0 0 1-36-58l84-168v-62h-2a14 14 0 0 1 0-28Z"/>
-  <!-- bar chart cut into the liquid -->
-  <g fill="#161310">
-    <rect x="188" y="352" width="30" height="40" rx="6"/>
-    <rect x="241" y="320" width="30" height="72" rx="6"/>
-    <rect x="294" y="292" width="30" height="100" rx="6"/>
+  <g transform="translate(256 256) scale(1.28) translate(-256 -270)">
+    <path fill="#ff9500" d="M216 116h80a14 14 0 0 1 0 28h-2v62l84 168a40 40 0 0 1-36 58H172a40 40 0 0 1-36-58l84-168v-62h-2a14 14 0 0 1 0-28Z"/>
+    <g fill="#161310">
+      <rect x="188" y="352" width="30" height="40" rx="6"/>
+      <rect x="241" y="320" width="30" height="72" rx="6"/>
+      <rect x="294" y="292" width="30" height="100" rx="6"/>
+    </g>
   </g>
 </svg>
