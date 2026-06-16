@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="__LABBY_THEME__">
 <head>
-<script>(function(){var s="__LABBY_THEME__",t;try{t=localStorage.getItem("labby-theme")}catch(e){}
+<script>(function(){var a=["light","light-slate","light-mint","light-rose","dark","dark-graphite","dark-ocean","dark-forest"],s="__LABBY_THEME__",t;try{t=localStorage.getItem("labby-theme")}catch(e){}
 var sys=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
-document.documentElement.dataset.theme=(s==="light"||s==="dark")?s:(t||sys);})();</script>
+document.documentElement.dataset.theme=a.includes(s)?s:(a.includes(t)?t:sys);})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#110E0A">
 <title>Labby</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>L</text></svg>">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/labby-icon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/labby-icon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/icons/labby-icon-48.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/labby-icon-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
 </head>
 <body>
 <div id="app"></div>

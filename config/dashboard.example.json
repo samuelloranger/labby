@@ -8,6 +8,9 @@
     "adguard": 60,
     "jellyfin": 15,
     "beszel": 15,
+    "radarr": 60,
+    "sonarr": 60,
+    "reelward": 60,
     "weather": 900
   },
   "pages": [
@@ -63,6 +66,9 @@
           "widgets": [
             { "type": "docker", "title": "Containers", "show": "running" },
             { "type": "beszel", "title": "Beszel", "max": 4 },
+            { "type": "radarr", "title": "Radarr", "max": 5 },
+            { "type": "sonarr", "title": "Sonarr", "max": 5 },
+            { "type": "reelward", "title": "Reelward", "max": 5 },
             { "type": "downloads", "title": "qBittorrent", "client": "qbittorrent" },
             { "type": "downloads", "title": "Transmission", "client": "transmission" },
             {

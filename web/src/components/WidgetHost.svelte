@@ -5,6 +5,8 @@
   import AdGuard from '../widgets/AdGuard.svelte';
   import Jellyfin from '../widgets/Jellyfin.svelte';
   import Beszel from '../widgets/Beszel.svelte';
+  import Arr from '../widgets/Arr.svelte';
+  import Reelward from '../widgets/Reelward.svelte';
   import Feed from '../widgets/Feed.svelte';
   import Weather from '../widgets/Weather.svelte';
   import Calendar from '../widgets/Calendar.svelte';
@@ -31,6 +33,12 @@
   <Jellyfin title={widget.title} />
 {:else if widget.type === 'beszel'}
   <Beszel title={widget.title} systems={widget.systems} max={widget.max} />
+{:else if widget.type === 'radarr'}
+  <Arr title={widget.title} kind="radarr" max={widget.max} />
+{:else if widget.type === 'sonarr'}
+  <Arr title={widget.title} kind="sonarr" max={widget.max} />
+{:else if widget.type === 'reelward'}
+  <Reelward title={widget.title} max={widget.max} />
 {:else if widget.type === 'reddit'}
   <Feed
     title={widget.title}

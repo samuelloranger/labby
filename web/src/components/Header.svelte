@@ -1,6 +1,17 @@
 <script lang="ts">
-  import { Moon, Search, Sun } from 'lucide-svelte';
+  import { Palette, Search } from 'lucide-svelte';
   import { monitorStore, searchQuery, streamConnected } from '$lib/stores';
+
+  const themes = [
+    ['light', 'Light'],
+    ['light-slate', 'Slate'],
+    ['light-mint', 'Mint'],
+    ['light-rose', 'Rose'],
+    ['dark', 'Dark'],
+    ['dark-graphite', 'Graphite'],
+    ['dark-ocean', 'Ocean'],
+    ['dark-forest', 'Forest'],
+  ] as const;
 
   let { title = 'Labby' }: { title?: string } = $props();
 
@@ -12,8 +23,23 @@
 
   const summary = $derived(monitor.data?.summary ?? { up: 0, warn: 0, down: 0 });
 
+  // Konami code → barrel roll. ponytail: in-memory progress, resets on any miss.
+  const KONAMI = [
+    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a',
+  ];
+  let konamiAt = 0;
+
   // "/" focuses search; ignore when already typing in a field.
   function onGlobalKey(e: KeyboardEvent) {
+    konamiAt = e.key.toLowerCase() === KONAMI[konamiAt].toLowerCase() ? konamiAt + 1 : 0;
+    if (konamiAt === KONAMI.length) {
+      konamiAt = 0;
+      const root = document.documentElement;
+      root.classList.add('barrel');
+      setTimeout(() => root.classList.remove('barrel'), 1000);
+    }
+
     if (e.key !== '/') return;
     const t = e.target as HTMLElement;
     if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
@@ -21,8 +47,7 @@
     searchEl?.focus();
   }
 
-  async function toggleTheme() {
-    const next = theme === 'light' ? 'dark' : 'light';
+  async function setTheme(next: string) {
     theme = next;
     document.documentElement.dataset.theme = next;
     try {
@@ -37,8 +62,7 @@
         body: JSON.stringify({ theme: next }),
       });
     } catch {
-      // Theme is already applied locally + persisted to localStorage; the next
-      // toggle (or page load) will re-sync the server cookie.
+      // Theme is already applied locally; the next change can re-sync config.
     }
   }
 </script>
@@ -69,12 +93,13 @@
       <span class="chip" title="Services down"><span class="dot down"></span><b>{summary.down}</b></span>
     </div>
 
-    <button class="iconbtn" aria-label="Toggle theme" onclick={toggleTheme}>
-      {#if theme === 'dark'}
-        <Sun size={20} />
-      {:else}
-        <Moon size={20} />
-      {/if}
-    </button>
+    <label class="theme-picker" aria-label="Color scheme">
+      <Palette size={17} />
+      <select bind:value={theme} onchange={(e) => setTheme(e.currentTarget.value)}>
+        {#each themes as [value, label]}
+          <option {value}>{label}</option>
+        {/each}
+      </select>
+    </label>
   </div>
 </header>

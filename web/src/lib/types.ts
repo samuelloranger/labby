@@ -13,6 +13,9 @@ export type Widget =
   | { type: 'adguard'; title: string }
   | { type: 'jellyfin'; title: string }
   | { type: 'beszel'; title: string; systems?: string[]; max?: number }
+  | { type: 'radarr'; title: string; max?: number }
+  | { type: 'sonarr'; title: string; max?: number }
+  | { type: 'reelward'; title: string; max?: number }
   | { type: 'reddit'; title: string; subreddit: string | string[]; max?: number }
   | { type: 'hackernews'; title: string; max?: number }
   | {
@@ -28,9 +31,20 @@ export type Widget =
 export type Column = { size: 'small' | 'full'; widgets: Widget[] };
 export type Page = { name: string; columns: Column[] };
 
+export type ThemeName =
+  | 'system'
+  | 'light'
+  | 'light-slate'
+  | 'light-mint'
+  | 'light-rose'
+  | 'dark'
+  | 'dark-graphite'
+  | 'dark-ocean'
+  | 'dark-forest';
+
 export type Dashboard = {
   title: string;
-  theme: { default: 'light' | 'dark' | 'system' };
+  theme: { default: ThemeName };
   refreshSeconds: Record<string, number>;
   pages: Page[];
 };

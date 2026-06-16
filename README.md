@@ -4,11 +4,11 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Features
 
-- **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, weather, Reddit, Hacker News
+- **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config on disk** — `config/dashboard.json`, Zod-validated, hot-reloaded
-- **Theming** — light, dark, or system; no flash on first paint
+- **Theming** — named color schemes saved to `config/dashboard.json`; no flash on first paint
 
 ## Security
 
@@ -37,7 +37,7 @@ cp config/dashboard.example.json config/dashboard.json
 docker compose up -d --build
 ```
 
-Mount `config/` read-only and point `.env` at your homelab services. Adjust `docker-compose.yml` networks to match your setup.
+Point `.env` at your homelab services. Labby writes theme changes to `config/dashboard.json`, so `config/` must be writable. Adjust `docker-compose.yml` networks to match your setup.
 
 ## Configuration
 
@@ -53,6 +53,9 @@ User config lives in `config/dashboard.json`. Invalid config shows an error stat
 | `adguard` | `ADGUARD_*` |
 | `jellyfin` | `JELLYFIN_*` |
 | `beszel` | `BESZEL_*` |
+| `radarr` | `RADARR_URL`, `RADARR_API_KEY` |
+| `sonarr` | `SONARR_URL`, `SONARR_API_KEY` |
+| `reelward` | `REELWARD_URL`, `REELWARD_API_TOKEN` |
 | `weather` | `OPENWEATHER_API_KEY` |
 | `reddit`, `hackernews` | — |
 
