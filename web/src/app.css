@@ -278,13 +278,13 @@ header.top {
   color: var(--ink);
 }
 
-.brand .dot {
+.brand .logo {
   width: 28px;
   height: 28px;
   filter: drop-shadow(0 3px 8px rgba(255, 149, 0, 0.35));
 }
 
-.brand .dot.reconnecting {
+.brand .logo.reconnecting {
   animation: pulse-amber 1.2s var(--ease) infinite;
 }
 
@@ -1854,13 +1854,13 @@ header.top {
 }
 
 /* header logo: idle float, spin on hover */
-.brand .dot {
+.brand .logo {
   animation: float 4s ease-in-out infinite;
   transition:
     transform 0.4s var(--ease),
     filter 0.3s var(--ease);
 }
-.brand:hover .dot {
+.brand:hover .logo {
   transform: rotate(360deg) scale(1.12);
   filter: drop-shadow(0 6px 14px var(--accent-soft));
 }

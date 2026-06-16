@@ -57,7 +57,7 @@
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <img class="dot" class:reconnecting={!connected} src="/icons/labby.svg" alt="Labby" width="28" height="28" />
+      <img class="logo" class:reconnecting={!connected} src="/icons/labby.svg" alt="Labby" width="28" height="28" />
       <span>{title.toLowerCase()}</span>
     </div>
 
