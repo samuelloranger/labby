@@ -23,23 +23,8 @@
 
   const summary = $derived(monitor.data?.summary ?? { up: 0, warn: 0, down: 0 });
 
-  // Konami code → barrel roll. in-memory progress, resets on any miss.
-  const KONAMI = [
-    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a',
-  ];
-  let konamiAt = 0;
-
   // "/" focuses search; ignore when already typing in a field.
   function onGlobalKey(e: KeyboardEvent) {
-    konamiAt = e.key.toLowerCase() === KONAMI[konamiAt].toLowerCase() ? konamiAt + 1 : 0;
-    if (konamiAt === KONAMI.length) {
-      konamiAt = 0;
-      const root = document.documentElement;
-      root.classList.add('barrel');
-      setTimeout(() => root.classList.remove('barrel'), 1000);
-    }
-
     if (e.key !== '/') return;
     const t = e.target as HTMLElement;
     if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
