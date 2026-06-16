@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+web/node_modules/
+
+# Build output
+dist/
+web/dist/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# User config (copy from dashboard.example.json)
+config/dashboard.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# TypeScript
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Bun
+.bun/
+
+# Local tooling
+.codegraph/

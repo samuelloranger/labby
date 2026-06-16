@@ -1,0 +1,27 @@
+{
+  "name": "labby",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server/index.ts",
+    "build": "bun run scripts/vendor-icons.ts && bun run build:web && bun run build:server",
+    "build:web": "cd web && bun run build",
+    "build:server": "bun build src/server/index.ts --outdir dist --target bun",
+    "start": "bun run dist/index.js",
+    "test": "bun test",
+    "vendor-icons": "bun run scripts/vendor-icons.ts"
+  },
+  "dependencies": {
+    "hono": "^4.7.4",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@types/bun": "latest",
+    "playwright": "1.61.0",
+    "svelte": "^5.20.5",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0"
+  }
+}

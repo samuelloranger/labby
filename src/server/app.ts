@@ -1,0 +1,229 @@
+import { Hono, type Context } from 'hono';
+import { streamSSE } from 'hono/streaming';
+import { getCookie, setCookie } from 'hono/cookie';
+import { readFile } from 'fs/promises';
+import path from 'path';
+import {
+  getConfig,
+  getConfigState,
+} from './config/loader';
+import { collectMonitorSites, collectWeatherLocations, getDockerShow, sanitizeDashboard } from './config/schema';
+import { containerAction, containerLogs, listContainers } from './integrations/docker-client';
+import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
+import { getBeszelSystems } from './integrations/beszel';
+import { getJellyfinImage, getJellyfinSessions } from './integrations/jellyfin';
+import { getHackerNews } from './integrations/hackernews';
+import { getOpenWeather } from './integrations/openweather';
+import { getRedditPosts } from './integrations/reddit';
+import { checkSites } from './integrations/monitor';
+import { getQBittorrentTorrents, qbittorrentAction } from './integrations/qbittorrent';
+import { getTransmissionTorrents, transmissionAction } from './integrations/transmission';
+import { hub } from './sse/hub';
+import { refreshChannel } from './sse/scheduler';
+import type { Channel } from './types';
+
+const app = new Hono();
+
+const WEB_DIST = path.join(process.cwd(), 'web', 'dist');
+const INDEX_PATH = path.join(WEB_DIST, 'index.html');
+
+function themeFromCookieOrConfig(cookieTheme?: string): string {
+  if (cookieTheme === 'light' || cookieTheme === 'dark') return cookieTheme;
+  const config = getConfig();
+  const def = config?.theme.default ?? 'system';
+  if (def === 'light' || def === 'dark') return def;
+  return '';
+}
+
+app.use('*', async (c, next) => {
+  if (c.req.path === '/' || c.req.path === '/index.html') {
+    const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
+    if (html) {
+      const cookieTheme = getCookie(c, 'labby_theme');
+      const theme = themeFromCookieOrConfig(cookieTheme);
+      const patched = html.replaceAll('__LABBY_THEME__', theme);
+      return c.html(patched);
+    }
+  }
+  await next();
+});
+
+app.get('/api/config', (c) => {
+  const state = getConfigState();
+  if (!state.ok) return c.json({ error: state.error }, 500);
+  return c.json(sanitizeDashboard(state.config));
+});
+
+app.get('/api/monitor', async (c) => {
+  const config = getConfig();
+  if (!config) return c.json({ error: 'Config not loaded' }, 500);
+  const sites = collectMonitorSites(config);
+  const data = await checkSites(sites);
+  return c.json(data);
+});
+
+app.get('/api/docker/containers', async (c) => {
+  const config = getConfig();
+  const show = config ? getDockerShow(config) : 'running';
+  const data = await listContainers(show);
+  return c.json(data);
+});
+
+app.post('/api/docker/containers/:id/:action', async (c) => {
+  const action = c.req.param('action') as 'start' | 'stop' | 'restart';
+  if (!['start', 'stop', 'restart'].includes(action)) {
+    return c.json({ error: 'Invalid action' }, 400);
+  }
+  const result = await containerAction(c.req.param('id'), action);
+  if ('error' in result) return c.json(result, 502);
+  await refreshChannel('docker');
+  return c.json({ ok: true });
+});
+
+app.get('/api/docker/containers/:id/logs', async (c) => {
+  const tail = Number(c.req.query('tail') ?? 200);
+  const result = await containerLogs(c.req.param('id'), tail);
+  if ('error' in result) return c.json(result, 502);
+  return c.json(result);
+});
+
+app.get('/api/downloads/:client', async (c) => {
+  const client = c.req.param('client');
+  if (client === 'qbittorrent') return c.json(await getQBittorrentTorrents());
+  if (client === 'transmission') return c.json(await getTransmissionTorrents());
+  return c.json({ error: 'Unknown client' }, 400);
+});
+
+app.post('/api/downloads/:client/:hash/:action', async (c) => {
+  const client = c.req.param('client');
+  const action = c.req.param('action') as 'pause' | 'resume';
+  const hash = c.req.param('hash');
+  if (!['pause', 'resume'].includes(action)) return c.json({ error: 'Invalid action' }, 400);
+
+  const result =
+    client === 'qbittorrent'
+      ? await qbittorrentAction(hash, action)
+      : client === 'transmission'
+        ? await transmissionAction(hash, action)
+        : { error: 'Unknown client' };
+
+  if ('error' in result) return c.json(result, 502);
+  await refreshChannel(`downloads:${client}` as Channel);
+  return c.json({ ok: true });
+});
+
+app.get('/api/adguard/stats', async (c) => c.json(await getAdGuardStats()));
+
+app.post('/api/adguard/protection', async (c) => {
+  const body = await c.req.json<{ enabled: boolean; durationMs?: number }>();
+  const result = await setAdGuardProtection(body.enabled, body.durationMs);
+  if ('error' in result) return c.json(result, 502);
+  await refreshChannel('adguard');
+  return c.json({ ok: true });
+});
+
+app.get('/api/jellyfin/sessions', async (c) => c.json(await getJellyfinSessions()));
+
+app.get('/api/beszel/systems', async (c) => c.json(await getBeszelSystems()));
+
+app.get('/api/weather', async (c) => {
+  const config = getConfig();
+  if (!config) return c.json({ error: 'Config not loaded' }, 500);
+  const locations = collectWeatherLocations(config);
+  if (locations.length === 0) return c.json({ locations: {} });
+  const entries = await Promise.all(
+    locations.map(async (loc) => [loc.key, await getOpenWeather(loc)] as const),
+  );
+  return c.json({ locations: Object.fromEntries(entries) });
+});
+
+app.get('/api/jellyfin/image/:id', async (c) => {
+  const result = await getJellyfinImage(c.req.param('id'));
+  if ('error' in result) return c.json(result, 502);
+  return new Response(result.body, {
+    headers: {
+      'Content-Type': result.headers.get('Content-Type') ?? 'image/jpeg',
+      'Cache-Control': 'private, max-age=300',
+    },
+  });
+});
+
+app.get('/api/reddit/:subreddit', async (c) => c.json(await getRedditPosts(c.req.param('subreddit'))));
+
+app.get('/api/hackernews', async (c) => c.json(await getHackerNews()));
+
+app.post('/api/theme', async (c) => {
+  const body = await c.req.json<{ theme: string }>();
+  if (!['light', 'dark', 'system'].includes(body.theme)) {
+    return c.json({ error: 'Invalid theme' }, 400);
+  }
+  if (body.theme === 'system') {
+    setCookie(c, 'labby_theme', '', { path: '/', maxAge: 0 });
+  } else {
+    setCookie(c, 'labby_theme', body.theme, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      httpOnly: false,
+      sameSite: 'Lax',
+    });
+  }
+  return c.json({ ok: true });
+});
+
+app.get('/api/stream', (c) =>
+  streamSSE(c, async (stream) => {
+    const snapshot = hub.getSnapshot();
+    for (const [channel, data] of snapshot) {
+      try {
+        await stream.writeSSE({ event: channel, data: JSON.stringify(data) });
+      } catch {
+        return; // client disconnected mid-replay
+      }
+    }
+
+    // Writes to a closed stream reject; swallow so a disconnected client never
+    // produces an unhandled rejection.
+    const unsub = hub.subscribe((msg) => {
+      stream.writeSSE({ event: msg.channel, data: JSON.stringify(msg.data) }).catch(() => {});
+    });
+
+    const keepalive = setInterval(() => {
+      stream.write(': ping\n\n').catch(() => {});
+    }, 15000);
+
+    stream.onAbort(() => {
+      clearInterval(keepalive);
+      unsub();
+    });
+
+    await new Promise(() => {});
+  }),
+);
+
+async function serveStatic(c: Context) {
+  // Resolve under WEB_DIST and reject anything that escapes it via `../` traversal.
+  const resolved = path.resolve(WEB_DIST, '.' + c.req.path);
+  if (resolved !== WEB_DIST && !resolved.startsWith(WEB_DIST + path.sep)) {
+    return c.notFound();
+  }
+  const file = Bun.file(resolved);
+  if (!(await file.exists())) return c.notFound();
+  // Set an explicit Content-Type — c.body() does not infer it, and browsers
+  // reject JS modules / CSS served without the correct MIME type.
+  c.header('Content-Type', file.type || 'application/octet-stream');
+  return c.body(file.stream());
+}
+
+app.get('/assets/*', serveStatic);
+app.get('/icons/*', serveStatic);
+app.get('/fonts/*', serveStatic);
+
+app.get('*', async (c) => {
+  const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
+  if (!html) return c.text('Labby frontend not built. Run: bun run build', 503);
+  const cookieTheme = getCookie(c, 'labby_theme');
+  const theme = themeFromCookieOrConfig(cookieTheme);
+  return c.html(html.replaceAll('__LABBY_THEME__', theme));
+});
+
+export { app };

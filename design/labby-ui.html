@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labby — UI declaration</title>
+<!--
+  LABBY — UI DECLARATION  ·  aesthetic: "Apple glassmorphism", orange accent, dashboard-icons logos
+  ----------------------------------------------------------------------------
+  Airbnb-friendly bones + Apple glass: Big-Sur gradient-mesh wallpaper, frosted
+  translucent cards (backdrop-filter blur+saturate), 1px light-edge highlight,
+  large 20px radii, soft depth shadows, SF system font (Manrope fallback),
+  orange accent + dashboard-icons brand logos (custom image URLs supported). This file IS the design system — port :root/[data-theme]
+  tokens into Svelte; each .card = one widget. Light default; header toggle.
+  Script only fakes liveness; production reads /api/*.
+-->
+<!--
+  THEME ON FIRST PAINT — no flash.
+  Production: the Bun/Hono server rewrites the `__LABBY_THEME__` token below
+  (from a cookie or labby config) BEFORE sending HTML, so the correct theme is
+  in the very first byte — true first-paint, zero JS required. This blocking
+  inline script is the fallback/resolver: it runs before <body> renders and
+  picks server value → stored preference → system. Keep it as the FIRST thing
+  in <head> so [data-theme] styles apply before paint.
+-->
+<script>
+  (function () {
+    var server = "__LABBY_THEME__"; // server replaces with "light" | "dark"
+    var stored = null;
+    try { stored = localStorage.getItem("labby-theme"); } catch (e) {}
+    var sys = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    var theme = (server === "light" || server === "dark") ? server : (stored || sys);
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ========================================================================
+   TOKENS — Apple glassmorphism, two themes
+   ======================================================================== */
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Manrope",system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --radius:20px; --radius-sm:12px; --pill:999px;
+  --blur:saturate(180%) blur(20px);
+  /* accent: Apple system orange (var kept as --coral for brevity) */
+  --coral:#FF9500; --coral-soft:rgba(255,149,0,.15);
+  --ok:#30B85F; --warn:#F2A33C; --down:#FF453A; --idle:#B6BAC2;
+}
+:root[data-theme="light"]{
+  /* vibrant Big-Sur wallpaper for the glass to refract */
+  --wall:
+    radial-gradient(40% 50% at 18% 18%, #ffe2c2 0%, transparent 60%),
+    radial-gradient(40% 50% at 82% 12%, #ffd9c9 0%, transparent 60%),
+    radial-gradient(45% 55% at 75% 82%, #fff0c4 0%, transparent 58%),
+    radial-gradient(40% 50% at 12% 88%, #ffe6cf 0%, transparent 55%),
+    linear-gradient(160deg,#fbf5ee,#f6efe8);
+  --glass:rgba(255,255,255,.55);
+  --glass-2:rgba(255,255,255,.42);
+  --glass-brd:rgba(255,255,255,.7);
+  --glass-hi:rgba(255,255,255,.85);
+  --surface:rgba(120,120,140,.10);
+  --surface-2:rgba(120,120,140,.16);
+  --ink:#1d1d1f; --ink-dim:#62636a; --ink-faint:#9b9da6;
+  --shadow:0 10px 34px rgba(40,40,60,.12);
+  --shadow-hi:0 14px 40px rgba(40,40,60,.18);
+}
+:root[data-theme="dark"]{
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #3d2a14 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 12%, #3a201a 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #2f2611 0%, transparent 58%),
+    radial-gradient(40% 50% at 10% 90%, #301c12 0%, transparent 55%),
+    linear-gradient(160deg,#110e0a,#0c0a08);
+  --coral:#FF9F0A; --coral-soft:rgba(255,159,10,.18);
+  --glass:rgba(30,32,42,.55);
+  --glass-2:rgba(30,32,42,.42);
+  --glass-brd:rgba(255,255,255,.14);
+  --glass-hi:rgba(255,255,255,.22);
+  --surface:rgba(255,255,255,.06);
+  --surface-2:rgba(255,255,255,.10);
+  --ink:#f5f5f7; --ink-dim:#a9abb3; --ink-faint:#70727b;
+  --shadow:0 12px 40px rgba(0,0,0,.5);
+  --shadow-hi:0 16px 48px rgba(0,0,0,.62);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:var(--font);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;
+  background:var(--wall) fixed;background-size:cover;min-height:100vh;transition:color .25s var(--ease)}
+svg.ic{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block}
+.fill{fill:currentColor;stroke:none}
+/* dashboard-icons brand logos (homarr-labs set via jsDelivr) */
+img.logo{width:22px;height:22px;object-fit:contain;display:block;flex:none}
+.row img.logo{width:20px;height:20px}
+.tile .tic img.logo{width:28px;height:28px}
+.ctr img.clogo{width:28px;height:28px;object-fit:contain;flex:none}
+.chead .ti .ibox img.logo{width:20px;height:20px}
+
+/* glass mixin */
+.glass{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow),inset 0 1px 0 var(--glass-hi)}
+
+/* ========================================================================
+   HEADER — frosted sticky bar
+   ======================================================================== */
+header.top{position:sticky;top:0;z-index:20;background:var(--glass);
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-bottom:1px solid var(--glass-brd)}
+.top-in{display:flex;align-items:center;gap:24px;padding:13px 40px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.2rem;letter-spacing:-.02em;color:var(--ink)}
+.brand .dot{width:28px;height:28px;border-radius:50%;background:var(--coral);display:grid;place-items:center;color:#fff;font-size:1rem;box-shadow:0 4px 12px rgba(255,149,0,.45)}
+.searchpill{margin:0 auto;display:flex;align-items:center;gap:12px;border-radius:var(--pill);padding:8px 8px 8px 20px;width:380px;
+  background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--glass-brd);transition:.18s var(--ease)}
+.searchpill:focus-within{box-shadow:var(--shadow-hi)}
+.searchpill input{flex:1;border:none;background:none;outline:none;font-family:var(--font);font-size:.9rem;color:var(--ink)}
+.searchpill input::placeholder{color:var(--ink-dim)}
+.searchpill .go{width:34px;height:34px;border-radius:50%;background:var(--coral);color:#fff;display:grid;place-items:center;flex:none}
+.searchpill .go svg{width:16px;height:16px;stroke-width:2.5}
+.summary{display:flex;gap:13px}
+.chip{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-dim);font-weight:600}
+.chip b{color:var(--ink);font-variant-numeric:tabular-nums}
+.iconbtn{width:42px;height:42px;border-radius:50%;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);display:grid;place-items:center;cursor:pointer;color:var(--ink-dim);transition:.15s var(--ease)}
+.iconbtn:hover{color:var(--ink);box-shadow:var(--shadow-hi)}
+
+/* ========================================================================
+   PAGE
+   ======================================================================== */
+.page{padding:28px 40px 48px}
+.page-h{display:flex;align-items:baseline;gap:14px;margin-bottom:22px}
+.page-h h1{font-size:1.7rem;font-weight:800;letter-spacing:-.025em}
+.page-h .sub{color:var(--ink-dim);font-size:.92rem;font-weight:500}
+
+.grid{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media(max-width:1080px){.grid{grid-template-columns:1fr}}
+
+/* ========================================================================
+   CARD — frosted glass
+   ======================================================================== */
+.card{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);border-radius:var(--radius);padding:20px;
+  box-shadow:var(--shadow),inset 0 1px 0 var(--glass-hi)}
+.chead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.chead .ti{display:flex;align-items:center;gap:9px;font-weight:700;font-size:1rem;letter-spacing:-.01em}
+.chead .ti .ibox{width:31px;height:31px;border-radius:10px;background:var(--coral-soft);color:var(--coral);display:grid;place-items:center;flex:none}
+.chead .ti .ibox svg{width:17px;height:17px;stroke-width:2.2}
+.chead .meta{margin-left:auto;font-size:.78rem;color:var(--ink-dim);font-weight:600;font-variant-numeric:tabular-nums}
+
+.dot{width:9px;height:9px;border-radius:50%;background:var(--idle);flex:none}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.down{background:var(--down)}
+.dot.live{background:var(--coral);box-shadow:0 0 8px var(--coral);animation:breathe 2.4s var(--ease) infinite}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* MONITOR rows */
+.rows{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:.92rem;border-bottom:1px solid var(--glass-brd)}
+.row:first-child{padding-top:0}.row:last-child{border-bottom:none;padding-bottom:0}
+.row .name{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .ms{color:var(--ink-faint);font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums}
+.row.bad .ms{color:var(--down)}
+.row .name.sub{color:var(--ink-dim);font-weight:500}
+
+/* LAUNCHER tiles */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;padding:16px 8px;
+  border:1px solid var(--glass-brd);border-radius:var(--radius-sm);text-decoration:none;color:var(--ink-dim);
+  background:var(--glass-2);transition:.18s var(--ease)}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-hi);color:var(--ink)}
+.tile .tic{width:42px;height:42px;border-radius:12px;background:var(--surface);display:grid;place-items:center;color:var(--ink)}
+.tile .tic svg{width:21px;height:21px}
+.tile .lbl{font-size:.74rem;font-weight:600;text-align:center}
+.tile .dot{position:absolute;top:10px;right:10px;width:8px;height:8px}
+
+/* DOCKER */
+.ctr{display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--glass-brd)}
+.ctr:first-child{padding-top:0}.ctr:last-child{border-bottom:none;padding-bottom:0}
+.cname{font-weight:700;font-size:.92rem}
+.cimg{font-size:.76rem;color:var(--ink-faint);margin-top:1px}
+.usage{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--ink-dim);font-weight:600;font-variant-numeric:tabular-nums}
+.meter{width:54px;height:6px;background:var(--surface-2);border-radius:var(--pill);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--coral);border-radius:var(--pill)}
+.meter.hot i{background:var(--warn)}
+.ctrls{display:flex;gap:6px}
+.btn{width:34px;height:34px;display:grid;place-items:center;cursor:pointer;background:var(--surface);
+  border:1px solid var(--glass-brd);border-radius:var(--radius-sm);color:var(--ink-dim);transition:.15s var(--ease)}
+.btn svg{width:16px;height:16px}
+.btn:hover{color:var(--ink);background:var(--surface-2)}
+.btn.go:hover{color:#fff;background:var(--ok);border-color:transparent}
+.btn.stop:hover{color:#fff;background:var(--down);border-color:transparent}
+.btn:active{transform:scale(.93)}
+.btn:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+
+/* DOWNLOADS */
+.dl{display:flex;flex-direction:column;gap:16px}
+.tor{display:flex;flex-direction:column;gap:9px}
+.tor .top{display:flex;align-items:center;gap:11px}
+.tname{flex:1;font-weight:600;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pct{font-size:.82rem;font-weight:700;color:var(--coral);font-variant-numeric:tabular-nums}
+.bar{height:7px;background:var(--surface-2);border-radius:var(--pill);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--coral);border-radius:var(--pill);transition:width .6s var(--ease)}
+.tor.seed .bar i{background:var(--ok)}
+.spd{display:flex;gap:16px;font-size:.78rem;color:var(--ink-dim);font-weight:600;font-variant-numeric:tabular-nums}
+.spd .dn{color:var(--coral)}
+
+/* ADGUARD */
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.gauge{background:var(--surface);border:1px solid var(--glass-brd);border-radius:var(--radius-sm);padding:15px}
+.gauge .v{font-weight:800;font-size:1.7rem;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.gauge .v.coral{color:var(--coral)}
+.gauge .k{font-size:.72rem;font-weight:600;color:var(--ink-dim);margin-top:3px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between}
+.toggle-row .k{font-weight:700;font-size:.92rem}
+.sw{width:50px;height:29px;border-radius:var(--pill);background:var(--surface-2);position:relative;cursor:pointer;transition:.25s var(--ease)}
+.sw i{position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#fff;transition:.25s var(--ease);box-shadow:0 2px 5px rgba(0,0,0,.28)}
+.sw.on{background:var(--coral)}
+.sw.on i{left:24px}
+
+/* JELLYFIN */
+.sess{display:flex;flex-direction:column;gap:12px}
+.jf{display:flex;gap:13px}
+.poster{width:42px;height:60px;border-radius:11px;background:var(--surface-2);flex:none;display:grid;place-items:center;color:var(--ink-faint)}
+.poster svg{width:18px;height:18px}
+.jf .info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.jf .cti{font-weight:700;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jf .sub{font-size:.78rem;color:var(--ink-faint);margin:1px 0 8px}
+.jf .who{font-size:.72rem;color:var(--coral);font-weight:700}
+.jf .bar{margin-top:8px}
+
+footer.f{padding:0 40px 36px;color:var(--ink-dim);font-size:.78rem;font-weight:500;text-align:center}
+
+.card,.tile{animation:rise .5s var(--ease) both}
+.col:nth-child(1) .card{animation-delay:.04s}
+.col:nth-child(2) .card{animation-delay:.10s}
+.col:nth-child(3) .card{animation-delay:.16s}
+@keyframes rise{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon class="fill" points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+  <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 24 24"><path d="M15 12h-5M15 8h-5M10 16H8"/><path d="M19 17V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v14l3-2 2 2 2-2 2 2 2-2 3 2z"/></symbol>
+</defs></svg>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><span class="dot">L</span><span>labby</span></div>
+    <div class="searchpill">
+      <input placeholder="Search services, containers…">
+      <span class="go"><svg class="ic"><use href="#i-search"/></svg></span>
+    </div>
+    <div class="summary">
+      <span class="chip"><span class="dot ok"></span><b>23</b></span>
+      <span class="chip"><span class="dot warn"></span><b>1</b></span>
+      <span class="chip"><span class="dot down"></span><b>1</b></span>
+    </div>
+    <button class="iconbtn" id="theme" aria-label="Toggle theme"><svg class="ic"><use href="#i-sun"/></svg></button>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-h"><h1>Overview</h1><span class="sub" id="sub">Sunday, June 15 · 25 services</span></div>
+
+  <div class="grid">
+
+    <!-- LEFT -->
+    <div class="col">
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><svg class="ic"><use href="#i-activity"/></svg></span>Core</span><span class="meta">5 / 5 up</span></div>
+        <div class="rows">
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" alt="" onerror="this.style.display='none'"><span class="name">AdGuard Home</span><span class="ms">12ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" alt="" onerror="this.style.display='none'"><span class="name">qBittorrent</span><span class="ms">31ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" alt="" onerror="this.style.display='none'"><span class="name">Jellyfin</span><span class="ms">8ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" alt="" onerror="this.style.display='none'"><span class="name">Immich</span><span class="ms">22ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitea.svg" alt="" onerror="this.style.display='none'"><span class="name">Gitea</span><span class="ms">15ms</span></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" alt="" onerror="this.style.display='none'"></span>AdGuard</span></div>
+        <div class="gauges">
+          <div class="gauge"><div class="v">48.2k</div><div class="k">Queries · 24h</div></div>
+          <div class="gauge"><div class="v coral">31.7%</div><div class="k">Blocked</div></div>
+          <div class="gauge"><div class="v">9ms</div><div class="k">Avg latency</div></div>
+          <div class="gauge"><div class="v">1.2k</div><div class="k">Rules</div></div>
+        </div>
+        <div class="toggle-row"><span class="k">Protection</span><div class="sw on" id="adg" role="switch" aria-checked="true" tabindex="0"><i></i></div></div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" alt="" onerror="this.style.display='none'"></span>Jellyfin</span><span class="meta">2 playing</span></div>
+        <div class="sess">
+          <div class="jf"><div class="poster"><svg class="ic"><use href="#i-play"/></svg></div><div class="info"><div class="cti">Dune: Part Two</div><div class="sub">2024 · 1080p · transcode</div><div class="who">sam · living room</div><div class="bar"><i style="width:42%"></i></div></div></div>
+          <div class="jf"><div class="poster"><svg class="ic"><use href="#i-film"/></svg></div><div class="info"><div class="cti">The Bear — S03E04</div><div class="sub">direct play · iPad</div><div class="who">guest</div><div class="bar"><i style="width:78%"></i></div></div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- CENTER -->
+    <div class="col">
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><svg class="ic"><use href="#i-box"/></svg></span>Containers</span><span class="meta">live</span></div>
+        <div class="ctr"><span class="dot ok"></span><img class="clogo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" alt="" onerror="this.style.display='none'"><div><div class="cname">jellyfin</div><div class="cimg">jellyfin/jellyfin:latest</div></div><div class="usage">cpu <span class="meter"><i style="width:18%"></i></span> 18%</div><div class="ctrls"><span class="btn" title="logs"><svg class="ic"><use href="#i-logs"/></svg></span><span class="btn stop" title="stop"><svg class="ic"><use href="#i-stop"/></svg></span><span class="btn" title="restart"><svg class="ic"><use href="#i-restart"/></svg></span></div></div>
+        <div class="ctr"><span class="dot ok"></span><img class="clogo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" alt="" onerror="this.style.display='none'"><div><div class="cname">immich-server</div><div class="cimg">ghcr.io/immich-app/immich-server</div></div><div class="usage">cpu <span class="meter hot"><i style="width:64%"></i></span> 64%</div><div class="ctrls"><span class="btn" title="logs"><svg class="ic"><use href="#i-logs"/></svg></span><span class="btn stop" title="stop"><svg class="ic"><use href="#i-stop"/></svg></span><span class="btn" title="restart"><svg class="ic"><use href="#i-restart"/></svg></span></div></div>
+        <div class="ctr"><span class="dot ok"></span><img class="clogo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitea.svg" alt="" onerror="this.style.display='none'"><div><div class="cname">gitea</div><div class="cimg">gitea/gitea:1.22</div></div><div class="usage">cpu <span class="meter"><i style="width:4%"></i></span> 4%</div><div class="ctrls"><span class="btn" title="logs"><svg class="ic"><use href="#i-logs"/></svg></span><span class="btn stop" title="stop"><svg class="ic"><use href="#i-stop"/></svg></span><span class="btn" title="restart"><svg class="ic"><use href="#i-restart"/></svg></span></div></div>
+        <div class="ctr"><span class="dot down"></span><img class="clogo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/reelward.svg" alt="" onerror="this.style.display='none'"><div><div class="cname">reelward-dev</div><div class="cimg">exited (137) · 4h ago</div></div><div class="usage" style="color:var(--ink-faint)">—</div><div class="ctrls"><span class="btn" title="logs"><svg class="ic"><use href="#i-logs"/></svg></span><span class="btn go" title="start"><svg class="ic"><use href="#i-play"/></svg></span><span class="btn" title="restart"><svg class="ic"><use href="#i-restart"/></svg></span></div></div>
+        <div class="ctr"><span class="dot ok"></span><img class="clogo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/caddy.svg" alt="" onerror="this.style.display='none'"><div><div class="cname">caddy</div><div class="cimg">caddy:2-alpine</div></div><div class="usage">cpu <span class="meter"><i style="width:2%"></i></span> 2%</div><div class="ctrls"><span class="btn" title="logs"><svg class="ic"><use href="#i-logs"/></svg></span><span class="btn stop" title="stop"><svg class="ic"><use href="#i-stop"/></svg></span><span class="btn" title="restart"><svg class="ic"><use href="#i-restart"/></svg></span></div></div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" alt="" onerror="this.style.display='none'"></span>qBittorrent</span><span class="meta" id="qspd">↓ 8.4 MB/s</span></div>
+        <div class="dl">
+          <div class="tor"><div class="top"><span class="dot live"></span><span class="tname">ubuntu-24.04.1-desktop-amd64.iso</span><span class="pct">42%</span></div><div class="bar"><i class="qp" style="width:42%"></i></div><div class="spd"><span class="dn">↓ 7.8 MB/s</span><span>↑ 0.4 MB/s</span><span style="color:var(--ink-faint)">eta 6m</span></div></div>
+          <div class="tor seed"><div class="top"><span class="dot ok"></span><span class="tname">archlinux-2026.06.01-x86_64.iso</span><span class="pct" style="color:var(--ok)">100%</span></div><div class="bar"><i style="width:100%"></i></div><div class="spd"><span>↓ 0 MB/s</span><span>↑ 1.1 MB/s</span><span style="color:var(--ink-faint)">seeding · ratio 2.4</span></div></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/transmission.svg" alt="" onerror="this.style.display='none'"></span>Transmission</span><span class="meta">vpn:9091</span></div>
+        <div class="dl">
+          <div class="tor"><div class="top"><span class="dot live"></span><span class="tname">debian-12.6.0-amd64-netinst.iso</span><span class="pct">88%</span></div><div class="bar"><i style="width:88%"></i></div><div class="spd"><span class="dn">↓ 3.2 MB/s</span><span>↑ 0.2 MB/s</span><span style="color:var(--ink-faint)">eta 1m</span></div></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><svg class="ic"><use href="#i-grid"/></svg></span>Launcher</span></div>
+        <div class="tiles">
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Jellyfin</span></a>
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Immich</span></a>
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitea.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Gitea</span></a>
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/arcane.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Arcane</span></a>
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/audiobookshelf.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Audiobk</span></a>
+          <a class="tile"><span class="dot warn"></span><span class="tic"><svg class="ic"><use href="#i-film"/></svg></span><span class="lbl">Reelward</span></a>
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kan.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Kan</span></a>
+          <a class="tile"><span class="dot ok"></span><span class="tic"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/beszel.svg" alt="" onerror="this.style.display='none'"></span><span class="lbl">Beszel</span></a>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col">
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><svg class="ic"><use href="#i-activity"/></svg></span>Infra</span><span class="meta">7 / 7 up</span></div>
+        <div class="rows">
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/arcane.svg" alt="" onerror="this.style.display='none'"><span class="name">Arcane</span><span class="ms">19ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/beszel.svg" alt="" onerror="this.style.display='none'"><span class="name">Beszel</span><span class="ms">11ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/uptime-kuma.svg" alt="" onerror="this.style.display='none'"><span class="name">Uptime Kuma</span><span class="ms">7ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kopia.svg" alt="" onerror="this.style.display='none'"><span class="name">Kopia</span><span class="ms">40ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ntfy.svg" alt="" onerror="this.style.display='none'"><span class="name">ntfy</span><span class="ms">5ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg" alt="" onerror="this.style.display='none'"><span class="name">Vaultwarden</span><span class="ms">14ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" alt="" onerror="this.style.display='none'"><span class="name">Home Assistant</span><span class="ms">9ms</span></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><svg class="ic"><use href="#i-grid"/></svg></span>Apps</span><span class="meta">7 / 8 up</span></div>
+        <div class="rows">
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitea.svg" alt="" onerror="this.style.display='none'"><span class="name">Gitea</span><span class="ms">15ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg" alt="" onerror="this.style.display='none'"><span class="name">Vaultwarden</span><span class="ms">14ms</span></div>
+          <div class="row"><span class="dot ok"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kan.svg" alt="" onerror="this.style.display='none'"><span class="name">Kan</span><span class="ms">28ms</span></div>
+          <div class="row"><span class="dot ok"></span><span class="name">Budget</span><span class="ms">33ms</span></div>
+          <div class="row"><span class="dot ok"></span><span class="name">Jollyboard</span><span class="ms">21ms</span></div>
+          <div class="row"><span class="dot ok"></span><span class="name">Bunnyfile</span><span class="ms">17ms</span></div>
+          <div class="row bad"><span class="dot down"></span><span class="name">C411</span><span class="ms">timeout</span></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="chead"><span class="ti"><span class="ibox"><svg class="ic"><use href="#i-box"/></svg></span>Updates</span><span class="meta">github</span></div>
+        <div class="rows">
+          <div class="row"><span class="dot live"></span><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/glance.svg" alt="" onerror="this.style.display='none'"><span class="name">glance</span><span class="ms" style="color:var(--coral)">v0.8.5</span></div>
+          <div class="row"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" alt="" onerror="this.style.display='none'"><span class="name sub">jellyfin</span><span class="ms">10.9.11</span></div>
+          <div class="row"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" alt="" onerror="this.style.display='none'"><span class="name sub">immich</span><span class="ms">v1.118</span></div>
+          <div class="row"><img class="logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/caddy.svg" alt="" onerror="this.style.display='none'"><span class="name sub">caddy</span><span class="ms">v2.8.4</span></div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</main>
+<footer class="f">labby · glass · config-as-code · no telemetry</footer>
+
+<script>
+const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const mon=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const d=new Date();
+document.getElementById('sub').textContent=`${days[d.getDay()]}, ${mon[d.getMonth()]} ${d.getDate()} · 25 services`;
+
+const adg=document.getElementById('adg');
+const flip=()=>{adg.classList.toggle('on');adg.setAttribute('aria-checked',adg.classList.contains('on'));};
+adg.addEventListener('click',flip);
+adg.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();}});
+
+document.getElementById('theme').addEventListener('click',()=>{
+  const h=document.documentElement;const next=h.dataset.theme==='light'?'dark':'light';
+  h.dataset.theme=next;
+  try{localStorage.setItem('labby-theme',next);}catch(e){}
+  // production also POSTs to /api/theme so the server can rewrite first paint next load
+});
+
+let p=42;setInterval(()=>{p=Math.min(99,p+Math.random()*1.4);
+  const el=document.querySelector('.qp');el.style.width=p+'%';
+  el.closest('.tor').querySelector('.pct').textContent=Math.round(p)+'%';
+  document.getElementById('qspd').textContent='↓ '+(7+Math.random()*3).toFixed(1)+' MB/s';},1600);
+
+document.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{b.style.borderColor='var(--coral)';setTimeout(()=>b.style.borderColor='',260);}));
+</script>
+</body>
+</html>
