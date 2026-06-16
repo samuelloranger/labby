@@ -120,11 +120,12 @@
     </div>
 
     {#if disks.length}
-      <div class="beszel-disk-head">
-        <span>Storage</span>
-        <b>{disks.length} disks</b>
-      </div>
-      <div class="beszel-disks">
+      <details class="beszel-storage">
+        <summary class="beszel-disk-head">
+          <span>Storage</span>
+          <b>{disks.length} disks<span class="chev" aria-hidden="true">⌄</span></b>
+        </summary>
+        <div class="beszel-disks">
         {#each disks as disk (disk.id)}
           <div class="beszel-disk">
             <div class="beszel-disk-top">
@@ -154,7 +155,8 @@
             </div>
           </div>
         {/each}
-      </div>
+        </div>
+      </details>
     {/if}
   {/if}
 </section>
