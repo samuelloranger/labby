@@ -44,7 +44,8 @@ export const WidgetSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('reddit'),
     title: z.string(),
-    subreddit: z.string(),
+    // one sub ("homelab") or several to merge into one feed
+    subreddit: z.union([z.string(), z.array(z.string()).nonempty()]),
     max: z.number().int().positive().optional(),
   }),
   z.object({
@@ -59,6 +60,11 @@ export const WidgetSchema = z.discriminatedUnion('type', [
     lat: z.number().optional(),
     lon: z.number().optional(),
     units: z.enum(['metric', 'imperial']).optional(),
+  }),
+  z.object({
+    type: z.literal('calendar'),
+    title: z.string(),
+    max: z.number().int().positive().optional(),
   }),
 ]);
 
@@ -88,6 +94,7 @@ export const DashboardSchema = z.object({
       jellyfin: z.number().default(15),
       beszel: z.number().default(15),
       weather: z.number().default(900),
+      calendar: z.number().default(600),
     })
     .default({}),
   pages: z.array(PageSchema).min(1),

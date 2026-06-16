@@ -11,6 +11,7 @@ import { collectMonitorSites, collectWeatherLocations, getDockerShow, sanitizeDa
 import { containerAction, containerLogs, listContainers } from './integrations/docker-client';
 import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
 import { getBeszelSystems } from './integrations/beszel';
+import { getCalendarEvents } from './integrations/calendar';
 import { getJellyfinImage, getJellyfinSessions } from './integrations/jellyfin';
 import { getHackerNews } from './integrations/hackernews';
 import { getOpenWeather } from './integrations/openweather';
@@ -125,6 +126,8 @@ app.post('/api/adguard/protection', async (c) => {
 app.get('/api/jellyfin/sessions', async (c) => c.json(await getJellyfinSessions()));
 
 app.get('/api/beszel/systems', async (c) => c.json(await getBeszelSystems()));
+
+app.get('/api/calendar', async (c) => c.json(await getCalendarEvents()));
 
 app.get('/api/weather', async (c) => {
   const config = getConfig();

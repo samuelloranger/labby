@@ -8,8 +8,18 @@
   const connected = $derived($streamConnected);
 
   let theme = $state(document.documentElement.dataset.theme ?? 'light');
+  let searchEl = $state<HTMLInputElement>();
 
   const summary = $derived(monitor.data?.summary ?? { up: 0, warn: 0, down: 0 });
+
+  // "/" focuses search; ignore when already typing in a field.
+  function onGlobalKey(e: KeyboardEvent) {
+    if (e.key !== '/') return;
+    const t = e.target as HTMLElement;
+    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
+    e.preventDefault();
+    searchEl?.focus();
+  }
 
   async function toggleTheme() {
     const next = theme === 'light' ? 'dark' : 'light';
@@ -33,6 +43,8 @@
   }
 </script>
 
+<svelte:window onkeydown={onGlobalKey} />
+
 <header class="top">
   <div class="top-in">
     <div class="brand">
@@ -45,7 +57,8 @@
         placeholder="Search services, containers…"
         aria-label="Search services, containers and torrents"
         bind:value={$searchQuery}
-        onkeydown={(e) => { if (e.key === 'Escape') $searchQuery = ''; }}
+        bind:this={searchEl}
+        onkeydown={(e) => { if (e.key === 'Escape') { $searchQuery = ''; searchEl?.blur(); } }}
       />
       <span class="go"><Search size={16} color="#fff" strokeWidth={2.5} /></span>
     </div>

@@ -124,6 +124,19 @@ export type WeatherData = {
   locations: Record<string, WeatherLocationData | { error: string }>;
 };
 
+export type CalendarEvent = {
+  title: string;
+  start: number;
+  end: number;
+  allDay: boolean;
+  location?: string;
+  calendar: string;
+};
+
+export type CalendarData = {
+  events: CalendarEvent[];
+};
+
 export type WidgetState<T> = {
   loading: boolean;
   error: string | null;
@@ -143,6 +156,7 @@ export const adguardStore = writable<WidgetState<AdGuardData>>(emptyState());
 export const jellyfinStore = writable<WidgetState<JellyfinData>>(emptyState());
 export const beszelStore = writable<WidgetState<BeszelData>>(emptyState());
 export const weatherStore = writable<WidgetState<WeatherData>>(emptyState());
+export const calendarStore = writable<WidgetState<CalendarData>>(emptyState());
 export const streamConnected = writable(true);
 
 /** Global search across services + containers + torrents (header search pill). */
@@ -170,6 +184,7 @@ export function markStale() {
     jellyfinStore,
     beszelStore,
     weatherStore,
+    calendarStore,
   ]) {
     store.update((s) => ({ ...s, stale: true }));
   }
@@ -208,6 +223,7 @@ export function initStream() {
     jellyfin: (d) => patchStore(jellyfinStore, d),
     beszel: (d) => patchStore(beszelStore, d),
     weather: (d) => patchStore(weatherStore, d),
+    calendar: (d) => patchStore(calendarStore, d),
   };
 
   for (const [event, handler] of Object.entries(handlers)) {
