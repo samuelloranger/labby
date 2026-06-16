@@ -63,6 +63,132 @@
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.62);
 }
 
+:root[data-theme='light-slate'] {
+  --wall:
+    radial-gradient(42% 50% at 16% 12%, #dbeafe 0%, transparent 60%),
+    radial-gradient(42% 50% at 84% 14%, #e0e7ff 0%, transparent 58%),
+    radial-gradient(44% 54% at 78% 84%, #f1f5f9 0%, transparent 58%),
+    linear-gradient(160deg, #f8fafc, #e2e8f0);
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.14);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-2: rgba(255, 255, 255, 0.46);
+  --glass-brd: rgba(148, 163, 184, 0.34);
+  --glass-hi: rgba(255, 255, 255, 0.86);
+  --surface: rgba(15, 23, 42, 0.07);
+  --surface-2: rgba(15, 23, 42, 0.11);
+  --ink: #0f172a;
+  --ink-dim: #475569;
+  --ink-faint: #94a3b8;
+  --shadow: 0 10px 34px rgba(15, 23, 42, 0.12);
+  --shadow-hi: 0 14px 40px rgba(15, 23, 42, 0.18);
+}
+
+:root[data-theme='light-mint'] {
+  --wall:
+    radial-gradient(40% 50% at 18% 14%, #bbf7d0 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 16%, #ccfbf1 0%, transparent 58%),
+    radial-gradient(46% 54% at 75% 84%, #dcfce7 0%, transparent 58%),
+    linear-gradient(160deg, #f7fee7, #d9f99d);
+  --accent: #059669;
+  --accent-soft: rgba(5, 150, 105, 0.14);
+  --glass: rgba(255, 255, 255, 0.56);
+  --glass-2: rgba(255, 255, 255, 0.44);
+  --glass-brd: rgba(16, 185, 129, 0.26);
+  --glass-hi: rgba(255, 255, 255, 0.84);
+  --surface: rgba(6, 78, 59, 0.08);
+  --surface-2: rgba(6, 78, 59, 0.13);
+  --ink: #052e2b;
+  --ink-dim: #3f625c;
+  --ink-faint: #78958f;
+  --shadow: 0 10px 34px rgba(6, 78, 59, 0.12);
+  --shadow-hi: 0 14px 40px rgba(6, 78, 59, 0.18);
+}
+
+:root[data-theme='light-rose'] {
+  --wall:
+    radial-gradient(40% 50% at 18% 16%, #fecdd3 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 14%, #fbcfe8 0%, transparent 58%),
+    radial-gradient(45% 55% at 74% 84%, #ffe4e6 0%, transparent 58%),
+    linear-gradient(160deg, #fff1f2, #ffe4e6);
+  --accent: #e11d48;
+  --accent-soft: rgba(225, 29, 72, 0.14);
+  --glass: rgba(255, 255, 255, 0.56);
+  --glass-2: rgba(255, 255, 255, 0.44);
+  --glass-brd: rgba(244, 63, 94, 0.24);
+  --glass-hi: rgba(255, 255, 255, 0.84);
+  --surface: rgba(136, 19, 55, 0.07);
+  --surface-2: rgba(136, 19, 55, 0.12);
+  --ink: #3b0a1e;
+  --ink-dim: #70425a;
+  --ink-faint: #a7798f;
+  --shadow: 0 10px 34px rgba(136, 19, 55, 0.12);
+  --shadow-hi: 0 14px 40px rgba(136, 19, 55, 0.18);
+}
+
+:root[data-theme='dark-graphite'] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #1f2937 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 12%, #111827 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #374151 0%, transparent 58%),
+    linear-gradient(160deg, #030712, #111827);
+  --accent: #a3e635;
+  --accent-soft: rgba(163, 230, 53, 0.16);
+  --glass: rgba(17, 24, 39, 0.58);
+  --glass-2: rgba(17, 24, 39, 0.44);
+  --glass-brd: rgba(255, 255, 255, 0.14);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.1);
+  --ink: #f9fafb;
+  --ink-dim: #cbd5e1;
+  --ink-faint: #64748b;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
+}
+
+:root[data-theme='dark-ocean'] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #0e7490 0%, transparent 58%),
+    radial-gradient(42% 52% at 84% 12%, #1d4ed8 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #0f766e 0%, transparent 58%),
+    linear-gradient(160deg, #04111f, #082f49);
+  --accent: #22d3ee;
+  --accent-soft: rgba(34, 211, 238, 0.16);
+  --glass: rgba(8, 47, 73, 0.58);
+  --glass-2: rgba(8, 47, 73, 0.44);
+  --glass-brd: rgba(125, 211, 252, 0.18);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.11);
+  --ink: #f0f9ff;
+  --ink-dim: #bae6fd;
+  --ink-faint: #67a9c8;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
+}
+
+:root[data-theme='dark-forest'] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #14532d 0%, transparent 58%),
+    radial-gradient(42% 52% at 84% 12%, #365314 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #064e3b 0%, transparent 58%),
+    linear-gradient(160deg, #03140c, #0b1f13);
+  --accent: #4ade80;
+  --accent-soft: rgba(74, 222, 128, 0.16);
+  --glass: rgba(11, 31, 19, 0.58);
+  --glass-2: rgba(11, 31, 19, 0.44);
+  --glass-brd: rgba(187, 247, 208, 0.16);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.11);
+  --ink: #f0fdf4;
+  --ink-dim: #bbf7d0;
+  --ink-faint: #74a983;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -264,6 +390,35 @@ header.top {
 }
 
 .iconbtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-picker {
+  height: 42px;
+  border-radius: var(--pill);
+  background: var(--glass-2);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-brd);
+  color: var(--ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.theme-picker select {
+  width: 94px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 700 0.84rem var(--font);
+  cursor: pointer;
+}
+
+.theme-picker:focus-within {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -709,6 +864,40 @@ header.top {
 
 .spd .dn {
   color: var(--accent);
+}
+
+.mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mini-list.top-gap {
+  margin-top: 14px;
+}
+
+.mini-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+}
+
+.mini-row span:not(.dot) {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-row b {
+  color: var(--ink-faint);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .dl-more {
@@ -1509,4 +1698,170 @@ footer.f {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── animations: blanket motion layer ──────────────────────────────
+   All of this is killed by the prefers-reduced-motion guard above
+   (animation/transition: none !important wins regardless of order). */
+
+/* page + header entrance */
+.page {
+  animation: fade-in 0.6s var(--ease) both;
+}
+header.top {
+  animation: slide-down 0.5s var(--ease) both;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: none; }
+}
+
+/* staggered card cascade — overrides the flat rise timing */
+.grid > .card { animation: rise 0.55s var(--ease) both; }
+.grid > .card:nth-child(1) { animation-delay: 0.04s; }
+.grid > .card:nth-child(2) { animation-delay: 0.10s; }
+.grid > .card:nth-child(3) { animation-delay: 0.16s; }
+.grid > .card:nth-child(4) { animation-delay: 0.22s; }
+.grid > .card:nth-child(5) { animation-delay: 0.28s; }
+.grid > .card:nth-child(6) { animation-delay: 0.34s; }
+.grid > .card:nth-child(7) { animation-delay: 0.40s; }
+.grid > .card:nth-child(8) { animation-delay: 0.46s; }
+.grid > .card:nth-child(n+9) { animation-delay: 0.52s; }
+
+/* staggered tile pop-in within a card */
+.tile { animation: pop-in 0.45s var(--ease) both; }
+.tile:nth-child(2) { animation-delay: 0.05s; }
+.tile:nth-child(3) { animation-delay: 0.10s; }
+.tile:nth-child(4) { animation-delay: 0.15s; }
+.tile:nth-child(5) { animation-delay: 0.20s; }
+.tile:nth-child(n+6) { animation-delay: 0.25s; }
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+/* card hover lift + glow */
+.card {
+  transition:
+    transform 0.3s var(--ease),
+    box-shadow 0.3s var(--ease),
+    border-color 0.3s var(--ease);
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hi), inset 0 1px 0 var(--glass-hi), 0 0 0 1px var(--accent-soft);
+  border-color: var(--accent-soft);
+}
+
+/* tile / row hover */
+.tile,
+.ctr,
+.row {
+  transition: transform 0.2s var(--ease), background 0.2s var(--ease);
+}
+.tile:hover { transform: translateY(-2px) scale(1.015); }
+.ctr:hover,
+.row:hover { transform: translateX(3px); }
+
+/* clickable controls: hover + active press */
+.btn,
+.iconbtn,
+.stop,
+.chip,
+.searchpill,
+.card-cta {
+  transition:
+    transform 0.18s var(--ease),
+    background 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+.btn:hover,
+.iconbtn:hover,
+.stop:hover,
+.chip:hover,
+.card-cta:hover { transform: translateY(-2px); }
+.btn:active,
+.iconbtn:active,
+.stop:active,
+.chip:active,
+.card-cta:active { transform: scale(0.93); }
+.searchpill:focus-within { transform: scale(1.02); }
+
+/* header logo: idle float, spin on hover */
+.brand .dot {
+  animation: float 4s ease-in-out infinite;
+  transition: transform 0.4s var(--ease), box-shadow 0.3s var(--ease);
+}
+.brand:hover .dot {
+  transform: rotate(360deg) scale(1.12);
+  box-shadow: 0 6px 18px var(--accent-soft);
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* card-header icon pops on card hover */
+.chead .ti { transition: transform 0.25s var(--ease); }
+.card:hover .chead .ti svg.ic,
+.card:hover .chead .ti img.logo { animation: wiggle 0.5s var(--ease); }
+@keyframes wiggle {
+  0% { transform: rotate(0); }
+  25% { transform: rotate(-9deg) scale(1.1); }
+  60% { transform: rotate(7deg) scale(1.1); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+/* meter / progress bars grow on load */
+.bar > *,
+.beszel-disk-bar > *,
+.usage > * {
+  transition: width 0.6s var(--ease);
+}
+.bar,
+.usage,
+.beszel-disk-bar {
+  animation: grow-bar 0.7s var(--ease) both;
+}
+@keyframes grow-bar {
+  from { transform: scaleX(0); transform-origin: left; }
+  to { transform: scaleX(1); }
+}
+
+/* state messages breathe so empty/loading feels alive */
+.state-msg { animation: breathe 2.4s var(--ease) infinite; }
+
+/* slow drifting aurora over the wallpaper */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(35% 35% at 30% 30%, var(--accent-soft) 0%, transparent 70%),
+    radial-gradient(40% 40% at 70% 70%, var(--accent-soft) 0%, transparent 70%);
+  opacity: 0.5;
+  animation: drift 24s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate(-4%, -3%) rotate(0deg) scale(1); }
+  to { transform: translate(5%, 4%) rotate(8deg) scale(1.15); }
+}
+
+/* Konami code easter egg → do a barrel roll */
+:root.barrel body {
+  animation: barrel-roll 1s var(--ease);
+}
+:root.barrel {
+  overflow-x: hidden;
+}
+@keyframes barrel-roll {
+  from { transform: rotate(0); }
+  to { transform: rotate(360deg); }
 }

@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+export const ThemeSchema = z.enum([
+  'system',
+  'light',
+  'light-slate',
+  'light-mint',
+  'light-rose',
+  'dark',
+  'dark-graphite',
+  'dark-ocean',
+  'dark-forest',
+]);
+export type ThemeName = z.infer<typeof ThemeSchema>;
+
 export const SiteSchema = z.object({
   title: z.string(),
   url: z.string().optional(),
@@ -39,6 +52,21 @@ export const WidgetSchema = z.discriminatedUnion('type', [
     type: z.literal('beszel'),
     title: z.string(),
     systems: z.array(z.string()).optional(),
+    max: z.number().int().positive().optional(),
+  }),
+  z.object({
+    type: z.literal('radarr'),
+    title: z.string(),
+    max: z.number().int().positive().optional(),
+  }),
+  z.object({
+    type: z.literal('sonarr'),
+    title: z.string(),
+    max: z.number().int().positive().optional(),
+  }),
+  z.object({
+    type: z.literal('reelward'),
+    title: z.string(),
     max: z.number().int().positive().optional(),
   }),
   z.object({
@@ -82,7 +110,7 @@ export const DashboardSchema = z.object({
   title: z.string().default('Labby'),
   theme: z
     .object({
-      default: z.enum(['light', 'dark', 'system']).default('system'),
+      default: ThemeSchema.default('system'),
     })
     .default({ default: 'system' }),
   refreshSeconds: z
@@ -93,6 +121,9 @@ export const DashboardSchema = z.object({
       adguard: z.number().default(60),
       jellyfin: z.number().default(15),
       beszel: z.number().default(15),
+      radarr: z.number().default(60),
+      sonarr: z.number().default(60),
+      reelward: z.number().default(60),
       weather: z.number().default(900),
       calendar: z.number().default(600),
     })

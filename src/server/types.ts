@@ -149,6 +149,37 @@ export type CalendarPayload = {
   events: CalendarEvent[];
 };
 
+export type ArrItem = {
+  id: string;
+  title: string;
+  date: string | null;
+  status?: string;
+  posterUrl?: string;
+};
+
+export type ArrPayload = {
+  version: string | null;
+  queue: number;
+  missing: number | null;
+  upcoming: ArrItem[];
+};
+
+export type ReelwardPayload = {
+  upcoming: ArrItem[];
+  trackers: Array<{
+    name: string;
+    connected: boolean;
+    ratio: number | null;
+    error?: string;
+  }>;
+  rss: {
+    status: 'ok' | 'error' | 'unknown';
+    releasesFound: number | null;
+    releasesGrabbed: number | null;
+    nextRunAt: string | null;
+  };
+};
+
 export type Channel =
   | 'monitor'
   | 'docker'
@@ -157,6 +188,9 @@ export type Channel =
   | 'adguard'
   | 'jellyfin'
   | 'beszel'
+  | 'radarr'
+  | 'sonarr'
+  | 'reelward'
   | 'weather'
   | 'calendar';
 
@@ -167,6 +201,8 @@ export type ChannelPayload =
   | AdGuardPayload
   | JellyfinPayload
   | BeszelPayload
+  | ArrPayload
+  | ReelwardPayload
   | WeatherPayload
   | CalendarPayload;
 

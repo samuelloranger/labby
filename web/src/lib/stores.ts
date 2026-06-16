@@ -137,6 +137,35 @@ export type CalendarData = {
   events: CalendarEvent[];
 };
 
+export type ArrData = {
+  version: string | null;
+  queue: number;
+  missing: number | null;
+  upcoming: Array<{
+    id: string;
+    title: string;
+    date: string | null;
+    status?: string;
+    posterUrl?: string;
+  }>;
+};
+
+export type ReelwardData = {
+  upcoming: ArrData['upcoming'];
+  trackers: Array<{
+    name: string;
+    connected: boolean;
+    ratio: number | null;
+    error?: string;
+  }>;
+  rss: {
+    status: 'ok' | 'error' | 'unknown';
+    releasesFound: number | null;
+    releasesGrabbed: number | null;
+    nextRunAt: string | null;
+  };
+};
+
 export type WidgetState<T> = {
   loading: boolean;
   error: string | null;
@@ -155,6 +184,9 @@ export const trStore = writable<WidgetState<DownloadsData>>(emptyState());
 export const adguardStore = writable<WidgetState<AdGuardData>>(emptyState());
 export const jellyfinStore = writable<WidgetState<JellyfinData>>(emptyState());
 export const beszelStore = writable<WidgetState<BeszelData>>(emptyState());
+export const radarrStore = writable<WidgetState<ArrData>>(emptyState());
+export const sonarrStore = writable<WidgetState<ArrData>>(emptyState());
+export const reelwardStore = writable<WidgetState<ReelwardData>>(emptyState());
 export const weatherStore = writable<WidgetState<WeatherData>>(emptyState());
 export const calendarStore = writable<WidgetState<CalendarData>>(emptyState());
 export const streamConnected = writable(true);
@@ -183,6 +215,9 @@ export function markStale() {
     adguardStore,
     jellyfinStore,
     beszelStore,
+    radarrStore,
+    sonarrStore,
+    reelwardStore,
     weatherStore,
     calendarStore,
   ]) {
@@ -203,6 +238,9 @@ export function initStream() {
       adguardStore,
       jellyfinStore,
       beszelStore,
+      radarrStore,
+      sonarrStore,
+      reelwardStore,
       weatherStore,
     ]) {
       store.update((s) => ({ ...s, loading: s.data ? false : s.loading }));
@@ -222,6 +260,9 @@ export function initStream() {
     adguard: (d) => patchStore(adguardStore, d),
     jellyfin: (d) => patchStore(jellyfinStore, d),
     beszel: (d) => patchStore(beszelStore, d),
+    radarr: (d) => patchStore(radarrStore, d),
+    sonarr: (d) => patchStore(sonarrStore, d),
+    reelward: (d) => patchStore(reelwardStore, d),
     weather: (d) => patchStore(weatherStore, d),
     calendar: (d) => patchStore(calendarStore, d),
   };

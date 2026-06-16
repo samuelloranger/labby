@@ -1,7 +1,7 @@
 import { watch } from 'fs';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
-import { DashboardSchema, type Dashboard } from './schema';
+import { DashboardSchema, type Dashboard, type ThemeName } from './schema';
 
 const CONFIG_PATH = process.env.LABBY_CONFIG_PATH ?? path.join(process.cwd(), 'config', 'dashboard.json');
 
@@ -59,6 +59,16 @@ export async function loadConfig(): Promise<ConfigState> {
     setState(next);
     return next;
   }
+}
+
+export async function saveTheme(theme: ThemeName): Promise<void> {
+  const raw = await readConfigRaw();
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const oldTheme = typeof parsed.theme === 'object' && parsed.theme !== null ? parsed.theme : {};
+  parsed.theme = { ...oldTheme, default: theme };
+  const config = DashboardSchema.parse(parsed);
+  await writeFile(CONFIG_PATH, `${JSON.stringify(parsed, null, 2)}\n`);
+  setState({ ok: true, config });
 }
 
 export function startConfigWatch(): void {

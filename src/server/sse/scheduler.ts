@@ -7,6 +7,7 @@ import {
   hasWidgetType,
 } from '../config/schema';
 import { getAdGuardStats } from '../integrations/adguard';
+import { getArrSummary } from '../integrations/arr';
 import { getCalendarEvents } from '../integrations/calendar';
 import { getBeszelSystems } from '../integrations/beszel';
 import { listContainers } from '../integrations/docker-client';
@@ -14,6 +15,7 @@ import { getJellyfinSessions } from '../integrations/jellyfin';
 import { checkSites } from '../integrations/monitor';
 import { getOpenWeather } from '../integrations/openweather';
 import { getQBittorrentTorrents } from '../integrations/qbittorrent';
+import { getReelwardSummary } from '../integrations/reelward';
 import { getTransmissionTorrents } from '../integrations/transmission';
 import type { Channel } from '../types';
 import { hub } from './hub';
@@ -61,6 +63,21 @@ async function refreshBeszel(): Promise<void> {
   hub.publish('beszel', data);
 }
 
+async function refreshRadarr(): Promise<void> {
+  const data = await getArrSummary('radarr');
+  hub.publish('radarr', data);
+}
+
+async function refreshSonarr(): Promise<void> {
+  const data = await getArrSummary('sonarr');
+  hub.publish('sonarr', data);
+}
+
+async function refreshReelward(): Promise<void> {
+  const data = await getReelwardSummary();
+  hub.publish('reelward', data);
+}
+
 async function refreshWeather(): Promise<void> {
   const config = getConfig();
   if (!config) return;
@@ -88,6 +105,9 @@ const refreshers: Record<Channel, () => Promise<void>> = {
   adguard: refreshAdGuard,
   jellyfin: refreshJellyfin,
   beszel: refreshBeszel,
+  radarr: refreshRadarr,
+  sonarr: refreshSonarr,
+  reelward: refreshReelward,
   weather: refreshWeather,
   calendar: refreshCalendar,
 };
@@ -123,6 +143,9 @@ export function startScheduler(): void {
   if (hasWidgetType(config, 'adguard')) scheduleChannel('adguard', rs.adguard);
   if (hasWidgetType(config, 'jellyfin')) scheduleChannel('jellyfin', rs.jellyfin);
   if (hasWidgetType(config, 'beszel')) scheduleChannel('beszel', rs.beszel);
+  if (hasWidgetType(config, 'radarr')) scheduleChannel('radarr', rs.radarr);
+  if (hasWidgetType(config, 'sonarr')) scheduleChannel('sonarr', rs.sonarr);
+  if (hasWidgetType(config, 'reelward')) scheduleChannel('reelward', rs.reelward);
   if (hasWidgetType(config, 'weather')) scheduleChannel('weather', rs.weather);
   if (hasWidgetType(config, 'calendar')) scheduleChannel('calendar', rs.calendar);
 }
