@@ -1034,33 +1034,19 @@ header.top {
   font-variant-numeric: tabular-nums;
 }
 
-.beszel-storage summary {
+.beszel-storage-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  font: inherit;
   cursor: pointer;
-  list-style: none;
+  transition: opacity 0.2s var(--ease);
 }
-.beszel-storage summary::-webkit-details-marker {
-  display: none;
+.beszel-storage-btn:hover {
+  opacity: 0.7;
 }
-.beszel-storage .chev {
-  display: inline-block;
+.beszel-storage-btn .chev {
   margin-left: 6px;
-  transition: transform 0.2s var(--ease);
-}
-.beszel-storage[open] .chev {
-  transform: rotate(180deg);
-}
-.beszel-storage[open] .beszel-disks {
-  animation: drawer-reveal 0.22s var(--ease);
-}
-@keyframes drawer-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .beszel-disks {

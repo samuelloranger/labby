@@ -1,9 +1,12 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
+  import Modal from '../components/Modal.svelte';
   import { beszelStore, searchQuery } from '$lib/stores';
   import { clampPercent, formatBytes, formatNumber, formatUptime } from '$lib/utils';
 
   let { title, systems, max = 8 }: { title: string; systems?: string[]; max?: number } = $props();
+
+  let disksOpen = $state(false);
 
   const state = $derived($beszelStore);
   const q = $derived($searchQuery.trim().toLowerCase());
@@ -120,44 +123,47 @@
     </div>
 
     {#if disks.length}
-      <details class="beszel-storage">
-        <summary class="beszel-disk-head">
-          <span>Storage</span>
-          <b>{disks.length} disks<span class="chev" aria-hidden="true">⌄</span></b>
-        </summary>
-        <div class="beszel-disks">
-        {#each disks as disk (disk.id)}
-          <div class="beszel-disk">
-            <div class="beszel-disk-top">
-              <span class="dot {diskClass(disk)}"></span>
-              <div class="beszel-disk-name">
-                <strong>{diskLabel(disk.name)}</strong>
-                <span>{disk.model || disk.type}</span>
-              </div>
-              <div class="beszel-capacity">
-                <b>{formatBytes(disk.capacityBytes)}</b>
-                {#if disk.usedPercent != null}
-                  <span>{Math.round(disk.usedPercent)}% used</span>
-                {/if}
-              </div>
-            </div>
-            {#if disk.usedPercent != null}
-              <div class="bar beszel-disk-bar {hotClass(disk.usedPercent)}">
-                <i style:width="{clampPercent(disk.usedPercent)}%"></i>
-              </div>
-            {/if}
-            <div class="beszel-smart">
-              <span class="{diskClass(disk)}">{disk.state || 'unknown'}</span>
-              {#if disk.tempC != null}<span>{disk.tempC}°C</span>{/if}
-              {#if disk.hours != null}<span>{formatNumber(disk.hours)}h</span>{/if}
-              <span>{diskIssueCount(disk)} errors</span>
-              {#if disk.wearPercent != null}<span>{disk.wearPercent}% wear</span>{/if}
-            </div>
-          </div>
-        {/each}
-        </div>
-      </details>
+      <button class="beszel-disk-head beszel-storage-btn" onclick={() => (disksOpen = true)}>
+        <span>Storage</span>
+        <b>{disks.length} disks<span class="chev" aria-hidden="true">›</span></b>
+      </button>
     {/if}
   {/if}
 </section>
+{/if}
+
+{#if disksOpen}
+  <Modal title={`${title} · storage`} meta={`${disks.length} disks`} onClose={() => (disksOpen = false)}>
+    <div class="beszel-disks">
+      {#each disks as disk (disk.id)}
+        <div class="beszel-disk">
+          <div class="beszel-disk-top">
+            <span class="dot {diskClass(disk)}"></span>
+            <div class="beszel-disk-name">
+              <strong>{diskLabel(disk.name)}</strong>
+              <span>{disk.model || disk.type}</span>
+            </div>
+            <div class="beszel-capacity">
+              <b>{formatBytes(disk.capacityBytes)}</b>
+              {#if disk.usedPercent != null}
+                <span>{Math.round(disk.usedPercent)}% used</span>
+              {/if}
+            </div>
+          </div>
+          {#if disk.usedPercent != null}
+            <div class="bar beszel-disk-bar {hotClass(disk.usedPercent)}">
+              <i style:width="{clampPercent(disk.usedPercent)}%"></i>
+            </div>
+          {/if}
+          <div class="beszel-smart">
+            <span class="{diskClass(disk)}">{disk.state || 'unknown'}</span>
+            {#if disk.tempC != null}<span>{disk.tempC}°C</span>{/if}
+            {#if disk.hours != null}<span>{formatNumber(disk.hours)}h</span>{/if}
+            <span>{diskIssueCount(disk)} errors</span>
+            {#if disk.wearPercent != null}<span>{disk.wearPercent}% wear</span>{/if}
+          </div>
+        </div>
+      {/each}
+    </div>
+  </Modal>
 {/if}
