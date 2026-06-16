@@ -21,7 +21,7 @@
     endpoint,
     icon,
     fallback = 'globe',
-    max = 10,
+    max = 5,
   }: { title: string; endpoint: string; icon: string; fallback?: string; max?: number } = $props();
 
   let st = $state<{ loading: boolean; error: string | null; posts: Post[] }>({

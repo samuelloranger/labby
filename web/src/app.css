@@ -440,11 +440,13 @@ header.top {
   font-weight: 500;
 }
 
-.card a {
+.card a,
+.modal-panel a {
   color: inherit;
   text-decoration: none;
 }
-.card a:hover {
+.card a:hover,
+.modal-panel a:hover {
   color: var(--accent);
 }
 
@@ -1030,6 +1032,22 @@ header.top {
   font-size: 0.72rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.beszel-storage summary {
+  cursor: pointer;
+  list-style: none;
+}
+.beszel-storage summary::-webkit-details-marker {
+  display: none;
+}
+.beszel-storage .chev {
+  display: inline-block;
+  margin-left: 6px;
+  transition: transform 0.2s var(--ease);
+}
+.beszel-storage[open] .chev {
+  transform: rotate(180deg);
 }
 
 .beszel-disks {
