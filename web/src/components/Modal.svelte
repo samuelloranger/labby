@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
 
   let {
     title,
@@ -11,8 +12,8 @@
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') onClose(); }} />
 
-<div class="modal-bg" role="presentation" onclick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-  <div class="modal-panel" role="dialog" aria-modal="true" aria-label={title} tabindex="-1">
+<div class="modal-bg" role="presentation" transition:fade={{ duration: 160 }} onclick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label={title} tabindex="-1" transition:fly={{ y: 18, duration: 220 }}>
     <div class="modal-head">
       <span class="mt">{title}{#if meta}<span class="mm">{meta}</span>{/if}</span>
       <button class="iconbtn" onclick={onClose} aria-label="Close">×</button>
