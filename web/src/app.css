@@ -300,22 +300,20 @@ header.top {
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr;
-  gap: 20px;
-  align-items: start;
+  display: block;
+  column-count: 3;
+  column-gap: 20px;
 }
 
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-width: 0;
+/* masonry: cards flow into columns; keep each card intact and spaced */
+.grid > .card {
+  break-inside: avoid;
+  margin-bottom: 20px;
 }
 
 @media (max-width: 1080px) {
   .grid {
-    grid-template-columns: 1fr;
+    column-count: 1;
   }
 }
 
@@ -662,6 +660,7 @@ header.top {
 
 .tname {
   flex: 1;
+  color: inherit;
   font-weight: 600;
   font-size: 0.88rem;
   overflow: hidden;
@@ -1138,16 +1137,6 @@ footer.f {
   animation: rise 0.5s var(--ease) both;
 }
 
-.col:nth-child(1) .card {
-  animation-delay: 0.04s;
-}
-.col:nth-child(2) .card {
-  animation-delay: 0.1s;
-}
-.col:nth-child(3) .card {
-  animation-delay: 0.16s;
-}
-
 @keyframes rise {
   from {
     opacity: 0;
@@ -1227,7 +1216,15 @@ footer.f {
   cursor: default;
 }
 .card-cta {
+  display: block;
+  width: 100%;
   margin-top: 14px;
+  padding: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--accent);
@@ -1429,4 +1426,87 @@ footer.f {
 
 .weather-day-temps .lo {
   color: var(--ink-faint);
+}
+
+/* Calendar / agenda */
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agenda-day {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 10px 0 2px;
+}
+
+.agenda-day:first-child {
+  margin-top: 0;
+}
+
+.agenda-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.agenda-row:hover {
+  background: var(--surface);
+}
+
+.agenda-time {
+  flex: 0 0 64px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-time.allday {
+  color: var(--ink-dim);
+  font-weight: 500;
+}
+
+.agenda-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.agenda-title {
+  color: var(--ink);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agenda-loc {
+  color: var(--ink-faint);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agenda-cal {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+  background: var(--surface-2);
+  padding: 2px 8px;
+  border-radius: 999px;
+  max-width: 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

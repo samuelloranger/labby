@@ -13,7 +13,7 @@ export type Widget =
   | { type: 'adguard'; title: string }
   | { type: 'jellyfin'; title: string }
   | { type: 'beszel'; title: string; systems?: string[]; max?: number }
-  | { type: 'reddit'; title: string; subreddit: string; max?: number }
+  | { type: 'reddit'; title: string; subreddit: string | string[]; max?: number }
   | { type: 'hackernews'; title: string; max?: number }
   | {
       type: 'weather';
@@ -22,7 +22,8 @@ export type Widget =
       lat?: number;
       lon?: number;
       units?: 'metric' | 'imperial';
-    };
+    }
+  | { type: 'calendar'; title: string; max?: number };
 
 export type Column = { size: 'small' | 'full'; widgets: Widget[] };
 export type Page = { name: string; columns: Column[] };

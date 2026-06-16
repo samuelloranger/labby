@@ -15,10 +15,16 @@
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December',
     ];
-    const d = new Date();
     const el = document.getElementById('sub');
-    if (el) el.textContent = `${days[d.getDay()]}, ${mon[d.getMonth()]} ${d.getDate()}`;
-    return cleanup;
+    const tick = () => {
+      const d = new Date();
+      const t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (el) el.textContent = `${days[d.getDay()]}, ${mon[d.getMonth()]} ${d.getDate()} · ${t}`;
+    };
+    tick();
+    // 1s tick; minute-aligned timer if battery ever matters
+    const timer = setInterval(tick, 1000);
+    return () => { clearInterval(timer); cleanup(); };
   });
 </script>
 
@@ -32,11 +38,9 @@
 
   <div class="grid">
     {#each page.columns as col}
-      <div class="col">
-        {#each col.widgets as widget}
-          <WidgetHost {widget} />
-        {/each}
-      </div>
+      {#each col.widgets as widget}
+        <WidgetHost {widget} />
+      {/each}
     {/each}
   </div>
 </main>

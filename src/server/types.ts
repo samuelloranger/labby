@@ -136,6 +136,19 @@ export type WeatherPayload = {
   locations: Record<string, WeatherLocationResult>;
 };
 
+export type CalendarEvent = {
+  title: string;
+  start: number; // epoch ms
+  end: number; // epoch ms
+  allDay: boolean;
+  location?: string;
+  calendar: string;
+};
+
+export type CalendarPayload = {
+  events: CalendarEvent[];
+};
+
 export type Channel =
   | 'monitor'
   | 'docker'
@@ -144,7 +157,8 @@ export type Channel =
   | 'adguard'
   | 'jellyfin'
   | 'beszel'
-  | 'weather';
+  | 'weather'
+  | 'calendar';
 
 export type ChannelPayload =
   | MonitorPayload
@@ -153,7 +167,8 @@ export type ChannelPayload =
   | AdGuardPayload
   | JellyfinPayload
   | BeszelPayload
-  | WeatherPayload;
+  | WeatherPayload
+  | CalendarPayload;
 
 export type ApiError = { error: string };
 

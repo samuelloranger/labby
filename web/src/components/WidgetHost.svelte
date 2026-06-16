@@ -7,6 +7,7 @@
   import Beszel from '../widgets/Beszel.svelte';
   import Feed from '../widgets/Feed.svelte';
   import Weather from '../widgets/Weather.svelte';
+  import Calendar from '../widgets/Calendar.svelte';
   import type { Widget } from '$lib/types';
 
   let { widget }: { widget: Widget } = $props();
@@ -33,7 +34,7 @@
 {:else if widget.type === 'reddit'}
   <Feed
     title={widget.title}
-    endpoint={`/api/reddit/${encodeURIComponent(widget.subreddit)}`}
+    endpoint={`/api/reddit/${(Array.isArray(widget.subreddit) ? widget.subreddit.join('+') : widget.subreddit)}`}
     icon="di:reddit"
     fallback="message-square"
     max={widget.max}
@@ -42,4 +43,6 @@
   <Feed title={widget.title} endpoint="/api/hackernews" icon="di:hacker-news" fallback="flame" max={widget.max} />
 {:else if widget.type === 'weather'}
   <Weather title={widget.title} city={widget.city} lat={widget.lat} lon={widget.lon} />
+{:else if widget.type === 'calendar'}
+  <Calendar title={widget.title} max={widget.max} />
 {/if}

@@ -29,4 +29,23 @@ describe('parseRedditFeed', () => {
   test('respects the limit', () => {
     expect(parseRedditFeed(xml, 'selfhosted', 1).length).toBe(1);
   });
+
+  test('reads per-entry subreddit from category in a merged feed', () => {
+    const merged = `<feed>
+      <entry>
+        <title>From homelab</title>
+        <category term="homelab" label="r/homelab" />
+        <link href="https://www.reddit.com/r/homelab/comments/x/p/" />
+        <updated>2024-06-15T12:00:00+00:00</updated>
+      </entry>
+      <entry>
+        <title>No category falls back to first sub</title>
+        <link href="https://www.reddit.com/r/selfhosted/comments/y/q/" />
+        <updated>2024-06-15T11:00:00+00:00</updated>
+      </entry>
+    </feed>`;
+    const posts = parseRedditFeed(merged, 'homelab+selfhosted', 12);
+    expect(posts[0].subreddit).toBe('r/homelab');
+    expect(posts[1].subreddit).toBe('r/homelab');
+  });
 });

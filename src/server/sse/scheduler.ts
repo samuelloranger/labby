@@ -7,6 +7,7 @@ import {
   hasWidgetType,
 } from '../config/schema';
 import { getAdGuardStats } from '../integrations/adguard';
+import { getCalendarEvents } from '../integrations/calendar';
 import { getBeszelSystems } from '../integrations/beszel';
 import { listContainers } from '../integrations/docker-client';
 import { getJellyfinSessions } from '../integrations/jellyfin';
@@ -74,6 +75,11 @@ async function refreshWeather(): Promise<void> {
   hub.publish('weather', { locations: Object.fromEntries(entries) });
 }
 
+async function refreshCalendar(): Promise<void> {
+  const data = await getCalendarEvents();
+  hub.publish('calendar', data);
+}
+
 const refreshers: Record<Channel, () => Promise<void>> = {
   monitor: refreshMonitor,
   docker: refreshDocker,
@@ -83,6 +89,7 @@ const refreshers: Record<Channel, () => Promise<void>> = {
   jellyfin: refreshJellyfin,
   beszel: refreshBeszel,
   weather: refreshWeather,
+  calendar: refreshCalendar,
 };
 
 function clearTimers(): void {
@@ -117,6 +124,7 @@ export function startScheduler(): void {
   if (hasWidgetType(config, 'jellyfin')) scheduleChannel('jellyfin', rs.jellyfin);
   if (hasWidgetType(config, 'beszel')) scheduleChannel('beszel', rs.beszel);
   if (hasWidgetType(config, 'weather')) scheduleChannel('weather', rs.weather);
+  if (hasWidgetType(config, 'calendar')) scheduleChannel('calendar', rs.calendar);
 }
 
 export async function refreshChannel(channel: Channel): Promise<void> {
