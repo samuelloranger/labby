@@ -281,13 +281,7 @@ header.top {
 .brand .dot {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  background: var(--accent);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.45);
+  filter: drop-shadow(0 3px 8px rgba(255, 149, 0, 0.35));
 }
 
 .brand .dot.reconnecting {
@@ -1864,11 +1858,11 @@ header.top {
   animation: float 4s ease-in-out infinite;
   transition:
     transform 0.4s var(--ease),
-    box-shadow 0.3s var(--ease);
+    filter 0.3s var(--ease);
 }
 .brand:hover .dot {
   transform: rotate(360deg) scale(1.12);
-  box-shadow: 0 6px 18px var(--accent-soft);
+  filter: drop-shadow(0 6px 14px var(--accent-soft));
 }
 @keyframes float {
   0%,
