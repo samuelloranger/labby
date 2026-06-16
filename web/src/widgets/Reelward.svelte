@@ -34,6 +34,7 @@
       <div class="gauge"><div class="v">{state.data.rss.releasesGrabbed ?? '—'}</div><div class="k">RSS grabs</div></div>
     </div>
 
+    <div class="list-head">Trackers · ratio</div>
     <div class="mini-list">
       {#each state.data.trackers as tracker (tracker.name)}
         <div class="mini-row">
@@ -45,7 +46,8 @@
     </div>
 
     {#if upcoming.length}
-      <div class="mini-list top-gap">
+      <div class="list-head top-gap">Upcoming releases</div>
+      <div class="mini-list">
         {#each upcoming as item (item.id)}
           <div class="mini-row">
             <span class="dot live"></span>
@@ -60,3 +62,17 @@
   {/if}
 </section>
 {/if}
+
+<style>
+  .list-head {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+  .list-head.top-gap {
+    margin-top: 14px;
+  }
+</style>
