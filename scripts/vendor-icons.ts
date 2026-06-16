@@ -1,0 +1,27 @@
+import { readFile } from 'fs/promises';
+import path from 'path';
+import { mkdir } from 'fs/promises';
+
+const CDN = 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg';
+const OUT = path.join(import.meta.dir, '../web/public/icons/di');
+
+const SLUGS = [
+  'adguard-home', 'qbittorrent', 'transmission', 'jellyfin', 'immich', 'gitea',
+  'arcane', 'audiobookshelf', 'beszel', 'uptime-kuma', 'kopia', 'ntfy',
+  'vaultwarden', 'home-assistant', 'caddy', 'glance', 'kan', 'jackett',
+  'reddit', 'hacker-news',
+];
+
+await mkdir(OUT, { recursive: true });
+
+for (const slug of SLUGS) {
+  const url = `${CDN}/${slug}.svg`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.warn(`Skip ${slug}: ${res.status}`);
+    continue;
+  }
+  const svg = await res.text();
+  await Bun.write(path.join(OUT, `${slug}.svg`), svg);
+  console.log(`Vendored ${slug}.svg`);
+}

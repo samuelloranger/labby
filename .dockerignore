@@ -1,0 +1,12 @@
+node_modules
+web/node_modules
+dist
+web/dist
+.git
+.env
+*.log
+.DS_Store
+design
+BUILD_PROMPT.md
+.claude
+config/dashboard.json
