@@ -11,7 +11,9 @@ describe('formatEta', () => {
 });
 
 describe('prepareDownloads', () => {
-  const make = (over: Partial<{ progress: number; dlSpeed: number; upSpeed: number; state: string }>) => ({
+  const make = (
+    over: Partial<{ progress: number; dlSpeed: number; upSpeed: number; state: string }>,
+  ) => ({
     name: 'x',
     progress: 100,
     dlSpeed: 0,

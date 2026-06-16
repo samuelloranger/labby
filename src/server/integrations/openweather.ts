@@ -73,7 +73,8 @@ export function aggregateForecastDays(
     .map(([date, bucket]) => {
       const noonish =
         bucket.icons.reduce(
-          (best, cur) => (Math.abs(cur.dt % 86400 - 43200) < Math.abs(best.dt % 86400 - 43200) ? cur : best),
+          (best, cur) =>
+            Math.abs((cur.dt % 86400) - 43200) < Math.abs((best.dt % 86400) - 43200) ? cur : best,
           bucket.icons[0],
         ) ?? bucket.icons[0];
       return {
@@ -142,7 +143,9 @@ export async function getOpenWeather(
             'OpenWeather rejected the API key (401). New keys can take up to 2 hours to activate; confirm the key at home.openweathermap.org/api_keys and recreate the container after updating .env.',
         };
       }
-      return { error: `OpenWeather error: ${currentRes.status}${body ? ` — ${body.slice(0, 80)}` : ''}` };
+      return {
+        error: `OpenWeather error: ${currentRes.status}${body ? ` — ${body.slice(0, 80)}` : ''}`,
+      };
     }
     if (!forecastRes.ok) {
       return { error: `OpenWeather forecast error: ${forecastRes.status}` };

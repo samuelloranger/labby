@@ -7,6 +7,5 @@ web/dist
 *.log
 .DS_Store
 design
-BUILD_PROMPT.md
 .claude
 config/dashboard.json

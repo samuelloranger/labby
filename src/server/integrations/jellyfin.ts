@@ -57,7 +57,9 @@ export async function getJellyfinSessions(): Promise<JellyfinPayload | { error: 
       sessions.push({
         id: String(s.Id ?? crypto.randomUUID()),
         title,
-        subtitle: [year, quality, transcode ? 'transcode' : 'direct play'].filter(Boolean).join(' · '),
+        subtitle: [year, quality, transcode ? 'transcode' : 'direct play']
+          .filter(Boolean)
+          .join(' · '),
         user: String((s.UserName as string) ?? 'unknown'),
         device: String((s.Client as string) ?? (s.DeviceName as string) ?? 'unknown'),
         progress,

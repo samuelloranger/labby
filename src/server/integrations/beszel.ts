@@ -102,7 +102,9 @@ function usedPercentForDevice(
   if (!efs || !system) return null;
 
   const diskName = efsKeyForDevice(deviceName);
-  const match = Object.entries(efs).find(([key]) => key === diskName || key.startsWith(`${diskName}`));
+  const match = Object.entries(efs).find(
+    ([key]) => key === diskName || key.startsWith(`${diskName}`),
+  );
   if (!match) return null;
 
   const value = match[1];
@@ -178,7 +180,7 @@ function diskFromRecord(
   const system = systems.find((s) => s.id === record.system);
   const rawSystem = rawSystems.find((s) => s.id === record.system);
   return {
-    id: String(record.id ?? `${record.system}:${record.name}` ?? crypto.randomUUID()),
+    id: String(record.id ?? `${record.system}:${record.name}`),
     systemId: String(record.system ?? ''),
     name: String(record.name ?? 'Unknown disk'),
     model: String(record.model ?? ''),

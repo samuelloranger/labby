@@ -1,13 +1,13 @@
 @font-face {
-  font-family: 'Manrope';
+  font-family: "Manrope";
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
-  src: url('/fonts/manrope.woff2') format('woff2');
+  src: url("/fonts/manrope.woff2") format("woff2");
 }
 
 :root {
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Manrope', system-ui, sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Manrope", system-ui, sans-serif;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --radius: 20px;
   --radius-sm: 12px;
@@ -21,7 +21,7 @@
   --idle: #b6bac2;
 }
 
-:root[data-theme='light'] {
+:root[data-theme="light"] {
   --wall:
     radial-gradient(40% 50% at 18% 18%, #ffe2c2 0%, transparent 60%),
     radial-gradient(40% 50% at 82% 12%, #ffd9c9 0%, transparent 60%),
@@ -41,7 +41,7 @@
   --shadow-hi: 0 14px 40px rgba(40, 40, 60, 0.18);
 }
 
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
   --wall:
     radial-gradient(42% 52% at 18% 16%, #3d2a14 0%, transparent 60%),
     radial-gradient(42% 52% at 84% 12%, #3a201a 0%, transparent 60%),
@@ -63,7 +63,7 @@
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.62);
 }
 
-:root[data-theme='light-slate'] {
+:root[data-theme="light-slate"] {
   --wall:
     radial-gradient(42% 50% at 16% 12%, #dbeafe 0%, transparent 60%),
     radial-gradient(42% 50% at 84% 14%, #e0e7ff 0%, transparent 58%),
@@ -84,7 +84,7 @@
   --shadow-hi: 0 14px 40px rgba(15, 23, 42, 0.18);
 }
 
-:root[data-theme='light-mint'] {
+:root[data-theme="light-mint"] {
   --wall:
     radial-gradient(40% 50% at 18% 14%, #bbf7d0 0%, transparent 60%),
     radial-gradient(42% 52% at 84% 16%, #ccfbf1 0%, transparent 58%),
@@ -105,7 +105,7 @@
   --shadow-hi: 0 14px 40px rgba(6, 78, 59, 0.18);
 }
 
-:root[data-theme='light-rose'] {
+:root[data-theme="light-rose"] {
   --wall:
     radial-gradient(40% 50% at 18% 16%, #fecdd3 0%, transparent 60%),
     radial-gradient(42% 52% at 84% 14%, #fbcfe8 0%, transparent 58%),
@@ -126,7 +126,7 @@
   --shadow-hi: 0 14px 40px rgba(136, 19, 55, 0.18);
 }
 
-:root[data-theme='dark-graphite'] {
+:root[data-theme="dark-graphite"] {
   --wall:
     radial-gradient(42% 52% at 18% 16%, #1f2937 0%, transparent 60%),
     radial-gradient(42% 52% at 84% 12%, #111827 0%, transparent 60%),
@@ -147,7 +147,7 @@
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
 }
 
-:root[data-theme='dark-ocean'] {
+:root[data-theme="dark-ocean"] {
   --wall:
     radial-gradient(42% 52% at 18% 16%, #0e7490 0%, transparent 58%),
     radial-gradient(42% 52% at 84% 12%, #1d4ed8 0%, transparent 60%),
@@ -168,7 +168,7 @@
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
 }
 
-:root[data-theme='dark-forest'] {
+:root[data-theme="dark-forest"] {
   --wall:
     radial-gradient(42% 52% at 18% 16%, #14532d 0%, transparent 58%),
     radial-gradient(42% 52% at 84% 12%, #365314 0%, transparent 60%),
@@ -510,7 +510,9 @@ header.top {
   border: 1px solid var(--glass-brd);
   border-radius: var(--radius);
   padding: 20px;
-  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 var(--glass-hi);
 }
 
 .chead {
@@ -1395,7 +1397,9 @@ footer.f {
   font: inherit;
   color: inherit;
   cursor: pointer;
-  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  transition:
+    transform 0.18s var(--ease),
+    box-shadow 0.18s var(--ease);
 }
 .summary-card:hover:not(:disabled) {
   transform: translateY(-2px);
@@ -1712,36 +1716,84 @@ header.top {
   animation: slide-down 0.5s var(--ease) both;
 }
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-100%); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* staggered card cascade — overrides the flat rise timing */
-.grid > .card { animation: rise 0.55s var(--ease) both; }
-.grid > .card:nth-child(1) { animation-delay: 0.04s; }
-.grid > .card:nth-child(2) { animation-delay: 0.10s; }
-.grid > .card:nth-child(3) { animation-delay: 0.16s; }
-.grid > .card:nth-child(4) { animation-delay: 0.22s; }
-.grid > .card:nth-child(5) { animation-delay: 0.28s; }
-.grid > .card:nth-child(6) { animation-delay: 0.34s; }
-.grid > .card:nth-child(7) { animation-delay: 0.40s; }
-.grid > .card:nth-child(8) { animation-delay: 0.46s; }
-.grid > .card:nth-child(n+9) { animation-delay: 0.52s; }
+.grid > .card {
+  animation: rise 0.55s var(--ease) both;
+}
+.grid > .card:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.grid > .card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.grid > .card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.grid > .card:nth-child(4) {
+  animation-delay: 0.22s;
+}
+.grid > .card:nth-child(5) {
+  animation-delay: 0.28s;
+}
+.grid > .card:nth-child(6) {
+  animation-delay: 0.34s;
+}
+.grid > .card:nth-child(7) {
+  animation-delay: 0.4s;
+}
+.grid > .card:nth-child(8) {
+  animation-delay: 0.46s;
+}
+.grid > .card:nth-child(n + 9) {
+  animation-delay: 0.52s;
+}
 
 /* staggered tile pop-in within a card */
-.tile { animation: pop-in 0.45s var(--ease) both; }
-.tile:nth-child(2) { animation-delay: 0.05s; }
-.tile:nth-child(3) { animation-delay: 0.10s; }
-.tile:nth-child(4) { animation-delay: 0.15s; }
-.tile:nth-child(5) { animation-delay: 0.20s; }
-.tile:nth-child(n+6) { animation-delay: 0.25s; }
+.tile {
+  animation: pop-in 0.45s var(--ease) both;
+}
+.tile:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.tile:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.tile:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.tile:nth-child(5) {
+  animation-delay: 0.2s;
+}
+.tile:nth-child(n + 6) {
+  animation-delay: 0.25s;
+}
 @keyframes pop-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* card hover lift + glow */
@@ -1753,7 +1805,10 @@ header.top {
 }
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-hi), inset 0 1px 0 var(--glass-hi), 0 0 0 1px var(--accent-soft);
+  box-shadow:
+    var(--shadow-hi),
+    inset 0 1px 0 var(--glass-hi),
+    0 0 0 1px var(--accent-soft);
   border-color: var(--accent-soft);
 }
 
@@ -1761,11 +1816,17 @@ header.top {
 .tile,
 .ctr,
 .row {
-  transition: transform 0.2s var(--ease), background 0.2s var(--ease);
+  transition:
+    transform 0.2s var(--ease),
+    background 0.2s var(--ease);
 }
-.tile:hover { transform: translateY(-2px) scale(1.015); }
+.tile:hover {
+  transform: translateY(-2px) scale(1.015);
+}
 .ctr:hover,
-.row:hover { transform: translateX(3px); }
+.row:hover {
+  transform: translateX(3px);
+}
 
 /* clickable controls: hover + active press */
 .btn,
@@ -1784,37 +1845,62 @@ header.top {
 .iconbtn:hover,
 .stop:hover,
 .chip:hover,
-.card-cta:hover { transform: translateY(-2px); }
+.card-cta:hover {
+  transform: translateY(-2px);
+}
 .btn:active,
 .iconbtn:active,
 .stop:active,
 .chip:active,
-.card-cta:active { transform: scale(0.93); }
-.searchpill:focus-within { transform: scale(1.02); }
+.card-cta:active {
+  transform: scale(0.93);
+}
+.searchpill:focus-within {
+  transform: scale(1.02);
+}
 
 /* header logo: idle float, spin on hover */
 .brand .dot {
   animation: float 4s ease-in-out infinite;
-  transition: transform 0.4s var(--ease), box-shadow 0.3s var(--ease);
+  transition:
+    transform 0.4s var(--ease),
+    box-shadow 0.3s var(--ease);
 }
 .brand:hover .dot {
   transform: rotate(360deg) scale(1.12);
   box-shadow: 0 6px 18px var(--accent-soft);
 }
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 /* card-header icon pops on card hover */
-.chead .ti { transition: transform 0.25s var(--ease); }
+.chead .ti {
+  transition: transform 0.25s var(--ease);
+}
 .card:hover .chead .ti svg.ic,
-.card:hover .chead .ti img.logo { animation: wiggle 0.5s var(--ease); }
+.card:hover .chead .ti img.logo {
+  animation: wiggle 0.5s var(--ease);
+}
 @keyframes wiggle {
-  0% { transform: rotate(0); }
-  25% { transform: rotate(-9deg) scale(1.1); }
-  60% { transform: rotate(7deg) scale(1.1); }
-  100% { transform: rotate(0) scale(1); }
+  0% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-9deg) scale(1.1);
+  }
+  60% {
+    transform: rotate(7deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(0) scale(1);
+  }
 }
 
 /* meter / progress bars grow on load */
@@ -1829,16 +1915,23 @@ header.top {
   animation: grow-bar 0.7s var(--ease) both;
 }
 @keyframes grow-bar {
-  from { transform: scaleX(0); transform-origin: left; }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* state messages breathe so empty/loading feels alive */
-.state-msg { animation: breathe 2.4s var(--ease) infinite; }
+.state-msg {
+  animation: breathe 2.4s var(--ease) infinite;
+}
 
 /* slow drifting aurora over the wallpaper */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: -25%;
   z-index: -1;
@@ -1850,8 +1943,12 @@ body::before {
   animation: drift 24s ease-in-out infinite alternate;
 }
 @keyframes drift {
-  from { transform: translate(-4%, -3%) rotate(0deg) scale(1); }
-  to { transform: translate(5%, 4%) rotate(8deg) scale(1.15); }
+  from {
+    transform: translate(-4%, -3%) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate(5%, 4%) rotate(8deg) scale(1.15);
+  }
 }
 
 /* Konami code easter egg → do a barrel roll */
@@ -1862,6 +1959,10 @@ body::before {
   overflow-x: hidden;
 }
 @keyframes barrel-roll {
-  from { transform: rotate(0); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

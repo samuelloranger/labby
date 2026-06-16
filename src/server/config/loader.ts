@@ -1,13 +1,12 @@
-import { watch } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
-import { DashboardSchema, type Dashboard, type ThemeName } from './schema';
+import { watch } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { type Dashboard, DashboardSchema, type ThemeName } from './schema';
 
-const CONFIG_PATH = process.env.LABBY_CONFIG_PATH ?? path.join(process.cwd(), 'config', 'dashboard.json');
+const CONFIG_PATH =
+  process.env.LABBY_CONFIG_PATH ?? path.join(process.cwd(), 'config', 'dashboard.json');
 
-export type ConfigState =
-  | { ok: true; config: Dashboard }
-  | { ok: false; error: string };
+export type ConfigState = { ok: true; config: Dashboard } | { ok: false; error: string };
 
 let state: ConfigState = { ok: false, error: 'Config not loaded' };
 const listeners = new Set<(state: ConfigState) => void>();

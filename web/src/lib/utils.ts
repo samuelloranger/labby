@@ -2,7 +2,10 @@ export type IconSpec = string | undefined;
 
 const DI_CDN = 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg';
 
-export function resolveIconSrc(icon: IconSpec, fallbackLucide = 'box'): {
+export function resolveIconSrc(
+  icon: IconSpec,
+  fallbackLucide = 'box',
+): {
   type: 'img' | 'lucide';
   src?: string;
   lucide: string;
@@ -98,7 +101,7 @@ const WIND_DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 
 export function windLabel(deg: number): string {
   if (!Number.isFinite(deg)) return '';
-  const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  const idx = Math.round((((deg % 360) + 360) % 360) / 45) % 8;
   return WIND_DIRS[idx];
 }
 

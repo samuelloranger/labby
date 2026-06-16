@@ -25,7 +25,12 @@ export function demuxDockerLogs(buffer: ArrayBuffer): string {
     // stream — detect that and decode the whole buffer as plain text instead of
     // misreading log bytes as frame sizes.
     const streamType = bytes[offset];
-    if (streamType > 2 || bytes[offset + 1] !== 0 || bytes[offset + 2] !== 0 || bytes[offset + 3] !== 0) {
+    if (
+      streamType > 2 ||
+      bytes[offset + 1] !== 0 ||
+      bytes[offset + 2] !== 0 ||
+      bytes[offset + 3] !== 0
+    ) {
       return decoder.decode(buffer);
     }
     const size = view.getUint32(offset + 4, false);

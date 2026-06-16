@@ -25,7 +25,7 @@ async function login(): Promise<boolean> {
   const setCookie =
     typeof res.headers.getSetCookie === 'function'
       ? res.headers.getSetCookie().join('; ')
-      : res.headers.get('set-cookie') ?? '';
+      : (res.headers.get('set-cookie') ?? '');
   const match = setCookie.match(/SID=([^;]+)/);
   sid = match?.[1] ?? null;
   // Auth-bypass setups return "Ok." with no cookie and need none.
@@ -96,10 +96,7 @@ export async function qbittorrentAction(
 ): Promise<{ ok: true } | { error: string }> {
   if (!baseUrl()) return { error: 'QBIT_URL not configured' };
 
-  const endpoints =
-    action === 'pause'
-      ? ['stop', 'pause']
-      : ['start', 'resume'];
+  const endpoints = action === 'pause' ? ['stop', 'pause'] : ['start', 'resume'];
 
   try {
     for (const ep of endpoints) {

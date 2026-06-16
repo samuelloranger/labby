@@ -1,4 +1,4 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, mock, test } from 'bun:test';
 
 describe('qBittorrent client', () => {
   test('reports missing env', async () => {
@@ -16,7 +16,7 @@ describe('qBittorrent client', () => {
     process.env.QBIT_PASS = 'admin';
 
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = mock(async (input: RequestInfo | URL, _init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith('/api/v2/auth/login')) {
         return new Response('Ok.', {

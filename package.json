@@ -2,6 +2,8 @@
   "name": "labby",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "description": "Self-hosted homelab dashboard: one Bun process serving a JSON API, a Svelte SPA, and an SSE stream.",
   "type": "module",
   "scripts": {
     "dev": "bun run --watch src/server/index.ts",
@@ -10,6 +12,8 @@
     "build:server": "bun build src/server/index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
     "test": "bun test",
+    "lint": "biome check",
+    "format": "biome check --write",
     "vendor-icons": "bun run scripts/vendor-icons.ts"
   },
   "dependencies": {
@@ -17,6 +21,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@types/bun": "latest",
     "playwright": "1.61.0",

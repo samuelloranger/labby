@@ -1,25 +1,27 @@
-import { Hono, type Context } from 'hono';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { readFile } from 'fs/promises';
-import path from 'path';
+import { getConfig, getConfigState, saveTheme } from './config/loader';
 import {
-  getConfig,
-  getConfigState,
-  saveTheme,
-} from './config/loader';
-import { collectMonitorSites, collectWeatherLocations, getDockerShow, sanitizeDashboard, ThemeSchema } from './config/schema';
-import { containerAction, containerLogs, listContainers } from './integrations/docker-client';
+  collectMonitorSites,
+  collectWeatherLocations,
+  getDockerShow,
+  sanitizeDashboard,
+  ThemeSchema,
+} from './config/schema';
 import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
 import { getArrSummary } from './integrations/arr';
 import { getBeszelSystems } from './integrations/beszel';
 import { getCalendarEvents } from './integrations/calendar';
-import { getJellyfinImage, getJellyfinSessions } from './integrations/jellyfin';
+import { containerAction, containerLogs, listContainers } from './integrations/docker-client';
 import { getHackerNews } from './integrations/hackernews';
+import { getJellyfinImage, getJellyfinSessions } from './integrations/jellyfin';
+import { checkSites } from './integrations/monitor';
 import { getOpenWeather } from './integrations/openweather';
+import { getQBittorrentTorrents, qbittorrentAction } from './integrations/qbittorrent';
 import { getRedditPosts } from './integrations/reddit';
 import { getReelwardSummary } from './integrations/reelward';
-import { checkSites } from './integrations/monitor';
-import { getQBittorrentTorrents, qbittorrentAction } from './integrations/qbittorrent';
 import { getTransmissionTorrents, transmissionAction } from './integrations/transmission';
 import { hub } from './sse/hub';
 import { refreshChannel } from './sse/scheduler';
@@ -157,7 +159,9 @@ app.get('/api/jellyfin/image/:id', async (c) => {
   });
 });
 
-app.get('/api/reddit/:subreddit', async (c) => c.json(await getRedditPosts(c.req.param('subreddit'))));
+app.get('/api/reddit/:subreddit', async (c) =>
+  c.json(await getRedditPosts(c.req.param('subreddit'))),
+);
 
 app.get('/api/hackernews', async (c) => c.json(await getHackerNews()));
 
@@ -203,7 +207,7 @@ app.get('/api/stream', (c) =>
 
 async function serveStatic(c: Context) {
   // Resolve under WEB_DIST and reject anything that escapes it via `../` traversal.
-  const resolved = path.resolve(WEB_DIST, '.' + c.req.path);
+  const resolved = path.resolve(WEB_DIST, `.${c.req.path}`);
   if (resolved !== WEB_DIST && !resolved.startsWith(WEB_DIST + path.sep)) {
     return c.notFound();
   }
