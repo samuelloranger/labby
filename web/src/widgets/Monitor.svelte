@@ -59,6 +59,8 @@
     <div class="skeleton" style="height:48px"></div>
   {:else if state.error && shown.length === 0}
     <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+  {:else if shown.length === 0}
+    <p class="state-msg">No sites configured</p>
   {:else if variant === 'tiles'}
     <div class="tiles">
       {#each shown as site}
@@ -83,9 +85,6 @@
           <span class="ms">{site.latencyMs != null ? `${site.latencyMs}ms` : 'timeout'}</span>
         </div>
       {/each}
-      {#if shown.length === 0}
-        <p class="state-msg">No sites configured</p>
-      {/if}
     </div>
   {/if}
 </section>

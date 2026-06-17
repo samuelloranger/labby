@@ -16,6 +16,7 @@ import { checkSites } from '../integrations/monitor';
 import { getOpenWeather } from '../integrations/openweather';
 import { getQBittorrentTorrents } from '../integrations/qbittorrent';
 import { getReelwardSummary } from '../integrations/reelward';
+import { getSpeedtestSummary } from '../integrations/speedtest';
 import { getTransmissionTorrents } from '../integrations/transmission';
 import type { Channel } from '../types';
 import { hub } from './hub';
@@ -97,6 +98,25 @@ async function refreshCalendar(): Promise<void> {
   hub.publish('calendar', data);
 }
 
+async function refreshSpeedtest(): Promise<void> {
+  const config = getConfig();
+  let max = 10;
+  if (config) {
+    outer: for (const page of config.pages) {
+      for (const col of page.columns) {
+        for (const widget of col.widgets) {
+          if (widget.type === 'speedtest') {
+            max = widget.max ?? 10;
+            break outer;
+          }
+        }
+      }
+    }
+  }
+  const data = await getSpeedtestSummary(max);
+  hub.publish('speedtest', data);
+}
+
 const refreshers: Record<Channel, () => Promise<void>> = {
   monitor: refreshMonitor,
   docker: refreshDocker,
@@ -110,6 +130,7 @@ const refreshers: Record<Channel, () => Promise<void>> = {
   reelward: refreshReelward,
   weather: refreshWeather,
   calendar: refreshCalendar,
+  speedtest: refreshSpeedtest,
 };
 
 function clearTimers(): void {
@@ -148,6 +169,7 @@ export function startScheduler(): void {
   if (hasWidgetType(config, 'reelward')) scheduleChannel('reelward', rs.reelward);
   if (hasWidgetType(config, 'weather')) scheduleChannel('weather', rs.weather);
   if (hasWidgetType(config, 'calendar')) scheduleChannel('calendar', rs.calendar);
+  if (hasWidgetType(config, 'speedtest')) scheduleChannel('speedtest', rs.speedtest);
 }
 
 export async function refreshChannel(channel: Channel): Promise<void> {

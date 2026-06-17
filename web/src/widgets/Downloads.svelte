@@ -28,8 +28,8 @@
     }
   }
 
-  function isActive(s: string, progress: number): boolean {
-    return !isSeedingTorrent(s, progress) && (s.includes('down') || progress < 100);
+  function isPaused(s: string): boolean {
+    return s.includes('paused') || s === 'stopped';
   }
 </script>
 
@@ -65,16 +65,16 @@
     <div class="dl">
       {#each list as t (t.hash)}
         {@const seed = isSeedingTorrent(t.state, t.progress)}
-        {@const active = isActive(t.state, t.progress)}
+        {@const paused = isPaused(t.state)}
         <div class="tor" class:seed={seed}>
           <div class="top">
-            <span class="dot {active ? 'live' : seed ? 'ok' : 'idle'}"></span>
+            <span class="dot {paused ? 'idle' : seed ? 'ok' : 'live'}"></span>
             <button
               class="tname"
               style="background:none;border:none;cursor:pointer;text-align:left;padding:0"
-              title={active ? 'Pause' : 'Resume'}
+              title={paused ? 'Resume' : 'Pause'}
               disabled={pending[t.hash]}
-              onclick={() => toggle(t.hash, active ? 'pause' : 'resume')}
+              onclick={() => toggle(t.hash, paused ? 'resume' : 'pause')}
             >{t.name}</button>
             <span class="pct">{Math.round(clampPercent(t.progress))}%</span>
           </div>

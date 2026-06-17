@@ -39,6 +39,12 @@
   let imgFailed = $state(false);
   const resolved = $derived(resolveIconSrc(icon, fallback));
   const Lucide = $derived(ICONS[resolved.lucide] ?? ICONS[fallback] ?? Box);
+
+  $effect(() => {
+    if (resolved.src) {
+      imgFailed = false;
+    }
+  });
 </script>
 
 {#if resolved.type === 'img' && !imgFailed}

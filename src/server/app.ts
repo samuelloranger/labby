@@ -23,6 +23,7 @@ import { getOpenWeather } from './integrations/openweather';
 import { getQBittorrentTorrents, qbittorrentAction } from './integrations/qbittorrent';
 import { getRedditPosts } from './integrations/reddit';
 import { getReelwardSummary } from './integrations/reelward';
+import { getSpeedtestSummary, triggerSpeedtestRun } from './integrations/speedtest';
 import { getTransmissionTorrents, transmissionAction } from './integrations/transmission';
 import { hub } from './sse/hub';
 import { refreshChannel } from './sse/scheduler';
@@ -138,6 +139,22 @@ app.get('/api/reelward/summary', async (c) => c.json(await getReelwardSummary())
 
 app.get('/api/calendar', async (c) => c.json(await getCalendarEvents()));
 
+app.get('/api/speedtest/summary', async (c) => {
+  const max = Number(c.req.query('max') ?? 10);
+  return c.json(await getSpeedtestSummary(max));
+});
+
+app.post('/api/speedtest/run', async (c) => {
+  const result = await triggerSpeedtestRun();
+  if ('error' in result) return c.json(result, 502);
+  return c.json(result);
+});
+
+app.post('/api/speedtest/refresh', async (c) => {
+  await refreshChannel('speedtest');
+  return c.json({ ok: true });
+});
+
 app.get('/api/weather', async (c) => {
   const config = getConfig();
   if (!config) return c.json({ error: 'Config not loaded' }, 500);
@@ -205,12 +222,18 @@ app.get('/api/stream', (c) =>
       stream.write(': ping\n\n').catch(() => {});
     }, 15000);
 
+    let resolve: () => void;
+    const abortPromise = new Promise<void>((r) => {
+      resolve = r;
+    });
+
     stream.onAbort(() => {
       clearInterval(keepalive);
       unsub();
+      resolve();
     });
 
-    await new Promise(() => {});
+    await abortPromise;
   }),
 );
 

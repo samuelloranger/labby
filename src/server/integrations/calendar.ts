@@ -121,7 +121,7 @@ export function parseICS(
           : [cur.start.epoch];
         for (const s of starts) {
           const end = s + durationMs;
-          if (end < now || s > windowEnd) continue; // drop fully-past / beyond-window
+          if (end < now - 36 * 3_600_000 || s > windowEnd) continue; // drop fully-past / beyond-window
           events.push({
             title: cur.summary,
             start: s,

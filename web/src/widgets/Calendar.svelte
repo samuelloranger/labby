@@ -6,7 +6,24 @@
   let { title, max = 8 }: { title: string; max?: number } = $props();
 
   const state = $derived($calendarStore);
-  const events = $derived((state.data?.events ?? []).slice(0, max));
+  const events = $derived.by<CalendarEvent[]>(() => {
+    const all = state.data?.events ?? [];
+    const now = Date.now();
+    return all
+      .filter((ev) => {
+        if (ev.allDay) {
+          const endDate = new Date(ev.end);
+          const localEnd = new Date(
+            endDate.getUTCFullYear(),
+            endDate.getUTCMonth(),
+            endDate.getUTCDate()
+          ).getTime();
+          return localEnd > now;
+        }
+        return ev.end > now;
+      })
+      .slice(0, max);
+  });
 
   // Group events by calendar day for an agenda layout.
   type Group = { key: string; label: string; events: CalendarEvent[] };

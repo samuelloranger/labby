@@ -6,7 +6,8 @@
   import { onMount } from 'svelte';
 
   let { config }: { config: Dashboard } = $props();
-  let page = $derived(config.pages[0]);
+  let activePageIndex = $state(0);
+  let page = $derived(config.pages[activePageIndex] || config.pages[0]);
 
   onMount(() => {
     const cleanup = initStream();
@@ -32,7 +33,21 @@
 
 <main class="page">
   <div class="page-h">
-    <h1>{page.name}</h1>
+    {#if config.pages.length > 1}
+      <div class="page-tabs" role="tablist" aria-label="Dashboard pages">
+        {#each config.pages as p, idx}
+          <button
+            class="page-tab"
+            class:active={activePageIndex === idx}
+            role="tab"
+            aria-selected={activePageIndex === idx}
+            onclick={() => (activePageIndex = idx)}
+          >{p.name}</button>
+        {/each}
+      </div>
+    {:else}
+      <h1>{page.name}</h1>
+    {/if}
     <span class="sub" id="sub"></span>
   </div>
 

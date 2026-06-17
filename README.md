@@ -45,30 +45,31 @@ User config lives in `config/dashboard.json`. Invalid config shows an error stat
 
 ### Widget types
 
-| Type | Env vars |
-|------|----------|
-| `monitor` | — (HTTP checks only) |
-| `docker` | `DOCKER_RO_HOST`, `DOCKER_RW_HOST` |
-| `downloads` | `QBIT_*` or `TRANSMISSION_*` |
-| `adguard` | `ADGUARD_*` |
-| `jellyfin` | `JELLYFIN_*` |
-| `beszel` | `BESZEL_*` |
-| `radarr` | `RADARR_URL`, `RADARR_API_KEY` |
-| `sonarr` | `SONARR_URL`, `SONARR_API_KEY` |
-| `reelward` | `REELWARD_URL`, `REELWARD_API_TOKEN` |
-| `weather` | `OPENWEATHER_API_KEY` |
-| `reddit`, `hackernews` | — |
+| Type                   | Env vars                           |
+| ---------------------- | ---------------------------------- |
+| `monitor`              | — (HTTP checks only)               |
+| `docker`               | `DOCKER_RO_HOST`, `DOCKER_RW_HOST` |
+| `downloads`            | `QBIT_*` or `TRANSMISSION_*`       |
+| `adguard`              | `ADGUARD_*`                        |
+| `jellyfin`             | `JELLYFIN_*`                       |
+| `beszel`               | `BESZEL_*`                         |
+| `radarr`               | `RADARR_URL`, `RADARR_API_KEY`     |
+| `sonarr`               | `SONARR_URL`, `SONARR_API_KEY`     |
+| `reelward`             | `REELWARD_URL`, `REELWARD_API_KEY` |
+| `weather`              | `OPENWEATHER_API_KEY`              |
+| `speedtest`            | `SPEEDTEST_TRACKER_URL`, `SPEEDTEST_TRACKER_API_TOKEN` |
+| `reddit`, `hackernews` | —                                  |
 
 ### Icons
 
 The `icon` field accepts prefixed strings:
 
-| Prefix | Example |
-|--------|---------|
-| `di:` | `di:jellyfin` — dashboard-icons (vendored at build, CDN fallback) |
-| `sh:` | `sh:immich` — selfh.st |
-| `lucide:` | `lucide:film` — built-in line icon |
-| URL / path | `https://…` or `/icons/custom.svg` |
+| Prefix     | Example                                                           |
+| ---------- | ----------------------------------------------------------------- |
+| `di:`      | `di:jellyfin` — dashboard-icons (vendored at build, CDN fallback) |
+| `sh:`      | `sh:immich` — selfh.st                                            |
+| `lucide:`  | `lucide:film` — built-in line icon                                |
+| URL / path | `https://…` or `/icons/custom.svg`                                |
 
 ### Refresh intervals
 

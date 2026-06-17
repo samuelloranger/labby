@@ -103,11 +103,11 @@
         <div class="ctrls">
           <button class="btn" title="logs" onclick={() => showLogs(c.id, c.name)}><FileText size={16} /></button>
           {#if c.state === 'running'}
-            <button class="btn stop" class:pending={pending[c.id] === 'stop'} title="stop" onclick={() => action(c.id, 'stop')}><Square size={16} /></button>
-            <button class="btn" class:pending={pending[c.id] === 'restart'} title="restart" onclick={() => action(c.id, 'restart')}><RotateCcw size={16} /></button>
+            <button class="btn stop" class:pending={pending[c.id] === 'stop'} disabled={pending[c.id] !== undefined} title="stop" onclick={() => action(c.id, 'stop')}><Square size={16} /></button>
+            <button class="btn" class:pending={pending[c.id] === 'restart'} disabled={pending[c.id] !== undefined} title="restart" onclick={() => action(c.id, 'restart')}><RotateCcw size={16} /></button>
           {:else}
-            <button class="btn go" class:pending={pending[c.id] === 'start'} title="start" onclick={() => action(c.id, 'start')}><Play size={16} /></button>
-            <button class="btn" class:pending={pending[c.id] === 'restart'} title="restart" onclick={() => action(c.id, 'restart')}><RotateCcw size={16} /></button>
+            <button class="btn go" class:pending={pending[c.id] === 'start'} disabled={pending[c.id] !== undefined} title="start" onclick={() => action(c.id, 'start')}><Play size={16} /></button>
+            <button class="btn" class:pending={pending[c.id] === 'restart'} disabled={pending[c.id] !== undefined} title="restart" onclick={() => action(c.id, 'restart')}><RotateCcw size={16} /></button>
           {/if}
         </div>
       </div>
