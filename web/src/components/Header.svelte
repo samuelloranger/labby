@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { Palette, Search } from 'lucide-svelte';
   import { monitorStore, searchQuery, streamConnected } from '$lib/stores';
 
@@ -20,8 +21,25 @@
 
   let theme = $state(document.documentElement.dataset.theme ?? 'light');
   let searchEl = $state<HTMLInputElement>();
+  let currentTime = $state('');
 
   const summary = $derived(monitor.data?.summary ?? { up: 0, warn: 0, down: 0 });
+
+  onMount(() => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const mon = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    const tick = () => {
+      const d = new Date();
+      const t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      currentTime = `${days[d.getDay()]}, ${mon[d.getMonth()]} ${d.getDate()} · ${t}`;
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  });
 
   // "/" focuses search; ignore when already typing in a field.
   function onGlobalKey(e: KeyboardEvent) {
@@ -60,6 +78,10 @@
       <img class="logo" class:reconnecting={!connected} src="/icons/labby.svg" alt="Labby" width="28" height="28" />
       <span>{title.toLowerCase()}</span>
     </div>
+
+    {#if currentTime}
+      <span class="header-time">{currentTime}</span>
+    {/if}
 
     <div class="searchpill">
       <input

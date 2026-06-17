@@ -10,30 +10,15 @@
   let page = $derived(config.pages[activePageIndex] || config.pages[0]);
 
   onMount(() => {
-    const cleanup = initStream();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const mon = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    const el = document.getElementById('sub');
-    const tick = () => {
-      const d = new Date();
-      const t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      if (el) el.textContent = `${days[d.getDay()]}, ${mon[d.getMonth()]} ${d.getDate()} · ${t}`;
-    };
-    tick();
-    // ponytail: 1s tick; minute-aligned timer if battery ever matters
-    const timer = setInterval(tick, 1000);
-    return () => { clearInterval(timer); cleanup(); };
+    return initStream();
   });
 </script>
 
 <Header title={config.title} />
 
 <main class="page">
-  <div class="page-h">
-    {#if config.pages.length > 1}
+  {#if config.pages.length > 1}
+    <div class="page-h">
       <div class="page-tabs" role="tablist" aria-label="Dashboard pages">
         {#each config.pages as p, idx}
           <button
@@ -45,11 +30,8 @@
           >{p.name}</button>
         {/each}
       </div>
-    {:else}
-      <h1>{page.name}</h1>
-    {/if}
-    <span class="sub" id="sub"></span>
-  </div>
+    </div>
+  {/if}
 
   <div class="grid">
     {#each page.columns as col}
