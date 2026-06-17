@@ -13,6 +13,7 @@ import {
 import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
 import { getArrSummary } from './integrations/arr';
 import { getBeszelSystems } from './integrations/beszel';
+import { cached } from './integrations/cache';
 import { getCalendarEvents } from './integrations/calendar';
 import { containerAction, containerLogs, listContainers } from './integrations/docker-client';
 import { getHackerNews } from './integrations/hackernews';
@@ -159,11 +160,19 @@ app.get('/api/jellyfin/image/:id', async (c) => {
   });
 });
 
-app.get('/api/reddit/:subreddit', async (c) =>
-  c.json(await getRedditPosts(c.req.param('subreddit'))),
-);
+// 4-min server-side cache: the client polls every 5 min, so this collapses all
+// browsers/tabs into one upstream fetch per window and rides out Reddit 429s by
+// serving the last good payload (see integrations/cache.ts).
+const FEED_TTL = 240_000;
 
-app.get('/api/hackernews', async (c) => c.json(await getHackerNews()));
+app.get('/api/reddit/:subreddit', async (c) => {
+  const sub = c.req.param('subreddit');
+  return c.json(await cached(`reddit:${sub}`, FEED_TTL, () => getRedditPosts(sub)));
+});
+
+app.get('/api/hackernews', async (c) =>
+  c.json(await cached('hackernews', FEED_TTL, () => getHackerNews())),
+);
 
 app.post('/api/theme', async (c) => {
   const body = await c.req.json<{ theme: string }>();

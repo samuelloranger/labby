@@ -1,0 +1,36 @@
+{
+  "title": "Labby E2E",
+  "theme": { "default": "dark" },
+  "pages": [
+    {
+      "name": "Overview",
+      "columns": [
+        {
+          "size": "small",
+          "widgets": [
+            {
+              "type": "monitor",
+              "title": "Reachability",
+              "style": "compact",
+              "sites": [
+                {
+                  "title": "Unreachable",
+                  "url": "https://nope.invalid.example",
+                  "checkUrl": "http://127.0.0.1:1",
+                  "icon": "lucide:server"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "size": "full",
+          "widgets": [
+            { "type": "reddit", "title": "Reddit", "subreddit": ["selfhosted", "homelab"], "max": 5 },
+            { "type": "hackernews", "title": "Hacker News", "max": 5 }
+          ]
+        }
+      ]
+    }
+  ]
+}
