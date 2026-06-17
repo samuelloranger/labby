@@ -428,6 +428,40 @@ header.top {
   margin-bottom: 22px;
 }
 
+.page-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--glass-2);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-brd);
+}
+
+.page-tab {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink-dim);
+  padding: 6px 16px;
+  border-radius: calc(var(--radius-sm) - 4px);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.page-tab:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.page-tab.active {
+  color: #fff;
+  background: var(--accent);
+}
+
 .page-h h1 {
   font-size: 1.7rem;
   font-weight: 800;
@@ -1536,15 +1570,16 @@ footer.f {
 }
 
 /* weather */
-.weather-card .chead {
-  align-items: flex-start;
+.weather-card .chead .ti {
+  width: 100%;
 }
-
 .weather-place {
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--ink-dim);
-  text-align: right;
+}
+.weather-card .weather-place {
+  margin-left: auto;
 }
 
 .weather-hero {

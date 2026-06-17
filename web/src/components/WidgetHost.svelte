@@ -10,6 +10,7 @@
   import Feed from '../widgets/Feed.svelte';
   import Weather from '../widgets/Weather.svelte';
   import Calendar from '../widgets/Calendar.svelte';
+  import Speedtest from '../widgets/Speedtest.svelte';
   import type { Widget } from '$lib/types';
 
   let { widget }: { widget: Widget } = $props();
@@ -53,4 +54,6 @@
   <Weather title={widget.title} city={widget.city} lat={widget.lat} lon={widget.lon} />
 {:else if widget.type === 'calendar'}
   <Calendar title={widget.title} max={widget.max} />
+{:else if widget.type === 'speedtest'}
+  <Speedtest title={widget.title} max={widget.max} />
 {/if}

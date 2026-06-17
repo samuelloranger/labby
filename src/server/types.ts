@@ -180,6 +180,19 @@ export type ReelwardPayload = {
   };
 };
 
+export type SpeedtestResult = {
+  id: number;
+  ping: number;
+  download: number;
+  upload: number;
+  createdAt: string;
+};
+
+export type SpeedtestPayload = {
+  latest: SpeedtestResult | null;
+  history: SpeedtestResult[];
+};
+
 export type Channel =
   | 'monitor'
   | 'docker'
@@ -192,7 +205,8 @@ export type Channel =
   | 'sonarr'
   | 'reelward'
   | 'weather'
-  | 'calendar';
+  | 'calendar'
+  | 'speedtest';
 
 export type ChannelPayload =
   | MonitorPayload
@@ -204,7 +218,8 @@ export type ChannelPayload =
   | ArrPayload
   | ReelwardPayload
   | WeatherPayload
-  | CalendarPayload;
+  | CalendarPayload
+  | SpeedtestPayload;
 
 export type ApiError = { error: string };
 

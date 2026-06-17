@@ -31,12 +31,12 @@
     <span class="ti">
       <span class="ibox"><Icon icon="lucide:cloud-sun" fallback="cloud-sun" size={20} /></span>
       {title}
+      {#if data}
+        <span class="weather-place">
+          {data.city}{#if data.country}, {data.country}{/if}
+        </span>
+      {/if}
     </span>
-    {#if data}
-      <span class="weather-place">
-        {data.city}{#if data.country}, {data.country}{/if}
-      </span>
-    {/if}
   </div>
 
   {#if state.loading && !data}

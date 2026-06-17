@@ -11,7 +11,9 @@
     "radarr": 60,
     "sonarr": 60,
     "reelward": 60,
-    "weather": 900
+    "weather": 900,
+    "calendar": 600,
+    "speedtest": 1800
   },
   "pages": [
     {
@@ -151,7 +153,8 @@
             },
             { "type": "adguard", "title": "AdGuard" },
             { "type": "jellyfin", "title": "Jellyfin" },
-            { "type": "weather", "title": "Weather", "city": "London,GB", "units": "metric" }
+            { "type": "weather", "title": "Weather", "city": "London,GB", "units": "metric" },
+            { "type": "speedtest", "title": "Speedtest Tracker", "max": 5 }
           ]
         }
       ]

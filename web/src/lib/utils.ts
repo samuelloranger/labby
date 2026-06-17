@@ -71,7 +71,13 @@ export function formatEta(seconds: number | null | undefined): string {
   if (seconds == null || Number.isNaN(seconds) || seconds < 0 || seconds === 8640000) return '—';
   if (seconds < 60) return `eta ${seconds}s`;
   const m = Math.floor(seconds / 60);
-  return `eta ${m}m`;
+  if (m < 60) return `eta ${m}m`;
+  const h = Math.floor(m / 60);
+  const remM = m % 60;
+  if (h < 24) return `eta ${h}h ${remM}m`;
+  const d = Math.floor(h / 24);
+  const remH = h % 24;
+  return `eta ${d}d ${remH}h`;
 }
 
 export function formatUptime(seconds: number | null | undefined): string {
@@ -105,8 +111,31 @@ export function windLabel(deg: number): string {
   return WIND_DIRS[idx];
 }
 
+const METEOCONS_MAP: Record<string, string> = {
+  '01d': 'clear-day',
+  '01n': 'clear-night',
+  '02d': 'partly-cloudy-day',
+  '02n': 'partly-cloudy-night',
+  '03d': 'cloudy',
+  '03n': 'cloudy',
+  '04d': 'overcast',
+  '04n': 'overcast',
+  '09d': 'drizzle',
+  '09n': 'drizzle',
+  '10d': 'partly-cloudy-day-rain',
+  '10n': 'partly-cloudy-night-rain',
+  '11d': 'thunderstorms-day-rain',
+  '11n': 'thunderstorms-night-rain',
+  '13d': 'partly-cloudy-day-snow',
+  '13n': 'partly-cloudy-night-snow',
+  '50d': 'mist',
+  '50n': 'mist',
+};
+
 export function weatherIconUrl(icon: string): string {
-  return `https://openweathermap.org/img/wn/${icon}@2x.png`;
+  const code = icon.slice(0, 3);
+  const name = METEOCONS_MAP[code] || 'clear-day';
+  return `https://cdn.jsdelivr.net/gh/basmilius/weather-icons/production/fill/all/${name}.svg`;
 }
 
 export function tempUnit(units: 'metric' | 'imperial'): string {

@@ -32,7 +32,8 @@ export type Widget =
       lon?: number;
       units?: 'metric' | 'imperial';
     }
-  | { type: 'calendar'; title: string; max?: number };
+  | { type: 'calendar'; title: string; max?: number }
+  | { type: 'speedtest'; title: string; max?: number };
 
 export type Column = { size: 'small' | 'full'; widgets: Widget[] };
 export type Page = { name: string; columns: Column[] };

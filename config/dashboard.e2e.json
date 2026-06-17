@@ -26,7 +26,12 @@
         {
           "size": "full",
           "widgets": [
-            { "type": "reddit", "title": "Reddit", "subreddit": ["selfhosted", "homelab"], "max": 5 },
+            {
+              "type": "reddit",
+              "title": "Reddit",
+              "subreddit": ["selfhosted", "homelab"],
+              "max": 5
+            },
             { "type": "hackernews", "title": "Hacker News", "max": 5 }
           ]
         }

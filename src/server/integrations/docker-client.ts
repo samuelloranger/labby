@@ -32,14 +32,18 @@ export async function listContainers(
 
         if (item.State === 'running') {
           try {
-            const statsRes = await dockerFetch(base, `/containers/${item.Id}/stats?stream=false`);
+            const statsRes = await dockerFetch(base, `/containers/${item.Id}/stats?stream=false`, {
+              signal: AbortSignal.timeout(2500),
+            });
             if (statsRes.ok) cpuPercent = calcCpuPercent(await statsRes.json());
           } catch {
             cpuPercent = null;
           }
         } else if (item.State === 'exited') {
           try {
-            const inspectRes = await dockerFetch(base, `/containers/${item.Id}/json`);
+            const inspectRes = await dockerFetch(base, `/containers/${item.Id}/json`, {
+              signal: AbortSignal.timeout(2500),
+            });
             if (inspectRes.ok) exitCode = (await inspectRes.json())?.State?.ExitCode;
           } catch {
             exitCode = undefined;

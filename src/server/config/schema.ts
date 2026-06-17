@@ -94,6 +94,11 @@ export const WidgetSchema = z.discriminatedUnion('type', [
     title: z.string(),
     max: z.number().int().positive().optional(),
   }),
+  z.object({
+    type: z.literal('speedtest'),
+    title: z.string(),
+    max: z.number().int().positive().optional(),
+  }),
 ]);
 
 export const ColumnSchema = z.object({
@@ -126,6 +131,7 @@ export const DashboardSchema = z.object({
       reelward: z.number().default(60),
       weather: z.number().default(900),
       calendar: z.number().default(600),
+      speedtest: z.number().default(1800),
     })
     .default({}),
   pages: z.array(PageSchema).min(1),

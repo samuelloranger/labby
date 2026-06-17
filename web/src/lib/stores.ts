@@ -166,6 +166,19 @@ export type ReelwardData = {
   };
 };
 
+export type SpeedtestResult = {
+  id: number;
+  ping: number;
+  download: number;
+  upload: number;
+  createdAt: string;
+};
+
+export type SpeedtestData = {
+  latest: SpeedtestResult | null;
+  history: SpeedtestResult[];
+};
+
 export type WidgetState<T> = {
   loading: boolean;
   error: string | null;
@@ -189,6 +202,7 @@ export const sonarrStore = writable<WidgetState<ArrData>>(emptyState());
 export const reelwardStore = writable<WidgetState<ReelwardData>>(emptyState());
 export const weatherStore = writable<WidgetState<WeatherData>>(emptyState());
 export const calendarStore = writable<WidgetState<CalendarData>>(emptyState());
+export const speedtestStore = writable<WidgetState<SpeedtestData>>(emptyState());
 export const streamConnected = writable(true);
 
 /** Global search across services + containers + torrents (header search pill). */
@@ -220,6 +234,7 @@ export function markStale() {
     reelwardStore,
     weatherStore,
     calendarStore,
+    speedtestStore,
   ]) {
     store.update((s) => ({ ...s, stale: true }));
   }
@@ -242,6 +257,8 @@ export function initStream() {
       sonarrStore,
       reelwardStore,
       weatherStore,
+      calendarStore,
+      speedtestStore,
     ]) {
       store.update((s) => ({ ...s, loading: s.data ? false : s.loading }));
     }
@@ -265,6 +282,7 @@ export function initStream() {
     reelward: (d) => patchStore(reelwardStore, d),
     weather: (d) => patchStore(weatherStore, d),
     calendar: (d) => patchStore(calendarStore, d),
+    speedtest: (d) => patchStore(speedtestStore, d),
   };
 
   for (const [event, handler] of Object.entries(handlers)) {
