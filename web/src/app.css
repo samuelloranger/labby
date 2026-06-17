@@ -300,6 +300,19 @@ header.top {
   }
 }
 
+.header-time {
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .header-time {
+    display: none;
+  }
+}
+
 .searchpill {
   margin: 0 auto;
   display: flex;
