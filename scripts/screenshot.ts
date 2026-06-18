@@ -351,7 +351,7 @@ async function main() {
   const filename = `screenshot-v${version}.png`;
   const filepath = `docs/${filename}`;
   
-  await page.screenshot({ path: filepath, fullPage: true });
+  await page.screenshot({ path: filepath, fullPage: false });
 
   console.log('Updating README.md...');
   const fs = require('node:fs');
