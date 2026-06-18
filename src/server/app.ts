@@ -45,6 +45,9 @@ app.use('*', async (c, next) => {
         '</head>',
         `<style id="labby-custom-css">${customCss}</style></head>`,
       );
+      // HTML must always revalidate so a new build's hashed assets are picked up
+      // (assets themselves are immutable-cached in serveStatic).
+      c.header('Cache-Control', 'no-cache');
       return c.html(patched);
     }
   }
@@ -212,6 +215,9 @@ async function serveStatic(c: Context) {
   // Set an explicit Content-Type — c.body() does not infer it, and browsers
   // reject JS modules / CSS served without the correct MIME type.
   c.header('Content-Type', file.type || 'application/octet-stream');
+  // Build output is content-hashed (e.g. index-BQsN9bVw.js), so it's safe to
+  // cache forever; a new build emits new filenames and the no-cache HTML points to them.
+  c.header('Cache-Control', 'public, max-age=31536000, immutable');
   return c.body(file.stream());
 }
 
@@ -227,6 +233,7 @@ app.get('*', async (c) => {
   let patched = html.replaceAll('__LABBY_THEME__', theme);
   const customCss = customCssFromConfig();
   patched = patched.replace('</head>', `<style id="labby-custom-css">${customCss}</style></head>`);
+  c.header('Cache-Control', 'no-cache');
   return c.html(patched);
 });
 
