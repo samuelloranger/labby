@@ -23,7 +23,7 @@ Do not expose Labby to the public internet without network-level access control.
 ```bash
 cp .env.example .env
 # Edit .env with your service URLs and credentials
-bun install && (cd web && bun install)
+bun install && (cd src/web && bun install)
 bun run build
 bun run start
 ```
@@ -79,7 +79,7 @@ Set per-channel poll cadence in `refreshSeconds`. The browser receives updates v
 
 ```bash
 bun run dev              # API on :8080 (watch mode)
-cd web && bun run dev    # Vite dev server, proxies /api → :8080
+cd src/web && bun run dev    # Vite dev server, proxies /api → :8080
 bun test
 ```
 

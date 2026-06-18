@@ -1,29 +1,8 @@
 services:
   labby:
-    build: .
-    container_name: labby
+    image: ghcr.io/samuelloranger/labby:latest
     restart: unless-stopped
-    env_file: .env
+    ports:
+      - "8080:8080"
     volumes:
       - ./config:/app/config
-    networks:
-      - homelab_network
-      - docker-proxy-ro
-      - docker-proxy-rw
-      - homelab_secure
-    security_opt:
-      - no-new-privileges:true
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-
-networks:
-  homelab_network:
-    external: true
-  docker-proxy-ro:
-    external: true
-  docker-proxy-rw:
-    external: true
-  homelab_secure:
-    external: true

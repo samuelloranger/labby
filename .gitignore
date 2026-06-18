@@ -1,10 +1,10 @@
 # Dependencies
 node_modules/
-web/node_modules/
+src/web/node_modules/
 
 # Build output
 dist/
-web/dist/
+src/web/dist/
 
 # Environment and secrets
 .env

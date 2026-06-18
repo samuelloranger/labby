@@ -8,13 +8,13 @@
   "files": {
     "includes": [
       "src/**",
-      "web/src/**",
+      "src/web/src/**",
       "scripts/**",
       "config/*.json",
       "*.json",
       "!dist",
-      "!web/dist",
-      "!web/public",
+      "!src/web/dist",
+      "!src/web/public",
       "!**/*.svelte"
     ]
   },

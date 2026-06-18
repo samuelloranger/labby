@@ -1,11 +1,10 @@
 node_modules
-web/node_modules
+src/web/node_modules
 dist
-web/dist
+src/web/dist
 .git
 .env
 *.log
 .DS_Store
-design
 .claude
 config/dashboard.json
