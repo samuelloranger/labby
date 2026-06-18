@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 
 export type MonitorData = {
   sites: Array<{
@@ -120,10 +120,6 @@ export type WeatherLocationData = {
   forecast: WeatherForecastDay[];
 };
 
-export type WeatherData = {
-  locations: Record<string, WeatherLocationData | { error: string }>;
-};
-
 export type CalendarEvent = {
   title: string;
   start: number;
@@ -179,6 +175,22 @@ export type SpeedtestData = {
   history: SpeedtestResult[];
 };
 
+export type FeedPost = {
+  title: string;
+  url: string;
+  score: number;
+  comments: number;
+  author?: string;
+  subreddit?: string;
+  domain?: string;
+  createdUtc: number;
+};
+
+export type FeedData = {
+  posts: FeedPost[];
+  subreddit?: string;
+};
+
 export type WidgetState<T> = {
   loading: boolean;
   error: string | null;
@@ -190,76 +202,88 @@ function emptyState<T>(): WidgetState<T> {
   return { loading: true, error: null, stale: false, data: null };
 }
 
-export const monitorStore = writable<WidgetState<MonitorData>>(emptyState());
-export const dockerStore = writable<WidgetState<DockerData>>(emptyState());
-export const qbStore = writable<WidgetState<DownloadsData>>(emptyState());
-export const trStore = writable<WidgetState<DownloadsData>>(emptyState());
-export const adguardStore = writable<WidgetState<AdGuardData>>(emptyState());
-export const jellyfinStore = writable<WidgetState<JellyfinData>>(emptyState());
-export const beszelStore = writable<WidgetState<BeszelData>>(emptyState());
-export const radarrStore = writable<WidgetState<ArrData>>(emptyState());
-export const sonarrStore = writable<WidgetState<ArrData>>(emptyState());
-export const reelwardStore = writable<WidgetState<ReelwardData>>(emptyState());
-export const weatherStore = writable<WidgetState<WeatherData>>(emptyState());
-export const calendarStore = writable<WidgetState<CalendarData>>(emptyState());
-export const speedtestStore = writable<WidgetState<SpeedtestData>>(emptyState());
+const stores = new Map<number, Writable<WidgetState<unknown>>>();
+let es: EventSource | null = null;
+const eventListeners = new Map<number, (e: Event) => void>();
+
 export const streamConnected = writable(true);
 
 /** Global search across services + containers + torrents (header search pill). */
 export const searchQuery = writable('');
 
+export function idFromEvent(name: string): number | null {
+  const m = /^int:(\d+)$/.exec(name);
+  return m ? Number(m[1]) : null;
+}
+
+export function getStore(id: number): Writable<WidgetState<unknown>> {
+  let s = stores.get(id);
+  if (!s) {
+    s = writable<WidgetState<unknown>>(emptyState());
+    stores.set(id, s);
+  }
+  return s;
+}
+
 function isError(data: unknown): data is { error: string } {
   return typeof data === 'object' && data !== null && 'error' in data;
 }
 
-function patchStore<T>(store: typeof monitorStore, data: unknown) {
+function patchStore(id: number, data: unknown) {
+  const store = getStore(id);
   if (isError(data)) {
     store.update((s) => ({ ...s, loading: false, error: data.error, stale: false }));
     return;
   }
-  store.set({ loading: false, error: null, stale: false, data: data as T });
+  store.set({ loading: false, error: null, stale: false, data });
+}
+
+function detachIntegrationListeners(source: EventSource) {
+  for (const [id, handler] of eventListeners) {
+    source.removeEventListener(`int:${id}`, handler);
+  }
+  eventListeners.clear();
+}
+
+async function attachIntegrationListeners(source: EventSource) {
+  detachIntegrationListeners(source);
+  try {
+    const res = await fetch('/api/integrations');
+    if (!res.ok) return;
+    const rows = (await res.json()) as Array<{ id: number }>;
+    for (const row of rows) {
+      const handler = (e: Event) => {
+        try {
+          patchStore(row.id, JSON.parse((e as MessageEvent).data));
+        } catch {
+          /* ignore malformed */
+        }
+      };
+      source.addEventListener(`int:${row.id}`, handler);
+      eventListeners.set(row.id, handler);
+    }
+  } catch {
+    /* offline — reconnect will retry */
+  }
 }
 
 export function markStale() {
-  for (const store of [
-    monitorStore,
-    dockerStore,
-    qbStore,
-    trStore,
-    adguardStore,
-    jellyfinStore,
-    beszelStore,
-    radarrStore,
-    sonarrStore,
-    reelwardStore,
-    weatherStore,
-    calendarStore,
-    speedtestStore,
-  ]) {
+  for (const store of stores.values()) {
     store.update((s) => ({ ...s, stale: true }));
   }
 }
 
+export async function refreshStreamSubscriptions() {
+  if (es) await attachIntegrationListeners(es);
+}
+
 export function initStream() {
-  const es = new EventSource('/api/stream');
+  es = new EventSource('/api/stream');
 
   es.onopen = () => {
     streamConnected.set(true);
-    for (const store of [
-      monitorStore,
-      dockerStore,
-      qbStore,
-      trStore,
-      adguardStore,
-      jellyfinStore,
-      beszelStore,
-      radarrStore,
-      sonarrStore,
-      reelwardStore,
-      weatherStore,
-      calendarStore,
-      speedtestStore,
-    ]) {
+    void attachIntegrationListeners(es!);
+    for (const store of stores.values()) {
       store.update((s) => ({ ...s, loading: s.data ? false : s.loading }));
     }
   };
@@ -269,31 +293,11 @@ export function initStream() {
     markStale();
   };
 
-  const handlers: Record<string, (data: unknown) => void> = {
-    monitor: (d) => patchStore(monitorStore, d),
-    docker: (d) => patchStore(dockerStore, d),
-    'downloads:qbittorrent': (d) => patchStore(qbStore, d),
-    'downloads:transmission': (d) => patchStore(trStore, d),
-    adguard: (d) => patchStore(adguardStore, d),
-    jellyfin: (d) => patchStore(jellyfinStore, d),
-    beszel: (d) => patchStore(beszelStore, d),
-    radarr: (d) => patchStore(radarrStore, d),
-    sonarr: (d) => patchStore(sonarrStore, d),
-    reelward: (d) => patchStore(reelwardStore, d),
-    weather: (d) => patchStore(weatherStore, d),
-    calendar: (d) => patchStore(calendarStore, d),
-    speedtest: (d) => patchStore(speedtestStore, d),
+  return () => {
+    if (es) {
+      detachIntegrationListeners(es);
+      es.close();
+      es = null;
+    }
   };
-
-  for (const [event, handler] of Object.entries(handlers)) {
-    es.addEventListener(event, (e) => {
-      try {
-        handler(JSON.parse((e as MessageEvent).data));
-      } catch {
-        /* ignore malformed */
-      }
-    });
-  }
-
-  return () => es.close();
 }
