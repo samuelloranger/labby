@@ -114,10 +114,6 @@ export const WidgetSchema = z.discriminatedUnion('type', [
     title: z.string(),
     max: z.number().int().positive().optional(),
   }),
-  z.object({
-    type: z.literal('game'),
-    title: z.string(),
-  }),
 ]);
 
 export const ColumnSchema = z.object({
