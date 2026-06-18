@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { type Dashboard, DashboardSchema, type ThemeName, type LayoutType } from './schema';
 import { getSetting, setSetting } from '../db';
+import { type Dashboard, DashboardSchema, type LayoutType, type ThemeName } from './schema';
 
 export type ConfigState = { ok: true; config: Dashboard } | { ok: false; error: string };
 
@@ -31,7 +31,7 @@ async function readConfigRaw(): Promise<string> {
   if (dbConfig) {
     return dbConfig;
   }
-  
+
   const examplePath = path.join(process.cwd(), 'config', 'dashboard.example.json');
   console.warn(`Dashboard config not found in DB; loading ${examplePath}`);
   const raw = await readFile(examplePath, 'utf-8');
