@@ -306,7 +306,7 @@
     <div class="svc-fields">
       <div class="field">
         <label for="int-name">Name</label>
-        <input id="int-name" type="text" bind:value={formName} placeholder="My Radarr" required />
+        <input id="int-name" type="text" bind:value={formName} placeholder={`My ${selectedMeta.label}`} required />
       </div>
 
       <div class="field row-field">
@@ -667,6 +667,20 @@
   textarea {
     resize: vertical;
     min-height: 88px;
+  }
+  /* The rule above targets every input; checkboxes must opt out of full-width box styling. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    accent-color: var(--accent);
+    cursor: pointer;
   }
 
   /* --- tag/chip list fields --- */
