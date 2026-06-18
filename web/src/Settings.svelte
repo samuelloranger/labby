@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { ArrowLeft, Database, Eye, EyeOff, Plus, Trash2 } from 'lucide-svelte';
+  import Icon from './components/Icon.svelte';
 
   let settings: Record<string, string> = $state({});
   let loading = $state(true);
@@ -11,50 +12,62 @@
   const KNOWN_SERVICES = [
     {
       name: 'Labby',
+      icon: '/icons/labby.svg',
       keys: ['LABBY_PORT']
     },
     {
       name: 'Docker',
+      icon: 'di:docker',
       keys: ['DOCKER_RO_HOST', 'DOCKER_RW_HOST']
     },
     {
       name: 'qBittorrent',
+      icon: 'di:qbittorrent',
       keys: ['QBIT_URL', 'QBIT_USER', 'QBIT_PASS']
     },
     {
       name: 'Transmission',
+      icon: 'di:transmission',
       keys: ['TRANSMISSION_URL', 'TRANSMISSION_USER', 'TRANSMISSION_PASS']
     },
     {
       name: 'AdGuard',
+      icon: 'di:adguard-home',
       keys: ['ADGUARD_URL', 'ADGUARD_USER', 'ADGUARD_PASS']
     },
     {
       name: 'Jellyfin',
+      icon: 'di:jellyfin',
       keys: ['JELLYFIN_URL', 'JELLYFIN_API_KEY']
     },
     {
       name: 'Beszel',
+      icon: 'di:beszel',
       keys: ['BESZEL_URL', 'BESZEL_USER', 'BESZEL_PASS', 'BESZEL_TOKEN']
     },
     {
       name: 'Radarr',
+      icon: 'di:radarr',
       keys: ['RADARR_URL', 'RADARR_API_KEY']
     },
     {
       name: 'Sonarr',
+      icon: 'di:sonarr',
       keys: ['SONARR_URL', 'SONARR_API_KEY']
     },
     {
       name: 'Reelward',
+      icon: 'lucide:film',
       keys: ['REELWARD_URL', 'REELWARD_API_KEY']
     },
     {
       name: 'OpenWeather',
+      icon: 'lucide:sun',
       keys: ['OPENWEATHER_API_KEY']
     },
     {
       name: 'Speedtest Tracker',
+      icon: '/icons/speedtest-tracker.svg',
       keys: ['SPEEDTEST_TRACKER_URL', 'SPEEDTEST_TRACKER_API_TOKEN']
     }
   ];
@@ -156,9 +169,9 @@
 
 <div class="page settings-page">
   <div class="settings-bar">
-    <a class="iconbtn" href="#" aria-label="Back to dashboard" title="Back to dashboard">
+    <button class="iconbtn" onclick={() => (window.location.hash = '')} aria-label="Back to dashboard" title="Back to dashboard">
       <ArrowLeft size={18} />
-    </a>
+    </button>
     <div class="settings-heading">
       <span class="settings-eyebrow"><Database size={13} /> Configuration</span>
       <h1>Manage Services</h1>
@@ -182,7 +195,7 @@
         {@const n = configuredCount(service.keys)}
         <div class="svc-card">
           <div class="svc-head">
-            <span class="svc-mark" class:on={n > 0}>{service.name[0]}</span>
+            <span class="svc-mark"><Icon icon={service.icon} fallback="box" size={20} /></span>
             <div class="svc-title">
               <h3>{service.name}</h3>
               <span class="svc-status" class:on={n > 0}>
@@ -266,7 +279,7 @@
     </div>
 
     <div class="settings-footer">
-      <a href="#" class="btn-cancel">Cancel</a>
+      <button class="btn-cancel" onclick={() => (window.location.hash = '')}>Cancel</button>
       <button onclick={save} class="btn-save" disabled={saving}>
         {saving ? 'Saving…' : 'Save & Reload'}
       </button>
@@ -349,14 +362,20 @@
     border-radius: 10px;
     display: grid;
     place-items: center;
-    font-weight: 800;
-    font-size: 0.95rem;
     background: var(--surface);
-    color: var(--ink-faint);
+    color: var(--ink-dim);
+    overflow: hidden;
+  }
+  .svc-mark :global(img),
+  .svc-mark :global(svg) {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
   }
   .svc-mark.on {
     background: var(--accent-soft);
     color: var(--accent);
+    font-weight: 800;
   }
   .svc-title {
     display: flex;

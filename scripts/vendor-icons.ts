@@ -25,6 +25,9 @@ const SLUGS = [
   'jackett',
   'reddit',
   'hacker-news',
+  'docker',
+  'radarr',
+  'sonarr',
 ];
 
 await mkdir(OUT, { recursive: true });
