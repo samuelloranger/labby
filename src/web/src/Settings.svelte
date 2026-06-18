@@ -79,48 +79,73 @@
     editing = null;
   }
 
-  function listFieldValue(key: string): string {
+  let tagDraft = $state<Record<string, string>>({});
+
+  type SiteForm = { title?: string; checkUrl?: string; url?: string; icon?: string; okCodes?: number[] };
+
+  // --- tag/chip list fields (subreddits, ICS URLs) ---
+  function tags(key: string): string[] {
     const v = formConfig[key];
-    if (Array.isArray(v)) {
-      return v
-        .map((item) => {
-          if (typeof item === 'object' && item && 'checkUrl' in item) {
-            const s = item as { title?: string; checkUrl: string };
-            return s.title && s.title !== s.checkUrl ? `${s.title}|${s.checkUrl}` : s.checkUrl;
-          }
-          return String(item);
-        })
-        .join('\n');
+    return Array.isArray(v) ? v.map((x) => String(x)) : [];
+  }
+  function addTag(key: string) {
+    const raw = (tagDraft[key] ?? '').trim();
+    if (!raw) return;
+    const parts = raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+    const cur = tags(key);
+    formConfig = { ...formConfig, [key]: [...cur, ...parts.filter((p) => !cur.includes(p))] };
+    tagDraft[key] = '';
+  }
+  function removeTag(key: string, i: number) {
+    formConfig = { ...formConfig, [key]: tags(key).filter((_, idx) => idx !== i) };
+  }
+  function onTagKey(e: KeyboardEvent, key: string) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(key);
     }
-    if (typeof v === 'string') return v;
-    return '';
   }
 
-  function setListField(key: string, raw: string) {
-    if (key === 'sites') {
-      formConfig = {
-        ...formConfig,
-        [key]: raw
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((line) => {
-            const pipe = line.indexOf('|');
-            if (pipe > 0) {
-              return { title: line.slice(0, pipe).trim(), checkUrl: line.slice(pipe + 1).trim() };
-            }
-            return { title: line, checkUrl: line };
-          }),
-      };
-      return;
+  // --- structured monitor sites editor ---
+  function sites(key: string): SiteForm[] {
+    const v = formConfig[key];
+    return Array.isArray(v) ? (v as SiteForm[]) : [];
+  }
+  function addSite(key: string) {
+    formConfig = { ...formConfig, [key]: [...sites(key), { title: '', checkUrl: '' }] };
+  }
+  function removeSite(key: string, i: number) {
+    formConfig = { ...formConfig, [key]: sites(key).filter((_, idx) => idx !== i) };
+  }
+  function updateSite(key: string, i: number, patch: Partial<SiteForm>) {
+    formConfig = { ...formConfig, [key]: sites(key).map((s, idx) => (idx === i ? { ...s, ...patch } : s)) };
+  }
+  function okCodesValue(s: SiteForm): string {
+    return (s.okCodes ?? []).join(', ');
+  }
+  function setOkCodes(key: string, i: number, raw: string) {
+    const codes = raw.split(/[\s,]+/).map((x) => Number(x.trim())).filter((n) => Number.isFinite(n) && n > 0);
+    updateSite(key, i, { okCodes: codes.length ? codes : undefined });
+  }
+
+  // Normalize config before save: commit any pending tag, clean monitor sites.
+  function cleanConfig(): Record<string, unknown> {
+    for (const key of Object.keys(tagDraft)) if ((tagDraft[key] ?? '').trim()) addTag(key);
+    const out: Record<string, unknown> = { ...formConfig };
+    for (const [k, v] of Object.entries(out)) {
+      if (k === 'sites' && Array.isArray(v)) {
+        out[k] = (v as SiteForm[])
+          .map((s) => ({
+            title: (s.title ?? '').trim() || (s.checkUrl ?? '').trim(),
+            checkUrl: (s.checkUrl ?? '').trim(),
+            ...(s.url?.trim() ? { url: s.url.trim() } : {}),
+            ...(s.icon?.trim() ? { icon: s.icon.trim() } : {}),
+            ...(s.okCodes?.length ? { okCodes: s.okCodes } : {}),
+          }))
+          .filter((s) => s.checkUrl);
+      }
     }
-    formConfig = {
-      ...formConfig,
-      [key]: raw
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean),
-    };
+    return out;
   }
 
   function setField(key: string, value: string, kind?: FieldDef['kind']) {
@@ -158,7 +183,7 @@
     const payload = {
       name: formName.trim(),
       type: formType,
-      config: formConfig,
+      config: cleanConfig(),
       enabled: formEnabled,
       refreshSeconds: formRefresh === '' ? null : Number(formRefresh),
     };
@@ -298,14 +323,70 @@
       {#each selectedMeta.fields as field}
         <div class="field">
           <label for={`f-${field.key}`}>{field.label}</label>
-          {#if field.kind === 'list'}
-            <textarea
-              id={`f-${field.key}`}
-              rows={4}
-              value={listFieldValue(field.key)}
-              oninput={(e) => setListField(field.key, e.currentTarget.value)}
-              placeholder="One entry per line"
-            ></textarea>
+          {#if field.key === 'sites'}
+            <div class="sites-editor">
+              {#each sites(field.key) as site, i (i)}
+                <div class="site-row">
+                  <div class="site-main">
+                    <input
+                      type="text"
+                      placeholder="Name (e.g. Jellyfin)"
+                      value={site.title ?? ''}
+                      oninput={(e) => updateSite(field.key, i, { title: e.currentTarget.value })}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Check URL — pinged for status (e.g. http://jellyfin:8096/health)"
+                      value={site.checkUrl ?? ''}
+                      oninput={(e) => updateSite(field.key, i, { checkUrl: e.currentTarget.value })}
+                    />
+                  </div>
+                  <div class="site-extra">
+                    <input
+                      type="text"
+                      placeholder="Link URL — opened on click (e.g. https://jellyfin.example.com)"
+                      value={site.url ?? ''}
+                      oninput={(e) => updateSite(field.key, i, { url: e.currentTarget.value })}
+                    />
+                    <input
+                      type="text"
+                      class="site-narrow"
+                      placeholder="Icon (e.g. di:jellyfin)"
+                      value={site.icon ?? ''}
+                      oninput={(e) => updateSite(field.key, i, { icon: e.currentTarget.value })}
+                    />
+                    <input
+                      type="text"
+                      class="site-narrow"
+                      placeholder="OK codes (e.g. 200,401)"
+                      value={okCodesValue(site)}
+                      oninput={(e) => setOkCodes(field.key, i, e.currentTarget.value)}
+                    />
+                  </div>
+                  <button type="button" class="btn-icon danger site-del" onclick={() => removeSite(field.key, i)} aria-label="Remove site" title="Remove site">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              {/each}
+              <button type="button" class="btn-add-site" onclick={() => addSite(field.key)}>
+                <Plus size={14} /> Add site
+              </button>
+            </div>
+          {:else if field.kind === 'list'}
+            <div class="tag-input">
+              {#each tags(field.key) as tag, i (i)}
+                <span class="tag">{tag}<button type="button" onclick={() => removeTag(field.key, i)} aria-label={`Remove ${tag}`}>×</button></span>
+              {/each}
+              <input
+                type="text"
+                class="tag-entry"
+                value={tagDraft[field.key] ?? ''}
+                oninput={(e) => (tagDraft[field.key] = e.currentTarget.value)}
+                onkeydown={(e) => onTagKey(e, field.key)}
+                onblur={() => addTag(field.key)}
+                placeholder={tags(field.key).length ? 'Add another…' : 'Type and press Enter'}
+              />
+            </div>
           {:else if field.kind === 'select'}
             <select
               id={`f-${field.key}`}
@@ -576,7 +657,8 @@
     width: 100%;
     box-sizing: border-box;
     font-family: inherit;
-    font-size: 0.86rem;
+    /* 16px minimum prevents iOS Safari from zooming in on focus. */
+    font-size: 16px;
     background: var(--glass-2);
     border: 1px solid var(--glass-brd);
     border-radius: var(--radius-sm);
@@ -587,6 +669,106 @@
   textarea {
     resize: vertical;
     min-height: 88px;
+  }
+
+  /* --- tag/chip list fields --- */
+  .tag-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 6px;
+    background: var(--glass-2);
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--radius-sm);
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    padding: 3px 4px 3px 9px;
+    border-radius: 999px;
+    background: var(--glass-1, rgba(255, 255, 255, 0.08));
+    border: 1px solid var(--glass-brd);
+  }
+  .tag button {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-2, inherit);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .tag button:hover {
+    background: var(--glass-brd);
+  }
+  .tag-entry {
+    flex: 1;
+    min-width: 140px;
+    width: auto;
+    border: none;
+    background: transparent;
+    padding: 4px 6px;
+  }
+
+  /* --- structured monitor sites editor --- */
+  .sites-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .site-row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 40px 10px 10px;
+    background: var(--glass-2);
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--radius-sm);
+  }
+  .site-main,
+  .site-extra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .site-main input {
+    flex: 1 1 100%;
+  }
+  .site-extra input {
+    flex: 1 1 100%;
+  }
+  .site-extra .site-narrow {
+    flex: 1 1 130px;
+  }
+  .site-del {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+  .btn-add-site {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    border: 1px dashed var(--glass-brd);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn-add-site:hover {
+    background: var(--glass-2);
   }
   .field-input {
     position: relative;
