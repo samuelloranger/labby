@@ -15,7 +15,7 @@ describe('DashboardSchema', () => {
                 {
                   type: 'monitor',
                   title: 'Core',
-                  sites: [{ title: 'Test', checkUrl: 'http://localhost:1' }],
+                  integrationId: 1,
                 },
               ],
             },
@@ -40,7 +40,7 @@ describe('DashboardSchema', () => {
     expect(config.theme.default).toBe('dark-ocean');
   });
 
-  test('parses weather widget with city', () => {
+  test('parses weather widget with integrationId', () => {
     const config = DashboardSchema.parse({
       title: 'Labby',
       pages: [
@@ -49,7 +49,7 @@ describe('DashboardSchema', () => {
           columns: [
             {
               size: 'small',
-              widgets: [{ type: 'weather', title: 'Weather', city: 'Paris,FR' }],
+              widgets: [{ type: 'weather', title: 'Weather', integrationId: 2 }],
             },
           ],
         },
@@ -57,14 +57,13 @@ describe('DashboardSchema', () => {
     });
     expect(config.pages[0].columns[0].widgets[0]).toMatchObject({
       type: 'weather',
-      city: 'Paris,FR',
+      integrationId: 2,
     });
   });
 
   test('parses media service widgets', () => {
     const config = DashboardSchema.parse({
       title: 'Labby',
-      refreshSeconds: { radarr: 30, sonarr: 30, reelward: 60 },
       pages: [
         {
           name: 'Overview',
@@ -72,16 +71,34 @@ describe('DashboardSchema', () => {
             {
               size: 'small',
               widgets: [
-                { type: 'radarr', title: 'Radarr', max: 3 },
-                { type: 'sonarr', title: 'Sonarr', max: 3 },
-                { type: 'reelward', title: 'Reelward', max: 3 },
+                { type: 'radarr', title: 'Radarr', integrationId: 3, max: 3 },
+                { type: 'sonarr', title: 'Sonarr', integrationId: 4, max: 3 },
+                { type: 'reelward', title: 'Reelward', integrationId: 5, max: 3 },
               ],
             },
           ],
         },
       ],
     });
-    expect(config.refreshSeconds.radarr).toBe(30);
     expect(config.pages[0].columns[0].widgets).toHaveLength(3);
+  });
+
+  test('rejects monitor widget without integrationId', () => {
+    expect(() =>
+      DashboardSchema.parse({
+        title: 'Labby',
+        pages: [
+          {
+            name: 'Overview',
+            columns: [
+              {
+                size: 'small',
+                widgets: [{ type: 'monitor', title: 'Core', sites: [] }],
+              },
+            ],
+          },
+        ],
+      }),
+    ).toThrow();
   });
 });
