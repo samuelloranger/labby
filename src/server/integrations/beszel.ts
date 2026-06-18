@@ -207,7 +207,10 @@ export async function getBeszelSystems(
     );
     const [systemsRes, disksRes] = await Promise.all([
       beszelFetch(config, `/api/collections/systems/records?perPage=200&fields=${systemFields}`),
-      beszelFetch(config, `/api/collections/smart_devices/records?perPage=200&fields=${diskFields}`),
+      beszelFetch(
+        config,
+        `/api/collections/smart_devices/records?perPage=200&fields=${diskFields}`,
+      ),
     ]);
     if (!systemsRes.ok) return { error: `Beszel systems error: ${systemsRes.status}` };
     if (!disksRes.ok) return { error: `Beszel disks error: ${disksRes.status}` };

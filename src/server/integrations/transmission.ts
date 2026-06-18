@@ -75,7 +75,9 @@ function normalizeTorrent(t: Record<string, unknown>): Torrent {
   };
 }
 
-export async function getTransmissionTorrents(config: TransmissionConfig): Promise<DownloadsPayload | { error: string }> {
+export async function getTransmissionTorrents(
+  config: TransmissionConfig,
+): Promise<DownloadsPayload | { error: string }> {
   if (!config.url) return { error: 'TRANSMISSION_URL not configured' };
 
   try {

@@ -1,17 +1,21 @@
-import { getAdGuardStats, setAdGuardProtection, type AdGuardConfig } from './adguard';
-import { getArrSummary, type ArrConfig } from './arr';
-import { getBeszelSystems, type BeszelConfig } from './beszel';
-import { getCalendarEvents, type CalendarConfig } from './calendar';
-import { containerAction, containerLogs, listContainers, type DockerConfig } from './docker-client';
+import { type AdGuardConfig, getAdGuardStats, setAdGuardProtection } from './adguard';
+import { type ArrConfig, getArrSummary } from './arr';
+import { type BeszelConfig, getBeszelSystems } from './beszel';
+import { type CalendarConfig, getCalendarEvents } from './calendar';
+import { containerAction, containerLogs, type DockerConfig, listContainers } from './docker-client';
 import { getHackerNews, type HNConfig } from './hackernews';
 import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
 import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
-import { getQBittorrentTorrents, qbittorrentAction, type QbitConfig } from './qbittorrent';
+import { getQBittorrentTorrents, type QbitConfig, qbittorrentAction } from './qbittorrent';
 import { getRedditPosts, type RedditConfig } from './reddit';
 import { getReelwardSummary, type ReelwardConfig } from './reelward';
-import { getSpeedtestSummary, triggerSpeedtestRun, type SpeedtestConfig } from './speedtest';
-import { getTransmissionTorrents, transmissionAction, type TransmissionConfig } from './transmission';
+import { getSpeedtestSummary, type SpeedtestConfig, triggerSpeedtestRun } from './speedtest';
+import {
+  getTransmissionTorrents,
+  type TransmissionConfig,
+  transmissionAction,
+} from './transmission';
 
 export type IntegrationType =
   | 'monitor'
@@ -66,7 +70,8 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       start: (c, id) => containerAction(c as DockerConfig, id as string, 'start'),
       stop: (c, id) => containerAction(c as DockerConfig, id as string, 'stop'),
       restart: (c, id) => containerAction(c as DockerConfig, id as string, 'restart'),
-      logs: (c, id, tail) => containerLogs(c as DockerConfig, id as string, (tail as number) ?? 200),
+      logs: (c, id, tail) =>
+        containerLogs(c as DockerConfig, id as string, (tail as number) ?? 200),
     },
   },
   qbittorrent: {
@@ -107,7 +112,8 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     ],
     fetch: (c) => getAdGuardStats(c as AdGuardConfig),
     actions: {
-      protection: (c, enabled, ms) => setAdGuardProtection(c as AdGuardConfig, enabled as boolean, ms as number | undefined),
+      protection: (c, enabled, ms) =>
+        setAdGuardProtection(c as AdGuardConfig, enabled as boolean, ms as number | undefined),
     },
   },
   jellyfin: {

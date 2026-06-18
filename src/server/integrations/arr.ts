@@ -43,7 +43,10 @@ async function getJson<T>(config: ArrConfig, kind: ArrKind, path: string): Promi
   return (await res.json()) as T;
 }
 
-export async function getArrSummary(config: ArrConfig, kind: ArrKind): Promise<ArrPayload | { error: string }> {
+export async function getArrSummary(
+  config: ArrConfig,
+  kind: ArrKind,
+): Promise<ArrPayload | { error: string }> {
   const base = config.url?.trim().replace(/\/$/, '') || null;
   const key = config.apiKey?.trim() || null;
   if (!base) return { error: `${kind.toUpperCase()}_URL not configured` };
@@ -65,9 +68,11 @@ export async function getArrSummary(config: ArrConfig, kind: ArrKind): Promise<A
         kind,
         '/api/v3/queue?page=1&pageSize=1',
       ),
-      getJson<{ totalRecords?: number }>(config, kind, '/api/v3/wanted/missing?page=1&pageSize=1').catch(
-        () => null,
-      ),
+      getJson<{ totalRecords?: number }>(
+        config,
+        kind,
+        '/api/v3/wanted/missing?page=1&pageSize=1',
+      ).catch(() => null),
       getJson<Record<string, unknown>[]>(config, kind, `/api/v3/calendar?${params}`),
     ]);
 

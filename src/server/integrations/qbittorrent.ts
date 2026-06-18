@@ -69,7 +69,9 @@ function normalizeTorrent(t: Record<string, unknown>): Torrent {
   };
 }
 
-export async function getQBittorrentTorrents(config: QbitConfig): Promise<DownloadsPayload | { error: string }> {
+export async function getQBittorrentTorrents(
+  config: QbitConfig,
+): Promise<DownloadsPayload | { error: string }> {
   const base = config.url?.replace(/\/$/, '') || null;
   if (!base) return { error: 'QBIT_URL not configured' };
 
@@ -100,9 +102,13 @@ export async function qbittorrentAction(
 
   try {
     for (const ep of endpoints) {
-      const res = await qbitFetch(config, `/api/v2/torrents/${ep}?hashes=${encodeURIComponent(hash)}`, {
-        method: 'POST',
-      });
+      const res = await qbitFetch(
+        config,
+        `/api/v2/torrents/${ep}?hashes=${encodeURIComponent(hash)}`,
+        {
+          method: 'POST',
+        },
+      );
       if (res.ok) return { ok: true };
     }
     return { error: `qBittorrent ${action} failed` };

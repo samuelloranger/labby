@@ -12,7 +12,11 @@ function buildAuthHeaders(config: AdGuardConfig): Record<string, string> {
   return headers;
 }
 
-async function adguardFetch(config: AdGuardConfig, path: string, init?: RequestInit): Promise<Response> {
+async function adguardFetch(
+  config: AdGuardConfig,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
   const base = config.url?.replace(/\/$/, '') || null;
   if (!base) throw new Error('ADGUARD_URL not configured');
   return fetch(`${base}${path}`, {
@@ -22,7 +26,9 @@ async function adguardFetch(config: AdGuardConfig, path: string, init?: RequestI
   });
 }
 
-export async function getAdGuardStats(config: AdGuardConfig): Promise<AdGuardPayload | { error: string }> {
+export async function getAdGuardStats(
+  config: AdGuardConfig,
+): Promise<AdGuardPayload | { error: string }> {
   const base = config.url?.replace(/\/$/, '') || null;
   if (!base) return { error: 'ADGUARD_URL not configured' };
 
