@@ -40,6 +40,44 @@ const DEFAULT_DASHBOARD = JSON.stringify({
   ],
 });
 
+const SEED_MONITOR_CORE = JSON.stringify({
+  sites: [
+    {
+      title: 'AdGuard',
+      url: 'https://adguard.example.com',
+      checkUrl: 'http://adguardhome:3000',
+      icon: 'di:adguard-home',
+      okCodes: [200, 301, 302, 401, 403],
+    },
+    {
+      title: 'qBittorrent',
+      url: 'https://qb.example.com',
+      checkUrl: 'http://qbittorrent:8080',
+      icon: 'di:qbittorrent',
+      okCodes: [200, 301, 302, 401, 403],
+    },
+    {
+      title: 'Jellyfin',
+      url: 'https://jellyfin.example.com',
+      checkUrl: 'http://jellyfin:8096/health',
+      icon: 'di:jellyfin',
+    },
+  ],
+});
+
+const SEED_MONITOR_LAUNCHER = JSON.stringify({
+  sites: [
+    {
+      title: 'Jellyfin',
+      url: 'https://jellyfin.example.com',
+      checkUrl: 'http://jellyfin:8096/health',
+      icon: 'di:jellyfin',
+    },
+  ],
+});
+
+const SEED_DOCKER = JSON.stringify({ roHost: '', rwHost: '', show: 'running' });
+
 // --- Migrations System ---
 const migrations = [
   {
@@ -73,6 +111,20 @@ const migrations = [
         enabled INTEGER NOT NULL DEFAULT 1,
         refresh_seconds INTEGER
       );
+    `,
+  },
+  {
+    version: 4,
+    name: 'seed_default_dashboard',
+    up: `
+      INSERT OR IGNORE INTO integrations (id, name, type, config, enabled, refresh_seconds) VALUES
+        (1, 'Core Monitor', 'monitor', '${SEED_MONITOR_CORE}', 1, 30),
+        (2, 'Docker', 'docker', '${SEED_DOCKER}', 1, 10),
+        (3, 'Launcher', 'monitor', '${SEED_MONITOR_LAUNCHER}', 1, 30);
+
+      INSERT INTO settings (key, value)
+      VALUES ('dashboard', json('${DEFAULT_DASHBOARD}'))
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value;
     `,
   },
 ];

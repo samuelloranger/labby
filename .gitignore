@@ -9,7 +9,6 @@ src/web/dist/
 # Environment and secrets
 .env
 .env.*
-!.env.example
 
 # User config (copy from dashboard.example.json)
 config/dashboard.json
