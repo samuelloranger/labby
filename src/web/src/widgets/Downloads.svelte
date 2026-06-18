@@ -1,12 +1,18 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { qbStore, trStore, searchQuery } from '$lib/stores';
+  import { getStore, searchQuery, type DownloadsData, type WidgetState } from '$lib/stores';
   import { clampPercent, formatBytesPerSec, formatEta, isSeedingTorrent, prepareDownloads } from '$lib/utils';
 
-  let { title, client }: { title: string; client: 'qbittorrent' | 'transmission'; max?: number } = $props();
+  let {
+    title,
+    integrationId,
+    client,
+    max,
+  }: { title: string; integrationId: number; client: 'qbittorrent' | 'transmission'; max?: number } = $props();
 
-  const state = $derived(client === 'qbittorrent' ? $qbStore : $trStore);
+  const store = getStore(integrationId);
+  const state = $derived($store as WidgetState<DownloadsData>);
   const icon = $derived(client === 'qbittorrent' ? 'di:qbittorrent' : 'di:transmission');
   const q = $derived($searchQuery.trim().toLowerCase());
   const allTorrents = $derived(state.data?.torrents ?? []);
@@ -20,7 +26,11 @@
   async function toggle(hash: string, action: 'pause' | 'resume') {
     pending = { ...pending, [hash]: true };
     try {
-      await fetch(`/api/downloads/${client}/${hash}/${action}`, { method: 'POST' });
+      await fetch(`/api/integrations/${integrationId}/action/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ args: [hash] }),
+      });
     } finally {
       const next = { ...pending };
       delete next[hash];

@@ -2,11 +2,12 @@
   import { FileText, Play, RotateCcw, Square } from 'lucide-svelte';
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { dockerStore, searchQuery } from '$lib/stores';
+  import { getStore, searchQuery, type DockerData, type WidgetState } from '$lib/stores';
 
-  let { title }: { title: string; show?: 'all' | 'running' } = $props();
+  let { title, integrationId }: { title: string; integrationId: number } = $props();
 
-  const state = $derived($dockerStore);
+  const store = getStore(integrationId);
+  const state = $derived($store as WidgetState<DockerData>);
   const q = $derived($searchQuery.trim().toLowerCase());
   const all = $derived(state.data?.containers ?? []);
   const total = $derived(all.length);
@@ -29,7 +30,11 @@
   async function action(id: string, act: 'start' | 'stop' | 'restart') {
     pending = { ...pending, [id]: act };
     try {
-      await fetch(`/api/docker/containers/${id}/${act}`, { method: 'POST' });
+      await fetch(`/api/integrations/${integrationId}/action/${act}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ args: [id] }),
+      });
     } finally {
       const next = { ...pending };
       delete next[id];
@@ -42,7 +47,7 @@
     logsOpen = true;
     logsText = 'Loading…';
     try {
-      const res = await fetch(`/api/docker/containers/${id}/logs?tail=200`);
+      const res = await fetch(`/api/integrations/${integrationId}/logs/${id}?tail=200`);
       const data = await res.json();
       logsText = data.logs ?? data.error ?? 'No logs';
     } catch {
