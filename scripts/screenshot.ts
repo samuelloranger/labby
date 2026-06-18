@@ -110,7 +110,31 @@ async function main() {
   console.log('Taking screenshot...');
   // hide scrollbars for cleaner screenshot
   await page.evaluate(() => document.body.style.overflow = 'hidden');
-  await page.screenshot({ path: 'docs/screenshot.png', fullPage: true });
+  
+  const pkg = require('../package.json');
+  const version = pkg.version;
+  const filename = `screenshot-v${version}.png`;
+  const filepath = `docs/${filename}`;
+  
+  await page.screenshot({ path: filepath, fullPage: true });
+
+  console.log('Updating README.md...');
+  const fs = require('node:fs');
+  const readmePath = 'README.md';
+  let readme = fs.readFileSync(readmePath, 'utf8');
+  readme = readme.replace(/!\[Dashboard Screenshot\]\(docs\/screenshot[^\)]*\)/, `![Dashboard Screenshot](${filepath})`);
+  fs.writeFileSync(readmePath, readme);
+
+  console.log('Cleaning up old screenshots...');
+  const docs = fs.readdirSync('docs');
+  for (const file of docs) {
+    if (file.startsWith('screenshot-') && file.endsWith('.png') && file !== filename) {
+      fs.unlinkSync(`docs/${file}`);
+    }
+  }
+  if (fs.existsSync('docs/screenshot.png')) {
+    fs.unlinkSync('docs/screenshot.png');
+  }
 
   console.log('Done!');
   await browser.close();
