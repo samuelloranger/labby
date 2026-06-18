@@ -2,7 +2,11 @@ import type { SpeedtestPayload } from '../types';
 
 export type SpeedtestConfig = { url?: string; apiToken?: string };
 
-async function speedtestFetch(config: SpeedtestConfig, path: string, init?: RequestInit): Promise<Response> {
+async function speedtestFetch(
+  config: SpeedtestConfig,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
   const base = config.url?.replace(/\/$/, '') || null;
   const tok = config.apiToken?.trim() || null;
   if (!base) throw new Error('SPEEDTEST_TRACKER_URL not configured');
@@ -27,7 +31,10 @@ type SpeedtestResponseItem = {
   created_at?: string | null;
 };
 
-export async function getSpeedtestSummary(config: SpeedtestConfig, max = 10): Promise<SpeedtestPayload | { error: string }> {
+export async function getSpeedtestSummary(
+  config: SpeedtestConfig,
+  max = 10,
+): Promise<SpeedtestPayload | { error: string }> {
   const base = config.url?.replace(/\/$/, '') || null;
   const tok = config.apiToken?.trim() || null;
   if (!base) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
@@ -61,7 +68,9 @@ export async function getSpeedtestSummary(config: SpeedtestConfig, max = 10): Pr
   }
 }
 
-export async function triggerSpeedtestRun(config: SpeedtestConfig): Promise<{ ok: true } | { error: string }> {
+export async function triggerSpeedtestRun(
+  config: SpeedtestConfig,
+): Promise<{ ok: true } | { error: string }> {
   const base = config.url?.replace(/\/$/, '') || null;
   const tok = config.apiToken?.trim() || null;
   if (!base) return { error: 'SPEEDTEST_TRACKER_URL not configured' };

@@ -2,7 +2,9 @@ import type { JellyfinPayload, JellyfinSession } from '../types';
 
 export type JellyfinConfig = { url?: string; apiKey?: string };
 
-export async function getJellyfinSessions(config: JellyfinConfig): Promise<JellyfinPayload | { error: string }> {
+export async function getJellyfinSessions(
+  config: JellyfinConfig,
+): Promise<JellyfinPayload | { error: string }> {
   const base = config.url?.replace(/\/$/, '') || null;
   const key = config.apiKey ?? null;
   if (!base) return { error: 'JELLYFIN_URL not configured' };
@@ -75,7 +77,10 @@ export async function getJellyfinSessions(config: JellyfinConfig): Promise<Jelly
  * browser can render it without ever seeing the token. Returns the upstream
  * Response for the route to stream back.
  */
-export async function getJellyfinImage(config: JellyfinConfig, itemId: string): Promise<Response | { error: string }> {
+export async function getJellyfinImage(
+  config: JellyfinConfig,
+  itemId: string,
+): Promise<Response | { error: string }> {
   const base = config.url?.replace(/\/$/, '') || null;
   const key = config.apiKey ?? null;
   if (!base) return { error: 'JELLYFIN_URL not configured' };

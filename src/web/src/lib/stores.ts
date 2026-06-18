@@ -1,4 +1,4 @@
-import { writable, type Writable } from 'svelte/store';
+import { type Writable, writable } from 'svelte/store';
 
 export type MonitorData = {
   sites: Array<{
@@ -205,6 +205,7 @@ function emptyState<T>(): WidgetState<T> {
 const stores = new Map<number, Writable<WidgetState<unknown>>>();
 let es: EventSource | null = null;
 const eventListeners = new Map<number, (e: Event) => void>();
+let knownIntegrationIds: number[] = [];
 
 export const streamConnected = writable(true);
 
@@ -245,25 +246,53 @@ function detachIntegrationListeners(source: EventSource) {
   eventListeners.clear();
 }
 
-async function attachIntegrationListeners(source: EventSource) {
-  detachIntegrationListeners(source);
+async function fetchIntegrationIds(): Promise<number[]> {
   try {
     const res = await fetch('/api/integrations');
-    if (!res.ok) return;
+    if (!res.ok) return knownIntegrationIds;
     const rows = (await res.json()) as Array<{ id: number }>;
-    for (const row of rows) {
-      const handler = (e: Event) => {
-        try {
-          patchStore(row.id, JSON.parse((e as MessageEvent).data));
-        } catch {
-          /* ignore malformed */
-        }
-      };
-      source.addEventListener(`int:${row.id}`, handler);
-      eventListeners.set(row.id, handler);
-    }
+    knownIntegrationIds = rows.map((r) => r.id);
+    return knownIntegrationIds;
   } catch {
-    /* offline — reconnect will retry */
+    return knownIntegrationIds;
+  }
+}
+
+function attachIntegrationListeners(source: EventSource, ids: number[]) {
+  detachIntegrationListeners(source);
+  for (const id of ids) {
+    const handler = (e: Event) => {
+      try {
+        patchStore(id, JSON.parse((e as MessageEvent).data));
+      } catch {
+        /* ignore malformed */
+      }
+    };
+    source.addEventListener(`int:${id}`, handler);
+    eventListeners.set(id, handler);
+  }
+}
+
+async function bootstrapStores(ids: number[]) {
+  await Promise.all(
+    ids.map(async (id) => {
+      try {
+        const res = await fetch(`/api/integrations/${id}/data`);
+        if (res.ok) patchStore(id, await res.json());
+      } catch {
+        /* offline */
+      }
+    }),
+  );
+}
+
+async function syncStreamSubscriptions() {
+  if (!es) return;
+  const ids = await fetchIntegrationIds();
+  attachIntegrationListeners(es, ids);
+  await bootstrapStores(ids);
+  for (const store of stores.values()) {
+    store.update((s) => ({ ...s, loading: s.data ? false : s.loading }));
   }
 }
 
@@ -274,24 +303,23 @@ export function markStale() {
 }
 
 export async function refreshStreamSubscriptions() {
-  if (es) await attachIntegrationListeners(es);
+  await syncStreamSubscriptions();
 }
 
 export function initStream() {
-  es = new EventSource('/api/stream');
+  void fetchIntegrationIds().then(() => {
+    es = new EventSource('/api/stream');
 
-  es.onopen = () => {
-    streamConnected.set(true);
-    void attachIntegrationListeners(es!);
-    for (const store of stores.values()) {
-      store.update((s) => ({ ...s, loading: s.data ? false : s.loading }));
-    }
-  };
+    es.onopen = () => {
+      streamConnected.set(true);
+      void syncStreamSubscriptions();
+    };
 
-  es.onerror = () => {
-    streamConnected.set(false);
-    markStale();
-  };
+    es.onerror = () => {
+      streamConnected.set(false);
+      markStale();
+    };
+  });
 
   return () => {
     if (es) {

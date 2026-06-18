@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { getQBittorrentTorrents } from './qbittorrent';
 import type { QbitConfig } from './qbittorrent';
+import { getQBittorrentTorrents } from './qbittorrent';
 
 describe('qBittorrent client', () => {
   test('reports missing config', async () => {

@@ -1,11 +1,11 @@
 import type { DockerContainer, DockerPayload } from '../types';
 import {
   calcCpuPercent,
+  type DockerConfig,
   demuxDockerLogs,
   dockerFetch,
   dockerHost,
   normalizeContainerName,
-  type DockerConfig,
   type RawDockerContainer,
 } from './docker';
 

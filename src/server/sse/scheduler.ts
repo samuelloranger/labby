@@ -36,7 +36,10 @@ export function startScheduler(): void {
     const def = INTEGRATIONS[row.type as IntegrationType];
     if (!def) continue;
     const seconds = row.refreshSeconds ?? def.defaultRefreshSeconds;
-    const run = () => void runIntegration(row.id).catch((err) => console.error(`[scheduler] int:${row.id} failed:`, err));
+    const run = () =>
+      void runIntegration(row.id).catch((err) =>
+        console.error(`[scheduler] int:${row.id} failed:`, err),
+      );
     run();
     timers.set(row.id, setInterval(run, seconds * 1000));
   }

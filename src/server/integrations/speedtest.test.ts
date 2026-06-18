@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { getSpeedtestSummary, triggerSpeedtestRun } from './speedtest';
 import type { SpeedtestConfig } from './speedtest';
+import { getSpeedtestSummary, triggerSpeedtestRun } from './speedtest';
 
 describe('Speedtest Tracker client', () => {
   test('reports missing config', async () => {

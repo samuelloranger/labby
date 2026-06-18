@@ -1,14 +1,30 @@
-import { describe, it, expect } from 'bun:test';
-import { INTEGRATIONS, integrationTypes, type IntegrationType } from './registry';
+import { describe, expect, it } from 'bun:test';
+import { INTEGRATIONS, type IntegrationType, integrationTypes } from './registry';
 
 const ALL_TYPES: IntegrationType[] = [
-  'monitor', 'docker', 'qbittorrent', 'transmission', 'adguard',
-  'jellyfin', 'beszel', 'radarr', 'sonarr', 'reelward',
-  'reddit', 'hackernews', 'weather', 'calendar', 'speedtest',
+  'monitor',
+  'docker',
+  'qbittorrent',
+  'transmission',
+  'adguard',
+  'jellyfin',
+  'beszel',
+  'radarr',
+  'sonarr',
+  'reelward',
+  'reddit',
+  'hackernews',
+  'weather',
+  'calendar',
+  'speedtest',
 ];
 
 const TYPES_WITH_ACTIONS: IntegrationType[] = [
-  'docker', 'qbittorrent', 'transmission', 'adguard', 'speedtest',
+  'docker',
+  'qbittorrent',
+  'transmission',
+  'adguard',
+  'speedtest',
 ];
 
 const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(

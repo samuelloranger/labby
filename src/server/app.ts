@@ -13,7 +13,7 @@ import {
 } from './db';
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
-import { INTEGRATIONS, integrationTypes, type IntegrationType } from './integrations/registry';
+import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
 import { hub } from './sse/hub';
 import { refreshIntegration, startScheduler } from './sse/scheduler';
 

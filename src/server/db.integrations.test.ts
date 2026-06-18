@@ -1,5 +1,11 @@
 import { expect, test } from 'bun:test';
-import { createIntegration, deleteIntegration, getIntegration, listIntegrations, updateIntegration } from './db';
+import {
+  createIntegration,
+  deleteIntegration,
+  getIntegration,
+  listIntegrations,
+  updateIntegration,
+} from './db';
 
 test('integration CRUD round-trips config as JSON', () => {
   const testNames = ['Radarr 4K', 'Radarr HD'];
@@ -7,7 +13,13 @@ test('integration CRUD round-trips config as JSON', () => {
     deleteIntegration(leftover.id);
   }
 
-  const row = createIntegration({ name: 'Radarr 4K', type: 'radarr', config: { url: 'http://r', apiKey: 'k' }, enabled: true, refreshSeconds: 60 });
+  const row = createIntegration({
+    name: 'Radarr 4K',
+    type: 'radarr',
+    config: { url: 'http://r', apiKey: 'k' },
+    enabled: true,
+    refreshSeconds: 60,
+  });
   try {
     expect(row.id).toBeGreaterThan(0);
     expect(getIntegration(row.id)?.config).toEqual({ url: 'http://r', apiKey: 'k' });
