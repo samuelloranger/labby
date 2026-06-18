@@ -99,7 +99,7 @@
 <section class="card">
   <div class="chead">
     <span class="ti">
-      <span class="ibox"><Icon icon="lucide:gauge" fallback="gauge" size={20} /></span>
+      <span class="ibox"><Icon icon="/icons/speedtest-tracker.svg" fallback="gauge" size={20} /></span>
       {title}
     </span>
     <button

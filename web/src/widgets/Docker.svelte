@@ -58,7 +58,7 @@
 <button class="card summary-card" onclick={() => (listOpen = true)} disabled={!state.data}>
   <div class="chead">
     <span class="ti">
-      <span class="ibox"><Icon icon="lucide:box" fallback="box" size={17} /></span>
+      <span class="ibox"><Icon icon="di:docker" fallback="box" size={17} /></span>
       {title}
     </span>
     <span class="meta">{state.stale ? 'stale' : 'live'}</span>
