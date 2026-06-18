@@ -103,6 +103,20 @@ const migrations = [
       ON CONFLICT(key) DO NOTHING;
     `,
   },
+  {
+    version: 3,
+    name: 'integrations_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS integrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        type TEXT NOT NULL,
+        config TEXT NOT NULL DEFAULT '{}',
+        enabled INTEGER NOT NULL DEFAULT 1,
+        refresh_seconds INTEGER
+      );
+    `,
+  },
 ];
 
 export function runMigrations() {
@@ -162,4 +176,47 @@ export function getAllSettings(): Record<string, string> {
     result[row.key] = row.value;
   }
   return result;
+}
+
+// --- Integrations CRUD ---
+
+export type IntegrationRow = {
+  id: number;
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
+  enabled: boolean;
+  refreshSeconds: number | null;
+};
+
+type Raw = { id: number; name: string; type: string; config: string; enabled: number; refresh_seconds: number | null };
+const toRow = (r: Raw): IntegrationRow => ({
+  id: r.id, name: r.name, type: r.type,
+  config: JSON.parse(r.config), enabled: !!r.enabled, refreshSeconds: r.refresh_seconds,
+});
+
+export function listIntegrations(): IntegrationRow[] {
+  return (db.query('SELECT * FROM integrations ORDER BY id').all() as Raw[]).map(toRow);
+}
+
+export function getIntegration(id: number): IntegrationRow | null {
+  const r = db.query('SELECT * FROM integrations WHERE id = $id').get({ $id: id }) as Raw | null;
+  return r ? toRow(r) : null;
+}
+
+export function createIntegration(input: Omit<IntegrationRow, 'id'>): IntegrationRow {
+  const info = db.query(
+    'INSERT INTO integrations (name, type, config, enabled, refresh_seconds) VALUES ($name,$type,$config,$enabled,$rs)',
+  ).run({ $name: input.name, $type: input.type, $config: JSON.stringify(input.config), $enabled: input.enabled ? 1 : 0, $rs: input.refreshSeconds });
+  return getIntegration(Number(info.lastInsertRowid)) as IntegrationRow;
+}
+
+export function updateIntegration(id: number, input: Omit<IntegrationRow, 'id'>): IntegrationRow | null {
+  db.query('UPDATE integrations SET name=$name, type=$type, config=$config, enabled=$enabled, refresh_seconds=$rs WHERE id=$id')
+    .run({ $id: id, $name: input.name, $type: input.type, $config: JSON.stringify(input.config), $enabled: input.enabled ? 1 : 0, $rs: input.refreshSeconds });
+  return getIntegration(id);
+}
+
+export function deleteIntegration(id: number): void {
+  db.query('DELETE FROM integrations WHERE id = $id').run({ $id: id });
 }
