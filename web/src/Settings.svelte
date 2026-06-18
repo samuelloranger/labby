@@ -62,7 +62,7 @@
     },
     {
       name: 'OpenWeather',
-      icon: 'lucide:sun',
+      icon: '/icons/openweather.png',
       keys: ['OPENWEATHER_API_KEY']
     },
     {
