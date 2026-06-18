@@ -294,6 +294,195 @@
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.75);
 }
 
+:root[data-theme="dark-slate"] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #1e3a8a 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 12%, #1e293b 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #334155 0%, transparent 58%),
+    linear-gradient(160deg, #020617, #0f172a);
+  --accent: #60a5fa;
+  --accent-soft: rgba(96, 165, 250, 0.16);
+  --glass: rgba(15, 23, 42, 0.58);
+  --glass-2: rgba(15, 23, 42, 0.44);
+  --glass-brd: rgba(148, 163, 184, 0.2);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.1);
+  --ink: #f1f5f9;
+  --ink-dim: #cbd5e1;
+  --ink-faint: #64748b;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
+}
+
+:root[data-theme="dark-mint"] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #065f46 0%, transparent 58%),
+    radial-gradient(42% 52% at 84% 12%, #134e4a 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #064e3b 0%, transparent 58%),
+    linear-gradient(160deg, #03130f, #082f23);
+  --accent: #34d399;
+  --accent-soft: rgba(52, 211, 153, 0.16);
+  --glass: rgba(6, 47, 35, 0.58);
+  --glass-2: rgba(6, 47, 35, 0.44);
+  --glass-brd: rgba(167, 243, 208, 0.16);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.11);
+  --ink: #ecfdf5;
+  --ink-dim: #a7f3d0;
+  --ink-faint: #6ca893;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
+}
+
+:root[data-theme="dark-rose"] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #881337 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 12%, #831843 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #9f1239 0%, transparent 58%),
+    linear-gradient(160deg, #1a0510, #2c0a1a);
+  --accent: #fb7185;
+  --accent-soft: rgba(251, 113, 133, 0.16);
+  --glass: rgba(44, 10, 26, 0.58);
+  --glass-2: rgba(44, 10, 26, 0.44);
+  --glass-brd: rgba(253, 164, 175, 0.18);
+  --glass-hi: rgba(255, 255, 255, 0.16);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.11);
+  --ink: #fff1f2;
+  --ink-dim: #fecdd3;
+  --ink-faint: #b5828d;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.66);
+}
+
+:root[data-theme="dark-peach"] {
+  --wall:
+    radial-gradient(42% 52% at 18% 16%, #7c2d12 0%, transparent 60%),
+    radial-gradient(42% 52% at 84% 12%, #78350f 0%, transparent 60%),
+    radial-gradient(48% 58% at 76% 84%, #9a3412 0%, transparent 58%),
+    linear-gradient(160deg, #1a0d05, #2c1608);
+  --accent: #fb923c;
+  --accent-soft: rgba(251, 146, 60, 0.16);
+  --glass: rgba(44, 22, 8, 0.58);
+  --glass-2: rgba(44, 22, 8, 0.44);
+  --glass-brd: rgba(253, 186, 116, 0.18);
+  --glass-hi: rgba(255, 255, 255, 0.16);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.11);
+  --ink: #fff7ed;
+  --ink-dim: #fed7aa;
+  --ink-faint: #b58f6c;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.66);
+}
+
+:root[data-theme="light-graphite"] {
+  --wall:
+    radial-gradient(42% 50% at 16% 12%, #e5e7eb 0%, transparent 60%),
+    radial-gradient(42% 50% at 84% 14%, #f3f4f6 0%, transparent 58%),
+    radial-gradient(44% 54% at 78% 84%, #e2e8f0 0%, transparent 58%),
+    linear-gradient(160deg, #f9fafb, #e5e7eb);
+  --accent: #65a30d;
+  --accent-soft: rgba(101, 163, 13, 0.14);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-2: rgba(255, 255, 255, 0.46);
+  --glass-brd: rgba(156, 163, 175, 0.34);
+  --glass-hi: rgba(255, 255, 255, 0.86);
+  --surface: rgba(17, 24, 39, 0.07);
+  --surface-2: rgba(17, 24, 39, 0.11);
+  --ink: #111827;
+  --ink-dim: #4b5563;
+  --ink-faint: #9ca3af;
+  --shadow: 0 10px 34px rgba(17, 24, 39, 0.12);
+  --shadow-hi: 0 14px 40px rgba(17, 24, 39, 0.18);
+}
+
+:root[data-theme="light-ocean"] {
+  --wall:
+    radial-gradient(42% 50% at 16% 12%, #cffafe 0%, transparent 60%),
+    radial-gradient(42% 50% at 84% 14%, #dbeafe 0%, transparent 58%),
+    radial-gradient(44% 54% at 78% 84%, #e0f2fe 0%, transparent 58%),
+    linear-gradient(160deg, #f0fdff, #cffafe);
+  --accent: #0891b2;
+  --accent-soft: rgba(8, 145, 178, 0.14);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-2: rgba(255, 255, 255, 0.46);
+  --glass-brd: rgba(103, 232, 249, 0.4);
+  --glass-hi: rgba(255, 255, 255, 0.86);
+  --surface: rgba(8, 47, 73, 0.07);
+  --surface-2: rgba(8, 47, 73, 0.12);
+  --ink: #083344;
+  --ink-dim: #155e75;
+  --ink-faint: #5a93a6;
+  --shadow: 0 10px 34px rgba(8, 47, 73, 0.12);
+  --shadow-hi: 0 14px 40px rgba(8, 47, 73, 0.18);
+}
+
+:root[data-theme="light-forest"] {
+  --wall:
+    radial-gradient(42% 50% at 16% 12%, #dcfce7 0%, transparent 60%),
+    radial-gradient(42% 50% at 84% 14%, #d1fae5 0%, transparent 58%),
+    radial-gradient(44% 54% at 78% 84%, #ecfccb 0%, transparent 58%),
+    linear-gradient(160deg, #f0fdf4, #dcfce7);
+  --accent: #16a34a;
+  --accent-soft: rgba(22, 163, 74, 0.14);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-2: rgba(255, 255, 255, 0.46);
+  --glass-brd: rgba(134, 239, 172, 0.4);
+  --glass-hi: rgba(255, 255, 255, 0.86);
+  --surface: rgba(20, 83, 45, 0.07);
+  --surface-2: rgba(20, 83, 45, 0.12);
+  --ink: #14532d;
+  --ink-dim: #3f6212;
+  --ink-faint: #6b9476;
+  --shadow: 0 10px 34px rgba(20, 83, 45, 0.12);
+  --shadow-hi: 0 14px 40px rgba(20, 83, 45, 0.18);
+}
+
+:root[data-theme="light-dracula"] {
+  --wall:
+    radial-gradient(42% 50% at 16% 12%, #ede9fe 0%, transparent 60%),
+    radial-gradient(42% 50% at 84% 14%, #fae8ff 0%, transparent 58%),
+    radial-gradient(44% 54% at 78% 84%, #fff7ed 0%, transparent 58%),
+    linear-gradient(160deg, #fffbeb, #f5f0ff);
+  --accent: #7c3aed;
+  --accent-soft: rgba(124, 58, 237, 0.14);
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-2: rgba(255, 255, 255, 0.46);
+  --glass-brd: rgba(196, 181, 253, 0.45);
+  --glass-hi: rgba(255, 255, 255, 0.88);
+  --surface: rgba(40, 42, 54, 0.07);
+  --surface-2: rgba(40, 42, 54, 0.12);
+  --ink: #282a36;
+  --ink-dim: #5b5f7a;
+  --ink-faint: #9499b5;
+  --shadow: 0 10px 34px rgba(40, 42, 54, 0.12);
+  --shadow-hi: 0 14px 40px rgba(40, 42, 54, 0.18);
+}
+
+:root[data-theme="light-cyberpunk"] {
+  --wall:
+    radial-gradient(42% 50% at 16% 12%, #fce7f3 0%, transparent 62%),
+    radial-gradient(42% 50% at 84% 14%, #cffafe 0%, transparent 62%),
+    radial-gradient(44% 54% at 78% 84%, #fef9c3 0%, transparent 58%),
+    linear-gradient(160deg, #fff0f7, #ecfeff);
+  --accent: #d6006e;
+  --accent-soft: rgba(214, 0, 110, 0.14);
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-2: rgba(255, 255, 255, 0.46);
+  --glass-brd: rgba(8, 145, 178, 0.3);
+  --glass-hi: rgba(255, 255, 255, 0.88);
+  --surface: rgba(124, 0, 64, 0.07);
+  --surface-2: rgba(8, 145, 178, 0.1);
+  --ink: #4a0026;
+  --ink-dim: #155e75;
+  --ink-faint: #a8527e;
+  --shadow: 0 10px 34px rgba(124, 0, 64, 0.12);
+  --shadow-hi: 0 14px 40px rgba(124, 0, 64, 0.18);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

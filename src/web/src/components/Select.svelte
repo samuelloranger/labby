@@ -50,6 +50,15 @@
     'dark-dracula': '#bd93f9',
     'dark-nord': '#4c566a',
     'dark-cyberpunk': 'linear-gradient(135deg, #ff007f 0%, #ffd60a 100%)',
+    'dark-slate': '#60a5fa',
+    'dark-mint': '#34d399',
+    'dark-rose': '#fb7185',
+    'dark-peach': '#fb923c',
+    'light-graphite': '#65a30d',
+    'light-ocean': '#0891b2',
+    'light-forest': '#16a34a',
+    'light-dracula': '#7c3aed',
+    'light-cyberpunk': 'linear-gradient(135deg, #d6006e 0%, #0891b2 100%)',
   };
 
   function toggle(e: MouseEvent) {
