@@ -6,7 +6,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Features
 
-- **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, Reddit, Hacker News
+- **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, calendar, speedtest, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config & credentials** — stored in SQLite (`config/labby.db`), automatically seeded with a default layout on first run, Zod-validated; edit service URLs/keys from the in-app Manage Services page
@@ -21,44 +21,50 @@ Do not expose Labby to the public internet without network-level access control.
 ## Quick start
 
 ```bash
-cp .env.example .env
-# Edit .env with your service URLs and credentials
 bun install && (cd src/web && bun install)
 bun run build
 bun run start
 ```
 
-Open `http://localhost:8080`.
+Open `http://localhost:8080`, then add your service URLs and credentials on the **Manage Services** page (the Database icon in the header). Everything is stored in the SQLite DB.
 
 ### Docker
 
 ```bash
-cp .env.example .env
 docker compose up -d --build
 ```
 
-Point `.env` at your homelab services, then edit URLs/keys live from the **Manage Services** page (the Database icon in the header). On first run Labby automatically seeds its SQLite DB (`config/labby.db`) with a default layout via built-in migrations. The DB lives in the mounted `config/` volume, so it must be writable **by the user the container runs as** — set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`, or writes fail with `SQLITE_READONLY`. Adjust `docker-compose.yml` networks to match your setup.
+On first run Labby automatically seeds its SQLite DB (`config/labby.db`) with a default layout and example integrations via built-in migrations. Configure your homelab services on the **Manage Services** page (the Database icon in the header). The DB lives in the mounted `config/` volume, so it must be writable **by the user the container runs as** — set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`, or writes fail with `SQLITE_READONLY`. Adjust `docker-compose.yml` networks to match your setup.
 
 ## Configuration
 
 User config lives in the SQLite database. Invalid config shows an error state instead of crashing the server.
 
-### Widget types
+Service credentials and per-instance settings (monitor sites, weather location, Docker hosts, download client URLs, etc.) are stored in the **`integrations`** table. Dashboard widgets reference an integration by `integrationId` and only carry display options (title, layout style, max items). Poll cadence is set per integration row (`refreshSeconds`), not in the dashboard JSON.
 
-| Type                   | Env vars                           |
-| ---------------------- | ---------------------------------- |
-| `monitor`              | — (HTTP checks only)               |
-| `docker`               | `DOCKER_RO_HOST`, `DOCKER_RW_HOST` |
-| `downloads`            | `QBIT_*` or `TRANSMISSION_*`       |
-| `adguard`              | `ADGUARD_*`                        |
-| `jellyfin`             | `JELLYFIN_*`                       |
-| `beszel`               | `BESZEL_*`                         |
-| `radarr`               | `RADARR_URL`, `RADARR_API_KEY`     |
-| `sonarr`               | `SONARR_URL`, `SONARR_API_KEY`     |
-| `reelward`             | `REELWARD_URL`, `REELWARD_API_KEY` |
-| `weather`              | `OPENWEATHER_API_KEY`              |
-| `speedtest`            | `SPEEDTEST_TRACKER_URL`, `SPEEDTEST_TRACKER_API_TOKEN` |
-| `reddit`, `hackernews` | —                                  |
+Configure everything from the **Manage Services** page — no `.env` file or flat env-var keys.
+
+### Built-in integrations
+
+| Type | What to configure |
+| --- | --- |
+| `monitor` | HTTP sites to check (title, URL, icon per site) |
+| `docker` | Read/write Docker hosts, container filter (`running` / `all`) |
+| `qbittorrent` | URL, username, password |
+| `transmission` | URL, username, password |
+| `adguard` | URL, username, password |
+| `jellyfin` | URL, API key |
+| `beszel` | URL, username, password, token |
+| `radarr` | URL, API key |
+| `sonarr` | URL, API key |
+| `reelward` | URL, API key |
+| `weather` | OpenWeather API key, city or lat/lon, units |
+| `calendar` | ICS feed URLs (one per line) |
+| `speedtest` | Speedtest Tracker URL, API token |
+| `reddit` | Subreddits to merge into one feed |
+| `hackernews` | No config (Algolia front page) |
+
+You can add multiple integrations of the same type (e.g. two Radarr instances) — each gets its own row, poll interval, and SSE channel (`int:<id>`).
 
 ### Icons
 
@@ -73,7 +79,7 @@ The `icon` field accepts prefixed strings:
 
 ### Refresh intervals
 
-Set per-channel poll cadence in `refreshSeconds`. The browser receives updates via SSE, not its own timers.
+Set poll cadence per integration on the Manage Services page (`refreshSeconds`; defaults come from the integration type). The browser receives updates via SSE, not its own timers.
 
 ## Development
 

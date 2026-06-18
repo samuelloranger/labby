@@ -2,14 +2,20 @@
   import WidgetHost from './components/WidgetHost.svelte';
   import Header from './components/Header.svelte';
   import { initStream } from '$lib/stores';
-  import type { Dashboard } from '$lib/types';
+  import type { Dashboard, IntegrationRow } from '$lib/types';
   import { onMount } from 'svelte';
 
   let { config }: { config: Dashboard } = $props();
   let activePageIndex = $state(0);
   let page = $derived(config.pages[activePageIndex] || config.pages[0]);
+  let integrationsById = $state<Map<number, IntegrationRow>>(new Map());
 
   onMount(() => {
+    void fetch('/api/integrations')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((rows: IntegrationRow[]) => {
+        integrationsById = new Map(rows.map((r) => [r.id, r]));
+      });
     return initStream();
   });
 </script>
@@ -38,7 +44,7 @@
       {#each page.columns as col}
         <div class="grid-column {col.size}">
           {#each col.widgets as widget}
-            <WidgetHost {widget} />
+            <WidgetHost {widget} integrationType={integrationsById.get(widget.integrationId)?.type} />
           {/each}
         </div>
       {/each}
@@ -47,7 +53,7 @@
     <div class="grid">
       {#each page.columns as col}
         {#each col.widgets as widget}
-          <WidgetHost {widget} />
+          <WidgetHost {widget} integrationType={integrationsById.get(widget.integrationId)?.type} />
         {/each}
       {/each}
     </div>

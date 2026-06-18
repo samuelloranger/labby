@@ -1,19 +1,15 @@
 import { describe, expect, mock, test } from 'bun:test';
+import type { QbitConfig } from './qbittorrent';
+import { getQBittorrentTorrents } from './qbittorrent';
 
 describe('qBittorrent client', () => {
-  test('reports missing env', async () => {
-    const prev = process.env.QBIT_URL;
-    delete process.env.QBIT_URL;
-    const { getQBittorrentTorrents } = await import('./qbittorrent');
-    const result = await getQBittorrentTorrents();
+  test('reports missing config', async () => {
+    const result = await getQBittorrentTorrents({});
     expect(result).toEqual({ error: 'QBIT_URL not configured' });
-    process.env.QBIT_URL = prev;
   });
 
   test('maps torrent payload', async () => {
-    process.env.QBIT_URL = 'http://qb.test';
-    process.env.QBIT_USER = 'admin';
-    process.env.QBIT_PASS = 'admin';
+    const config: QbitConfig = { url: 'http://qb.test', user: 'admin', pass: 'admin' };
 
     const originalFetch = globalThis.fetch;
     globalThis.fetch = mock(async (input: RequestInfo | URL, _init?: RequestInit) => {
@@ -41,8 +37,7 @@ describe('qBittorrent client', () => {
       return new Response('not found', { status: 404 });
     }) as unknown as typeof fetch;
 
-    const { getQBittorrentTorrents } = await import('./qbittorrent');
-    const result = await getQBittorrentTorrents();
+    const result = await getQBittorrentTorrents(config);
     globalThis.fetch = originalFetch;
 
     expect('torrents' in result).toBe(true);

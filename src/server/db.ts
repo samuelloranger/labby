@@ -8,20 +8,6 @@ export const db = new Database(DB_PATH, { create: true });
 const DEFAULT_DASHBOARD = JSON.stringify({
   title: 'Labby',
   theme: { default: 'system' },
-  refreshSeconds: {
-    monitor: 30,
-    docker: 10,
-    downloads: 5,
-    adguard: 60,
-    jellyfin: 15,
-    beszel: 15,
-    radarr: 60,
-    sonarr: 60,
-    reelward: 60,
-    weather: 900,
-    calendar: 600,
-    speedtest: 1800,
-  },
   pages: [
     {
       name: 'Overview',
@@ -32,48 +18,20 @@ const DEFAULT_DASHBOARD = JSON.stringify({
             {
               type: 'monitor',
               title: 'Core',
+              integrationId: 1,
               style: 'compact',
-              sites: [
-                {
-                  title: 'AdGuard',
-                  url: 'https://adguard.example.com',
-                  checkUrl: 'http://adguardhome:3000',
-                  icon: 'di:adguard-home',
-                  okCodes: [200, 301, 302, 401, 403],
-                },
-                {
-                  title: 'qBittorrent',
-                  url: 'https://qb.example.com',
-                  checkUrl: 'http://qbittorrent:8080',
-                  icon: 'di:qbittorrent',
-                  okCodes: [200, 301, 302, 401, 403],
-                },
-                {
-                  title: 'Jellyfin',
-                  url: 'https://jellyfin.example.com',
-                  checkUrl: 'http://jellyfin:8096/health',
-                  icon: 'di:jellyfin',
-                },
-              ],
             },
           ],
         },
         {
           size: 'full',
           widgets: [
-            { type: 'docker', title: 'Containers', show: 'running' },
+            { type: 'docker', title: 'Containers', integrationId: 2 },
             {
               type: 'monitor',
               title: 'Launcher',
+              integrationId: 3,
               variant: 'tiles',
-              sites: [
-                {
-                  title: 'Jellyfin',
-                  url: 'https://jellyfin.example.com',
-                  checkUrl: 'http://jellyfin:8096/health',
-                  icon: 'di:jellyfin',
-                },
-              ],
             },
           ],
         },
@@ -81,6 +39,44 @@ const DEFAULT_DASHBOARD = JSON.stringify({
     },
   ],
 });
+
+const SEED_MONITOR_CORE = JSON.stringify({
+  sites: [
+    {
+      title: 'AdGuard',
+      url: 'https://adguard.example.com',
+      checkUrl: 'http://adguardhome:3000',
+      icon: 'di:adguard-home',
+      okCodes: [200, 301, 302, 401, 403],
+    },
+    {
+      title: 'qBittorrent',
+      url: 'https://qb.example.com',
+      checkUrl: 'http://qbittorrent:8080',
+      icon: 'di:qbittorrent',
+      okCodes: [200, 301, 302, 401, 403],
+    },
+    {
+      title: 'Jellyfin',
+      url: 'https://jellyfin.example.com',
+      checkUrl: 'http://jellyfin:8096/health',
+      icon: 'di:jellyfin',
+    },
+  ],
+});
+
+const SEED_MONITOR_LAUNCHER = JSON.stringify({
+  sites: [
+    {
+      title: 'Jellyfin',
+      url: 'https://jellyfin.example.com',
+      checkUrl: 'http://jellyfin:8096/health',
+      icon: 'di:jellyfin',
+    },
+  ],
+});
+
+const SEED_DOCKER = JSON.stringify({ roHost: '', rwHost: '', show: 'running' });
 
 // --- Migrations System ---
 const migrations = [
@@ -101,6 +97,34 @@ const migrations = [
       INSERT INTO settings (key, value)
       VALUES ('dashboard', json('${DEFAULT_DASHBOARD}'))
       ON CONFLICT(key) DO NOTHING;
+    `,
+  },
+  {
+    version: 3,
+    name: 'integrations_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS integrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        type TEXT NOT NULL,
+        config TEXT NOT NULL DEFAULT '{}',
+        enabled INTEGER NOT NULL DEFAULT 1,
+        refresh_seconds INTEGER
+      );
+    `,
+  },
+  {
+    version: 4,
+    name: 'seed_default_dashboard',
+    up: `
+      INSERT OR IGNORE INTO integrations (id, name, type, config, enabled, refresh_seconds) VALUES
+        (1, 'Core Monitor', 'monitor', json('${SEED_MONITOR_CORE}'), 1, 30),
+        (2, 'Docker', 'docker', json('${SEED_DOCKER}'), 1, 10),
+        (3, 'Launcher', 'monitor', json('${SEED_MONITOR_LAUNCHER}'), 1, 30);
+
+      INSERT INTO settings (key, value)
+      VALUES ('dashboard', json('${DEFAULT_DASHBOARD}'))
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value;
     `,
   },
 ];
@@ -162,4 +186,77 @@ export function getAllSettings(): Record<string, string> {
     result[row.key] = row.value;
   }
   return result;
+}
+
+// --- Integrations CRUD ---
+
+export type IntegrationRow = {
+  id: number;
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
+  enabled: boolean;
+  refreshSeconds: number | null;
+};
+
+type Raw = {
+  id: number;
+  name: string;
+  type: string;
+  config: string;
+  enabled: number;
+  refresh_seconds: number | null;
+};
+const toRow = (r: Raw): IntegrationRow => ({
+  id: r.id,
+  name: r.name,
+  type: r.type,
+  config: JSON.parse(r.config),
+  enabled: !!r.enabled,
+  refreshSeconds: r.refresh_seconds,
+});
+
+export function listIntegrations(): IntegrationRow[] {
+  return (db.query('SELECT * FROM integrations ORDER BY id').all() as Raw[]).map(toRow);
+}
+
+export function getIntegration(id: number): IntegrationRow | null {
+  const r = db.query('SELECT * FROM integrations WHERE id = $id').get({ $id: id }) as Raw | null;
+  return r ? toRow(r) : null;
+}
+
+export function createIntegration(input: Omit<IntegrationRow, 'id'>): IntegrationRow {
+  const info = db
+    .query(
+      'INSERT INTO integrations (name, type, config, enabled, refresh_seconds) VALUES ($name,$type,$config,$enabled,$rs)',
+    )
+    .run({
+      $name: input.name,
+      $type: input.type,
+      $config: JSON.stringify(input.config),
+      $enabled: input.enabled ? 1 : 0,
+      $rs: input.refreshSeconds,
+    });
+  return getIntegration(Number(info.lastInsertRowid)) as IntegrationRow;
+}
+
+export function updateIntegration(
+  id: number,
+  input: Omit<IntegrationRow, 'id'>,
+): IntegrationRow | null {
+  db.query(
+    'UPDATE integrations SET name=$name, type=$type, config=$config, enabled=$enabled, refresh_seconds=$rs WHERE id=$id',
+  ).run({
+    $id: id,
+    $name: input.name,
+    $type: input.type,
+    $config: JSON.stringify(input.config),
+    $enabled: input.enabled ? 1 : 0,
+    $rs: input.refreshSeconds,
+  });
+  return getIntegration(id);
+}
+
+export function deleteIntegration(id: number): void {
+  db.query('DELETE FROM integrations WHERE id = $id').run({ $id: id });
 }

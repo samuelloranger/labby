@@ -1,3 +1,5 @@
+export type DockerConfig = { roHost?: string; rwHost?: string; show?: 'all' | 'running' };
+
 export function dockerHost(host: string | undefined): string | null {
   if (!host) return null;
   return host.replace(/^tcp:\/\//, 'http://').replace(/\/$/, '');

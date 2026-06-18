@@ -8,9 +8,12 @@ export type HNPost = {
   createdUtc: number;
 };
 
+export type HNConfig = { max?: number };
+
 export type HNPayload = { posts: HNPost[] };
 
-export async function getHackerNews(limit = 15): Promise<HNPayload | { error: string }> {
+export async function getHackerNews(config: HNConfig = {}): Promise<HNPayload | { error: string }> {
+  const limit = config.max ?? 15;
   try {
     // Algolia front-page search returns title/url/points/comments in one call —
     // no per-item fetches like the Firebase API needs.

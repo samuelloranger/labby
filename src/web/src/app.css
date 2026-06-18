@@ -632,7 +632,8 @@ header.top {
   background: none;
   outline: none;
   font-family: var(--font);
-  font-size: 0.9rem;
+  /* 16px keeps iOS Safari from zooming when the field is focused. */
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -2417,7 +2418,8 @@ body::before {
 .settings-group textarea {
   width: 100%;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.8rem;
+  /* 16px keeps iOS Safari from zooming when the field is focused. */
+  font-size: 16px;
   background: var(--glass-2);
   border: 1px solid var(--glass-brd);
   border-radius: var(--radius-sm);

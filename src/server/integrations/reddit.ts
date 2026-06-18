@@ -8,6 +8,8 @@ export type RedditPost = {
   createdUtc: number;
 };
 
+export type RedditConfig = { subreddits?: string[]; max?: number };
+
 export type RedditPayload = { subreddit: string; posts: RedditPost[] };
 
 function decodeEntities(s: string): string {
@@ -50,26 +52,61 @@ export function parseRedditFeed(xml: string, subreddit: string, limit: number): 
 }
 
 export async function getRedditPosts(
-  subreddit: string,
-  limit = 25,
+  config: RedditConfig,
 ): Promise<RedditPayload | { error: string }> {
-  // accept "a+b+c" (merged) or "r/a" — strip r/ per-part, keep + as Reddit's join
-  const sub = subreddit
-    .split('+')
-    .map((s) => encodeURIComponent(s.replace(/^\/?r\//, '').trim()))
-    .join('+');
-  try {
-    const res = await fetch(`https://www.reddit.com/r/${sub}/hot.rss?limit=${limit + 4}`, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Accept: 'application/atom+xml, text/xml',
-      },
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!res.ok) return { error: `Reddit error: ${res.status}` };
-    return { subreddit: sub, posts: parseRedditFeed(await res.text(), sub, limit) };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Reddit unreachable' };
+  const subreddits = config.subreddits ?? [];
+  const limit = config.max ?? 25;
+  if (subreddits.length === 0) return { subreddit: '', posts: [] };
+
+  // Fetch each subreddit entry; each may itself be "a+b+c" (merged)
+  let anyFailed = false;
+  const results = await Promise.all(
+    subreddits.map(async (subreddit) => {
+      // accept "a+b+c" (merged) or "r/a" — strip r/ per-part, keep + as Reddit's join
+      const sub = subreddit
+        .split('+')
+        .map((s) => encodeURIComponent(s.replace(/^\/?r\//, '').trim()))
+        .join('+');
+      try {
+        const res = await fetch(`https://www.reddit.com/r/${sub}/hot.rss?limit=${limit + 4}`, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            Accept: 'application/atom+xml, text/xml',
+          },
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!res.ok) {
+          anyFailed = true;
+          return [] as RedditPost[];
+        }
+        return parseRedditFeed(await res.text(), sub, limit);
+      } catch {
+        anyFailed = true;
+        return [] as RedditPost[];
+      }
+    }),
+  );
+
+  // Merge all posts, sort by newest first, cap at limit
+  const merged = results
+    .flat()
+    .sort((a, b) => b.createdUtc - a.createdUtc)
+    .slice(0, limit);
+
+  // If every sub failed and we have nothing to show, surface an error
+  if (merged.length === 0 && anyFailed) {
+    return { error: 'Reddit feed unavailable' };
   }
+
+  const subredditLabel = subreddits
+    .map((s) =>
+      s
+        .split('+')
+        .map((p) => p.replace(/^\/?r\//, '').trim())
+        .join('+'),
+    )
+    .join('+');
+
+  return { subreddit: subredditLabel, posts: merged };
 }
