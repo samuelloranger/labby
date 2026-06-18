@@ -59,6 +59,7 @@ export async function getRedditPosts(
   if (subreddits.length === 0) return { subreddit: '', posts: [] };
 
   // Fetch each subreddit entry; each may itself be "a+b+c" (merged)
+  let anyFailed = false;
   const results = await Promise.all(
     subreddits.map(async (subreddit) => {
       // accept "a+b+c" (merged) or "r/a" — strip r/ per-part, keep + as Reddit's join
@@ -75,9 +76,13 @@ export async function getRedditPosts(
           },
           signal: AbortSignal.timeout(15000),
         });
-        if (!res.ok) return [] as RedditPost[];
+        if (!res.ok) {
+          anyFailed = true;
+          return [] as RedditPost[];
+        }
         return parseRedditFeed(await res.text(), sub, limit);
       } catch {
+        anyFailed = true;
         return [] as RedditPost[];
       }
     }),
@@ -88,6 +93,11 @@ export async function getRedditPosts(
     .flat()
     .sort((a, b) => b.createdUtc - a.createdUtc)
     .slice(0, limit);
+
+  // If every sub failed and we have nothing to show, surface an error
+  if (merged.length === 0 && anyFailed) {
+    return { error: 'Reddit feed unavailable' };
+  }
 
   const subredditLabel = subreddits
     .map((s) =>
