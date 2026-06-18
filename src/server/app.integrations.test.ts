@@ -91,6 +91,28 @@ test('POST /api/integrations/:id/action/:action with unknown action returns 400'
   }
 });
 
+test('POST /api/integrations without name returns 400', async () => {
+  const res = await app.request('/api/integrations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'radarr', config: {}, enabled: true }),
+  });
+  expect(res.status).toBe(400);
+  const body = await res.json() as any;
+  expect(body).toHaveProperty('error');
+});
+
+test('POST /api/integrations without type returns 400', async () => {
+  const res = await app.request('/api/integrations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: TEST_NAME, config: {}, enabled: true }),
+  });
+  expect(res.status).toBe(400);
+  const body = await res.json() as any;
+  expect(body).toHaveProperty('error');
+});
+
 test('PUT updates name; DELETE removes it from list', async () => {
   cleanup();
   let id: number | undefined;

@@ -63,6 +63,7 @@ app.get('/api/integrations', (c) => c.json(listIntegrations()));
 
 app.post('/api/integrations', async (c) => {
   const b = await c.req.json();
+  if (!b.name || !b.type) return c.json({ error: 'name and type required' }, 400);
   const row = createIntegration({
     name: b.name,
     type: b.type,
@@ -76,6 +77,7 @@ app.post('/api/integrations', async (c) => {
 
 app.put('/api/integrations/:id', async (c) => {
   const b = await c.req.json();
+  if (!b.name || !b.type) return c.json({ error: 'name and type required' }, 400);
   const row = updateIntegration(Number(c.req.param('id')), {
     name: b.name,
     type: b.type,
@@ -111,7 +113,7 @@ app.post('/api/integrations/:id/action/:action', async (c) => {
   const body = await c.req.json<{ args?: unknown[] }>().catch(() => ({ args: [] }));
   const result = await fn(row.config, ...(body.args ?? []));
   if (result && typeof result === 'object' && 'error' in result) return c.json(result, 502);
-  await refreshIntegration(row.id);
+  await refreshIntegration(row.id).catch(() => {});
   return c.json({ ok: true });
 });
 
