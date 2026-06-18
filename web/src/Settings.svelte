@@ -57,7 +57,7 @@
     },
     {
       name: 'Reelward',
-      icon: 'lucide:film',
+      icon: '/icons/reelward.png',
       keys: ['REELWARD_URL', 'REELWARD_API_KEY']
     },
     {
