@@ -10,30 +10,23 @@ export type Widget =
   | {
       type: 'monitor';
       title: string;
+      integrationId: number;
       style?: 'compact' | 'default';
       variant?: 'rows' | 'tiles';
-      sites: Site[];
     }
-  | { type: 'docker'; title: string; show?: 'all' | 'running' }
-  | { type: 'downloads'; title: string; client: 'qbittorrent' | 'transmission'; max?: number }
-  | { type: 'adguard'; title: string }
-  | { type: 'jellyfin'; title: string }
-  | { type: 'beszel'; title: string; systems?: string[]; max?: number }
-  | { type: 'radarr'; title: string; max?: number }
-  | { type: 'sonarr'; title: string; max?: number }
-  | { type: 'reelward'; title: string; max?: number }
-  | { type: 'reddit'; title: string; subreddit: string | string[]; max?: number }
-  | { type: 'hackernews'; title: string; max?: number }
-  | {
-      type: 'weather';
-      title: string;
-      city?: string;
-      lat?: number;
-      lon?: number;
-      units?: 'metric' | 'imperial';
-    }
-  | { type: 'calendar'; title: string; max?: number }
-  | { type: 'speedtest'; title: string; max?: number };
+  | { type: 'docker'; title: string; integrationId: number }
+  | { type: 'downloads'; title: string; integrationId: number; max?: number }
+  | { type: 'adguard'; title: string; integrationId: number }
+  | { type: 'jellyfin'; title: string; integrationId: number }
+  | { type: 'beszel'; title: string; integrationId: number; systems?: string[]; max?: number }
+  | { type: 'radarr'; title: string; integrationId: number; max?: number }
+  | { type: 'sonarr'; title: string; integrationId: number; max?: number }
+  | { type: 'reelward'; title: string; integrationId: number; max?: number }
+  | { type: 'reddit'; title: string; integrationId: number; max?: number }
+  | { type: 'hackernews'; title: string; integrationId: number; max?: number }
+  | { type: 'weather'; title: string; integrationId: number }
+  | { type: 'calendar'; title: string; integrationId: number; max?: number }
+  | { type: 'speedtest'; title: string; integrationId: number; max?: number };
 
 export type Column = { size: 'small' | 'full'; widgets: Widget[] };
 export type Page = { name: string; columns: Column[] };
@@ -72,6 +65,29 @@ export type Dashboard = {
     layout: LayoutType;
     customCss?: string;
   };
-  refreshSeconds: Record<string, number>;
   pages: Page[];
+};
+
+export type IntegrationRow = {
+  id: number;
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
+  enabled: boolean;
+  refreshSeconds: number | null;
+};
+
+export type FieldDef = {
+  key: string;
+  label: string;
+  secret?: boolean;
+  kind?: 'text' | 'number' | 'list' | 'select';
+  options?: string[];
+};
+
+export type IntegrationTypeMeta = {
+  type: string;
+  label: string;
+  defaultRefreshSeconds: number;
+  fields: FieldDef[];
 };

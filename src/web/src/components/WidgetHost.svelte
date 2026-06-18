@@ -13,47 +13,58 @@
   import Speedtest from '../widgets/Speedtest.svelte';
   import type { Widget } from '$lib/types';
 
-  let { widget }: { widget: Widget } = $props();
+  let {
+    widget,
+    integrationType,
+  }: {
+    widget: Widget;
+    integrationType?: string;
+  } = $props();
 </script>
 
 {#if widget.type === 'monitor'}
   <Monitor
     title={widget.title}
-    sites={widget.sites}
+    integrationId={widget.integrationId}
     style={widget.style}
     variant={widget.variant ?? 'rows'}
     headerIcon={widget.variant === 'tiles' ? 'lucide:layout-grid' : 'lucide:activity'}
   />
 {:else if widget.type === 'docker'}
-  <Docker title={widget.title} show={widget.show} />
+  <Docker title={widget.title} integrationId={widget.integrationId} />
 {:else if widget.type === 'downloads'}
-  <Downloads title={widget.title} client={widget.client} max={widget.max} />
+  <Downloads
+    title={widget.title}
+    integrationId={widget.integrationId}
+    client={integrationType === 'transmission' ? 'transmission' : 'qbittorrent'}
+    max={widget.max}
+  />
 {:else if widget.type === 'adguard'}
-  <AdGuard title={widget.title} />
+  <AdGuard title={widget.title} integrationId={widget.integrationId} />
 {:else if widget.type === 'jellyfin'}
-  <Jellyfin title={widget.title} />
+  <Jellyfin title={widget.title} integrationId={widget.integrationId} />
 {:else if widget.type === 'beszel'}
-  <Beszel title={widget.title} systems={widget.systems} max={widget.max} />
+  <Beszel title={widget.title} integrationId={widget.integrationId} systems={widget.systems} max={widget.max} />
 {:else if widget.type === 'radarr'}
-  <Arr title={widget.title} kind="radarr" max={widget.max} />
+  <Arr title={widget.title} integrationId={widget.integrationId} kind="radarr" max={widget.max} />
 {:else if widget.type === 'sonarr'}
-  <Arr title={widget.title} kind="sonarr" max={widget.max} />
+  <Arr title={widget.title} integrationId={widget.integrationId} kind="sonarr" max={widget.max} />
 {:else if widget.type === 'reelward'}
-  <Reelward title={widget.title} max={widget.max} />
+  <Reelward title={widget.title} integrationId={widget.integrationId} max={widget.max} />
 {:else if widget.type === 'reddit'}
   <Feed
     title={widget.title}
-    endpoint={`/api/reddit/${(Array.isArray(widget.subreddit) ? widget.subreddit.join('+') : widget.subreddit)}`}
+    integrationId={widget.integrationId}
     icon="di:reddit"
     fallback="message-square"
     max={widget.max}
   />
 {:else if widget.type === 'hackernews'}
-  <Feed title={widget.title} endpoint="/api/hackernews" icon="di:hacker-news" fallback="flame" max={widget.max} />
+  <Feed title={widget.title} integrationId={widget.integrationId} icon="di:hacker-news" fallback="flame" max={widget.max} />
 {:else if widget.type === 'weather'}
-  <Weather title={widget.title} city={widget.city} lat={widget.lat} lon={widget.lon} />
+  <Weather title={widget.title} integrationId={widget.integrationId} />
 {:else if widget.type === 'calendar'}
-  <Calendar title={widget.title} max={widget.max} />
+  <Calendar title={widget.title} integrationId={widget.integrationId} max={widget.max} />
 {:else if widget.type === 'speedtest'}
-  <Speedtest title={widget.title} max={widget.max} />
+  <Speedtest title={widget.title} integrationId={widget.integrationId} max={widget.max} />
 {/if}

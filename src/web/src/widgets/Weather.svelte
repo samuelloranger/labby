@@ -1,27 +1,15 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { searchQuery, weatherStore } from '$lib/stores';
+  import { getStore, searchQuery, type WeatherLocationData, type WidgetState } from '$lib/stores';
   import { tempUnit, weatherIconUrl, windLabel, windUnit } from '$lib/utils';
 
-  let {
-    title,
-    city,
-    lat,
-    lon,
-  }: { title: string; city?: string; lat?: number; lon?: number } = $props();
+  let { title, integrationId }: { title: string; integrationId: number } = $props();
 
-  const state = $derived($weatherStore);
-  const locationKey = $derived(
-    city ? `city:${city}` : lat != null && lon != null ? `coord:${lat},${lon}` : null,
-  );
-  const entry = $derived(locationKey ? state.data?.locations[locationKey] : null);
-  const data = $derived(entry && !('error' in entry) ? entry : null);
+  const store = $derived(getStore(integrationId));
+  const state = $derived($store as WidgetState<WeatherLocationData>);
+  const data = $derived(state.data && !('error' in state.data) ? state.data : null);
   const locationError = $derived(
-    !locationKey
-      ? 'Weather widget requires city or lat/lon'
-      : entry && 'error' in entry
-        ? entry.error
-        : state.error,
+    state.data && 'error' in state.data ? String(state.data.error) : state.error,
   );
 </script>
 

@@ -160,12 +160,11 @@ export function parseICS(
   return events;
 }
 
-// `CALENDAR_ICS_URLS`: comma-separated, each entry `Name|https://…` or bare URL.
-function sources(): IcsSource[] {
-  const raw = process.env.CALENDAR_ICS_URLS?.trim();
-  if (!raw) return [];
-  return raw
-    .split(',')
+export type CalendarConfig = { icsUrls?: string[] };
+
+// Each entry is `Name|https://…` or a bare URL.
+function parseSources(icsUrls: string[]): IcsSource[] {
+  return icsUrls
     .map((entry) => {
       const e = entry.trim();
       const pipe = e.indexOf('|');
@@ -179,8 +178,10 @@ function sources(): IcsSource[] {
 const LOOKAHEAD_DAYS = 30;
 const MAX_EVENTS = 50;
 
-export async function getCalendarEvents(): Promise<CalendarPayload | { error: string }> {
-  const srcs = sources();
+export async function getCalendarEvents(
+  config: CalendarConfig,
+): Promise<CalendarPayload | { error: string }> {
+  const srcs = parseSources(config.icsUrls ?? []);
   if (srcs.length === 0) return { error: 'CALENDAR_ICS_URLS not configured' };
 
   const now = Date.now();

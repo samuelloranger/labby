@@ -1,11 +1,17 @@
 <script lang="ts">
   import { Play } from 'lucide-svelte';
   import Icon from '../components/Icon.svelte';
-  import { jellyfinStore, searchQuery } from '$lib/stores';
+  import { getStore, searchQuery, type JellyfinData, type WidgetState } from '$lib/stores';
   import { clampPercent } from '$lib/utils';
 
-  let { title }: { title: string } = $props();
-  const state = $derived($jellyfinStore);
+  let { title, integrationId }: { title: string; integrationId: number } = $props();
+  const store = $derived(getStore(integrationId));
+  const state = $derived($store as WidgetState<JellyfinData>);
+
+  function posterSrc(url: string | undefined): string | undefined {
+    if (!url) return undefined;
+    return url.replace('/api/jellyfin/image/', `/api/integrations/${integrationId}/jellyfin-image/`);
+  }
 </script>
 
 {#if !$searchQuery.trim()}
@@ -32,7 +38,7 @@
         <div class="jf">
           <div class="poster">
             {#if s.posterUrl}
-              <img src={s.posterUrl} alt="" />
+              <img src={posterSrc(s.posterUrl)} alt="" />
             {:else}
               <Play size={18} />
             {/if}

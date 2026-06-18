@@ -1,6 +1,7 @@
 import type { DockerContainer, DockerPayload } from '../types';
 import {
   calcCpuPercent,
+  type DockerConfig,
   demuxDockerLogs,
   dockerFetch,
   dockerHost,
@@ -8,13 +9,13 @@ import {
   type RawDockerContainer,
 } from './docker';
 
-const RO = () => dockerHost(process.env.DOCKER_RO_HOST);
-const RW = () => dockerHost(process.env.DOCKER_RW_HOST);
+export type { DockerConfig };
 
 export async function listContainers(
-  show: 'all' | 'running' = 'running',
+  config: DockerConfig,
+  show: 'all' | 'running' = config.show ?? 'running',
 ): Promise<DockerPayload | { error: string }> {
-  const base = RO();
+  const base = dockerHost(config.roHost);
   if (!base) return { error: 'DOCKER_RO_HOST not configured' };
 
   try {
@@ -70,10 +71,11 @@ export async function listContainers(
 }
 
 export async function containerAction(
+  config: DockerConfig,
   id: string,
   action: 'start' | 'stop' | 'restart',
 ): Promise<{ ok: true } | { error: string }> {
-  const base = RW();
+  const base = dockerHost(config.rwHost);
   if (!base) return { error: 'DOCKER_RW_HOST not configured' };
 
   try {
@@ -89,10 +91,11 @@ export async function containerAction(
 }
 
 export async function containerLogs(
+  config: DockerConfig,
   id: string,
   tail = 200,
 ): Promise<{ logs: string } | { error: string }> {
-  const base = RO();
+  const base = dockerHost(config.roHost);
   if (!base) return { error: 'DOCKER_RO_HOST not configured' };
 
   try {

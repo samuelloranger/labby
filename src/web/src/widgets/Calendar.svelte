@@ -1,11 +1,11 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { calendarStore, searchQuery } from '$lib/stores';
-  import type { CalendarEvent } from '$lib/stores';
+  import { getStore, searchQuery, type CalendarData, type CalendarEvent, type WidgetState } from '$lib/stores';
 
-  let { title, max = 8 }: { title: string; max?: number } = $props();
+  let { title, integrationId, max = 8 }: { title: string; integrationId: number; max?: number } = $props();
 
-  const state = $derived($calendarStore);
+  const store = $derived(getStore(integrationId));
+  const state = $derived($store as WidgetState<CalendarData>);
   const events = $derived.by<CalendarEvent[]>(() => {
     const all = state.data?.events ?? [];
     const now = Date.now();

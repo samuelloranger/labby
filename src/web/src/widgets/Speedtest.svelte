@@ -1,10 +1,11 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { searchQuery, speedtestStore } from '$lib/stores';
+  import { getStore, searchQuery, type SpeedtestData, type WidgetState } from '$lib/stores';
 
-  let { title, max = 5 }: { title: string; max?: number } = $props();
+  let { title, integrationId, max = 5 }: { title: string; integrationId: number; max?: number } = $props();
 
-  const state = $derived($speedtestStore);
+  const store = $derived(getStore(integrationId));
+  const state = $derived($store as WidgetState<SpeedtestData>);
   const data = $derived(state.data);
   const latest = $derived(data?.latest);
   const history = $derived((data?.history ?? []).slice(0, max));
@@ -76,13 +77,11 @@
     if (pending) return;
     pending = true;
     try {
-      await fetch('/api/speedtest/run', { method: 'POST' });
       const initialLatestId = latest?.id;
+      await fetch(`/api/integrations/${integrationId}/action/run`, { method: 'POST' });
 
-      // Poll every 8 seconds for up to 2 minutes
       for (let i = 0; i < 15; i++) {
         await new Promise((r) => setTimeout(r, 8000));
-        await fetch('/api/speedtest/refresh', { method: 'POST' });
         if (state.data?.latest && state.data.latest.id !== initialLatestId) {
           break;
         }

@@ -1,17 +1,14 @@
 import type { SpeedtestPayload } from '../types';
 
-function baseUrl(): string | null {
-  const url = process.env.SPEEDTEST_TRACKER_URL;
-  return url ? url.replace(/\/$/, '') : null;
-}
+export type SpeedtestConfig = { url?: string; apiToken?: string };
 
-function token(): string | null {
-  return process.env.SPEEDTEST_TRACKER_API_TOKEN?.trim() || null;
-}
-
-async function speedtestFetch(path: string, init?: RequestInit): Promise<Response> {
-  const base = baseUrl();
-  const tok = token();
+async function speedtestFetch(
+  config: SpeedtestConfig,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  const tok = config.apiToken?.trim() || null;
   if (!base) throw new Error('SPEEDTEST_TRACKER_URL not configured');
   if (!tok) throw new Error('SPEEDTEST_TRACKER_API_TOKEN not configured');
 
@@ -34,12 +31,17 @@ type SpeedtestResponseItem = {
   created_at?: string | null;
 };
 
-export async function getSpeedtestSummary(max = 10): Promise<SpeedtestPayload | { error: string }> {
-  if (!baseUrl()) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
-  if (!token()) return { error: 'SPEEDTEST_TRACKER_API_TOKEN not configured' };
+export async function getSpeedtestSummary(
+  config: SpeedtestConfig,
+  max = 10,
+): Promise<SpeedtestPayload | { error: string }> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  const tok = config.apiToken?.trim() || null;
+  if (!base) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
+  if (!tok) return { error: 'SPEEDTEST_TRACKER_API_TOKEN not configured' };
 
   try {
-    const res = await speedtestFetch(`/api/v1/results?sort=-created_at&per_page=${max}`);
+    const res = await speedtestFetch(config, `/api/v1/results?sort=-created_at&per_page=${max}`);
     if (!res.ok) return { error: `Speedtest Tracker error: ${res.status}` };
 
     const payload = (await res.json()) as { data?: SpeedtestResponseItem[] };
@@ -66,12 +68,16 @@ export async function getSpeedtestSummary(max = 10): Promise<SpeedtestPayload | 
   }
 }
 
-export async function triggerSpeedtestRun(): Promise<{ ok: true } | { error: string }> {
-  if (!baseUrl()) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
-  if (!token()) return { error: 'SPEEDTEST_TRACKER_API_TOKEN not configured' };
+export async function triggerSpeedtestRun(
+  config: SpeedtestConfig,
+): Promise<{ ok: true } | { error: string }> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  const tok = config.apiToken?.trim() || null;
+  if (!base) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
+  if (!tok) return { error: 'SPEEDTEST_TRACKER_API_TOKEN not configured' };
 
   try {
-    const res = await speedtestFetch('/api/v1/speedtests/run', {
+    const res = await speedtestFetch(config, '/api/v1/speedtests/run', {
       method: 'POST',
     });
     if (!res.ok) return { error: `Speedtest trigger failed: ${res.status}` };

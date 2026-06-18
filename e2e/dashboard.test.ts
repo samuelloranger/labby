@@ -9,16 +9,19 @@
 //  - every widget reaches a terminal state (no card stuck on its skeleton)
 //  - a network failure (unreachable monitor site) degrades to a "down" state,
 //    not a crash or an infinite spinner
-//  - the cached feed endpoints stay 200 and serve identical payloads on repeat
-//    hits (the Reddit 429 guard)
+//  - integration data endpoints stay 200 and serve identical payloads on repeat
+//    hits when polled in quick succession
 
-import { existsSync } from 'node:fs';
+import { existsSync, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { type Browser, chromium } from 'playwright';
 
 const EXTERNAL = process.env.LABBY_E2E_URL;
 const PORT = 8099;
 const BASE = EXTERNAL ?? `http://localhost:${PORT}`;
+const E2E_DB = join(tmpdir(), `labby-e2e-${process.pid}.db`);
 
 // Skip cleanly where no browser is installed (fresh clone / CI / Docker build)
 // so the unit suite under `bun test` never breaks on a missing chromium.
@@ -32,6 +35,7 @@ const e2e = hasBrowser ? test : test.skip;
 
 let server: ReturnType<typeof Bun.spawn> | null = null;
 let browser: Browser;
+let hnIntegrationId: number | null = null;
 
 async function waitForServer(url: string, timeoutMs = 20_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
@@ -50,12 +54,17 @@ async function waitForServer(url: string, timeoutMs = 20_000): Promise<void> {
 beforeAll(async () => {
   if (!hasBrowser) return;
   if (!EXTERNAL) {
+    try {
+      unlinkSync(E2E_DB);
+    } catch {
+      /* fresh */
+    }
     server = Bun.spawn(['bun', 'run', 'src/server/index.ts'], {
       cwd: new URL('..', import.meta.url).pathname,
       env: {
         ...process.env,
         LABBY_PORT: String(PORT),
-        LABBY_CONFIG_PATH: new URL('../config/dashboard.e2e.json', import.meta.url).pathname,
+        LABBY_DB_PATH: E2E_DB,
       },
       stdout: 'pipe',
       stderr: 'pipe',
@@ -70,12 +79,81 @@ beforeAll(async () => {
     }
     throw e;
   }
+
+  if (!EXTERNAL) {
+    await fetch(`${BASE}/api/integrations/1`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Reachability',
+        type: 'monitor',
+        enabled: true,
+        refreshSeconds: 30,
+        config: {
+          sites: [
+            {
+              title: 'Unreachable',
+              url: 'https://nope.invalid.example',
+              checkUrl: 'http://127.0.0.1:1',
+              icon: 'lucide:server',
+            },
+          ],
+        },
+      }),
+    });
+
+    await fetch(`${BASE}/api/integrations/3`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Launcher',
+        type: 'monitor',
+        enabled: true,
+        refreshSeconds: 30,
+        config: {
+          sites: [
+            {
+              title: 'Unreachable',
+              checkUrl: 'http://127.0.0.1:1',
+              icon: 'lucide:server',
+            },
+          ],
+        },
+      }),
+    });
+
+    const hnRes = await fetch(`${BASE}/api/integrations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'HN E2E',
+        type: 'hackernews',
+        enabled: true,
+        refreshSeconds: 240,
+        config: {},
+      }),
+    });
+    const hnRow = await hnRes.json();
+    hnIntegrationId = hnRow.id;
+  } else {
+    const rows = await (await fetch(`${BASE}/api/integrations`)).json();
+    const hn = rows.find((r: { type: string }) => r.type === 'hackernews');
+    hnIntegrationId = hn?.id ?? null;
+  }
+
   browser = await chromium.launch();
 });
 
 afterAll(async () => {
   await browser?.close();
   server?.kill();
+  if (!EXTERNAL) {
+    try {
+      unlinkSync(E2E_DB);
+    } catch {
+      /* gone */
+    }
+  }
 });
 
 e2e('dashboard renders without uncaught errors and every widget reaches a terminal state', async () => {
@@ -103,7 +181,7 @@ e2e('dashboard renders without uncaught errors and every widget reaches a termin
 e2e('an unreachable service degrades to a down state, not a crash', async () => {
   const page = await browser.newPage();
   await page.goto(BASE, { waitUntil: 'load' });
-  // the e2e config points a monitor site at 127.0.0.1:1; it must surface as down.
+  // the e2e setup points monitor integration 1 at 127.0.0.1:1; it must surface as down.
   // (skipped against a live URL whose config we don't control)
   if (!EXTERNAL) {
     await page.locator('.dot.down').first().waitFor({ state: 'visible', timeout: 15_000 });
@@ -111,16 +189,16 @@ e2e('an unreachable service degrades to a down state, not a crash', async () => 
   await page.close();
 }, 30_000);
 
-e2e('cached feed endpoints stay 200 and serve a stable payload on repeat hits', async () => {
-  const first = await fetch(`${BASE}/api/hackernews`);
+e2e('integration data endpoints stay 200 and serve a stable payload on repeat hits', async () => {
+  if (!hnIntegrationId) return;
+  const url = `${BASE}/api/integrations/${hnIntegrationId}/data`;
+  const first = await fetch(url);
   expect(first.status).toBe(200);
   const a = await first.text();
 
-  const second = await fetch(`${BASE}/api/hackernews`);
+  const second = await fetch(url);
   expect(second.status).toBe(200);
   const b = await second.text();
 
-  // within the cache window the two responses are byte-identical (one upstream
-  // fetch served both) — or both are a soft error object, never a 5xx.
   expect(b).toBe(a);
 }, 30_000);

@@ -3,7 +3,8 @@
   import { Search, Settings, Database } from 'lucide-svelte';
   import Modal from './Modal.svelte';
   import Select from './Select.svelte';
-  import { monitorStore, searchQuery, streamConnected } from '$lib/stores';
+  import { get } from 'svelte/store';
+  import { getStore, searchQuery, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
   import type { Dashboard } from '$lib/types';
 
   const themes = [
@@ -44,7 +45,41 @@
   let searchEl = $state<HTMLInputElement>();
   let currentTime = $state('');
 
-  const summary = $derived($monitorStore.data?.summary ?? { up: 0, warn: 0, down: 0 });
+  const monitorIds = $derived.by(() => {
+    const ids = new Set<number>();
+    for (const page of config.pages) {
+      for (const col of page.columns) {
+        for (const w of col.widgets) {
+          if (w.type === 'monitor') ids.add(w.integrationId);
+        }
+      }
+    }
+    return [...ids];
+  });
+
+  let summary = $state({ up: 0, warn: 0, down: 0 });
+
+  $effect(() => {
+    const ids = monitorIds;
+    const recompute = () => {
+      let up = 0;
+      let warn = 0;
+      let down = 0;
+      for (const id of ids) {
+        const s = get(getStore(id)) as WidgetState<MonitorData>;
+        if (s.data?.summary) {
+          up += s.data.summary.up;
+          warn += s.data.summary.warn;
+          down += s.data.summary.down;
+        }
+      }
+      summary = { up, warn, down };
+    };
+    recompute();
+    const unsubs = ids.map((id) => getStore(id).subscribe(recompute));
+    return () => unsubs.forEach((u) => u());
+  });
+
   const connectedVal = $derived($streamConnected);
 
   onMount(() => {
@@ -251,34 +286,34 @@
   <Modal title="Customize Dashboard" onClose={closeSettings}>
     <div class="settings-form">
       <div class="settings-group">
-        <label for="settings-theme">Theme Color Scheme</label>
+        <label for="settings-theme">Theme</label>
         <Select id="settings-theme" value={theme} options={themes} onchange={previewTheme} pill={false} style="width: 100%;" />
       </div>
 
       <div class="settings-group">
-        <span class="settings-label">Dashboard Layout</span>
+        <span class="settings-label">Layout</span>
         <div class="settings-radio-group">
           <label class="radio-label">
             <input type="radio" name="layout" value="masonry" checked={layout === 'masonry'} onchange={() => previewLayout('masonry')} />
-            <span>Masonry (Auto-pack)</span>
+            <span>Masonry</span>
           </label>
           <label class="radio-label">
             <input type="radio" name="layout" value="columns" checked={layout === 'columns'} onchange={() => previewLayout('columns')} />
-            <span>True Columns (As Configured)</span>
+            <span>Columns</span>
           </label>
         </div>
-        <p class="settings-help">Columns layout displays widgets in the exact columns specified in dashboard.json.</p>
+        <p class="settings-help">Masonry packs widgets to fill vertical gaps. Columns keeps them exactly where you arranged them.</p>
       </div>
 
       <div class="settings-group">
-        <label for="settings-css">Custom CSS Overrides</label>
-        <textarea id="settings-css" value={customCss} oninput={(e) => previewCss(e.currentTarget.value)} placeholder={"/* Add custom CSS overrides here (e.g. .card { border-radius: 12px; }) */"} rows={6}></textarea>
-        <p class="settings-help">Injects CSS rules into the head of the page. Reverts on close if not saved.</p>
+        <label for="settings-css">Custom CSS</label>
+        <textarea id="settings-css" value={customCss} oninput={(e) => previewCss(e.currentTarget.value)} placeholder={"/* Your styles, e.g. .card { border-radius: 12px; } */"} rows={6}></textarea>
+        <p class="settings-help">Applies your own styles across the dashboard. Previews live; discarded if you close without saving.</p>
       </div>
 
       <div class="settings-actions">
         <button class="settings-btn save" onclick={saveSettings} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Settings'}
+          {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>

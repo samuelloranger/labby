@@ -1,10 +1,11 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { radarrStore, sonarrStore, searchQuery, type ArrData, type WidgetState } from '$lib/stores';
+  import { getStore, searchQuery, type ArrData, type WidgetState } from '$lib/stores';
 
-  let { title, kind, max = 5 }: { title: string; kind: 'radarr' | 'sonarr'; max?: number } = $props();
+  let { title, integrationId, kind, max = 5 }: { title: string; integrationId: number; kind: 'radarr' | 'sonarr'; max?: number } = $props();
 
-  const state: WidgetState<ArrData> = $derived(kind === 'radarr' ? $radarrStore : $sonarrStore);
+  const store = $derived(getStore(integrationId));
+  const state: WidgetState<ArrData> = $derived($store as WidgetState<ArrData>);
   const icon = $derived(kind === 'radarr' ? 'di:radarr' : 'di:sonarr');
   const q = $derived($searchQuery.trim().toLowerCase());
   const items = $derived(
