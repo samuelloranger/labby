@@ -1,9 +1,13 @@
 import type { Site } from '../config/schema';
 import type { MonitorPayload, MonitorSiteResult } from '../types';
 
+export type MonitorConfig = { sites?: Site[] };
+
 const DEFAULT_OK_CODES = [200, 301, 302, 401, 403];
 
-export async function checkSites(sites: Site[]): Promise<MonitorPayload> {
+export async function checkSites(config: MonitorConfig): Promise<MonitorPayload> {
+  const sites = config.sites ?? [];
+  if (sites.length === 0) return { sites: [], summary: { up: 0, warn: 0, down: 0 } };
   const results = await Promise.all(sites.map(checkSite));
   const summary = { up: 0, warn: 0, down: 0 };
   for (const r of results) {

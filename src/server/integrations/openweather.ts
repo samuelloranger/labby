@@ -1,11 +1,11 @@
 import type { WeatherForecastDay, WeatherLocationData } from '../types';
 
-export type WeatherQuery = {
-  key: string;
+export type WeatherConfig = {
+  apiKey?: string;
   city?: string;
   lat?: number;
   lon?: number;
-  units: 'metric' | 'imperial';
+  units?: 'metric' | 'imperial';
 };
 
 type OwmCurrent = {
@@ -30,16 +30,12 @@ type OwmForecast = {
   }>;
 };
 
-function apiKey(): string | null {
-  return process.env.OPENWEATHER_API_KEY?.trim() || null;
-}
-
-function locationParams(query: WeatherQuery): URLSearchParams {
-  const params = new URLSearchParams({ units: query.units });
-  if (query.city) params.set('q', query.city);
-  else if (query.lat != null && query.lon != null) {
-    params.set('lat', String(query.lat));
-    params.set('lon', String(query.lon));
+function locationParams(config: WeatherConfig): URLSearchParams {
+  const params = new URLSearchParams({ units: config.units ?? 'metric' });
+  if (config.city) params.set('q', config.city);
+  else if (config.lat != null && config.lon != null) {
+    params.set('lat', String(config.lat));
+    params.set('lon', String(config.lon));
   }
   return params;
 }
@@ -114,16 +110,18 @@ export function parseCurrentWeather(
 }
 
 export async function getOpenWeather(
-  query: WeatherQuery,
+  config: WeatherConfig,
 ): Promise<WeatherLocationData | { error: string }> {
-  const key = apiKey();
+  const key = config.apiKey?.trim() || null;
   if (!key) return { error: 'OPENWEATHER_API_KEY not configured' };
-  if (!query.city && (query.lat == null || query.lon == null)) {
+  if (!config.city && (config.lat == null || config.lon == null)) {
     return { error: 'Weather location not configured' };
   }
 
+  const units = config.units ?? 'metric';
+
   try {
-    const params = locationParams(query);
+    const params = locationParams(config);
     params.set('appid', key);
 
     const [currentRes, forecastRes] = await Promise.all([
@@ -155,7 +153,7 @@ export async function getOpenWeather(
     const forecastJson = (await forecastRes.json()) as OwmForecast;
     const forecast = aggregateForecastDays(forecastJson.list ?? []);
 
-    return parseCurrentWeather(current, forecast, query.units);
+    return parseCurrentWeather(current, forecast, units);
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'OpenWeather unreachable' };
   }
