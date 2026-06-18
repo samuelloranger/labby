@@ -4,16 +4,16 @@
 FROM oven/bun:1 AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
-COPY web/package.json web/bun.lock* ./web/
-RUN bun install && cd web && bun install
+COPY src/web/package.json src/web/bun.lock* ./src/web/
+RUN bun install && cd src/web && bun install
 
 # --- build: compile the Svelte SPA + bundle the server into one process ---
 FROM deps AS build
 WORKDIR /app
 COPY . .
-# Vite copies web/public/{icons,fonts} (vendored brand icons + self-hosted
-# Manrope) into web/dist — no build-time network needed beyond `bun install`.
-RUN cd web && bun run build
+# Vite copies src/web/public/{icons,fonts} (vendored brand icons + self-hosted
+# Manrope) into src/web/dist — no build-time network needed beyond `bun install`.
+RUN cd src/web && bun run build
 # --target bun inlines hono/zod into dist/index.js, so the runtime image needs
 # no node_modules.
 RUN bun build src/server/index.ts --outdir dist --target bun
@@ -23,7 +23,7 @@ FROM oven/bun:1-slim AS runtime
 WORKDIR /app
 RUN groupadd --system labby && useradd --system --gid labby labby
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/web/dist ./web/dist
+COPY --from=build /app/src/web/dist ./src/web/dist
 # The initial dashboard is now seeded natively via SQLite migrations.
 COPY package.json ./
 USER labby

@@ -32,7 +32,7 @@ import type { Channel } from './types';
 
 const app = new Hono();
 
-const WEB_DIST = path.join(process.cwd(), 'web', 'dist');
+const WEB_DIST = path.join(process.cwd(), 'src', 'web', 'dist');
 const INDEX_PATH = path.join(WEB_DIST, 'index.html');
 
 function themeFromConfig(): string {

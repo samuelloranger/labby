@@ -2,7 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg';
-const OUT = path.join(import.meta.dir, '../web/public/icons/di');
+const OUT = path.join(import.meta.dir, '../src/web/public/icons/di');
 
 const SLUGS = [
   'adguard-home',
