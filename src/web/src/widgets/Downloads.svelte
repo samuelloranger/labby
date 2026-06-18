@@ -11,7 +11,7 @@
     max,
   }: { title: string; integrationId: number; client: 'qbittorrent' | 'transmission'; max?: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<DownloadsData>);
   const icon = $derived(client === 'qbittorrent' ? 'di:qbittorrent' : 'di:transmission');
   const q = $derived($searchQuery.trim().toLowerCase());

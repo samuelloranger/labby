@@ -118,9 +118,9 @@ const migrations = [
     name: 'seed_default_dashboard',
     up: `
       INSERT OR IGNORE INTO integrations (id, name, type, config, enabled, refresh_seconds) VALUES
-        (1, 'Core Monitor', 'monitor', '${SEED_MONITOR_CORE}', 1, 30),
-        (2, 'Docker', 'docker', '${SEED_DOCKER}', 1, 10),
-        (3, 'Launcher', 'monitor', '${SEED_MONITOR_LAUNCHER}', 1, 30);
+        (1, 'Core Monitor', 'monitor', json('${SEED_MONITOR_CORE}'), 1, 30),
+        (2, 'Docker', 'docker', json('${SEED_DOCKER}'), 1, 10),
+        (3, 'Launcher', 'monitor', json('${SEED_MONITOR_LAUNCHER}'), 1, 30);
 
       INSERT INTO settings (key, value)
       VALUES ('dashboard', json('${DEFAULT_DASHBOARD}'))

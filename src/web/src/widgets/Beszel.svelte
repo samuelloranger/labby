@@ -8,7 +8,7 @@
 
   let disksOpen = $state(false);
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<BeszelData>);
   const q = $derived($searchQuery.trim().toLowerCase());
   const wanted = $derived(new Set((systems ?? []).map((name) => name.toLowerCase())));

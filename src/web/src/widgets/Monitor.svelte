@@ -16,7 +16,7 @@
     headerIcon?: string;
   } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<MonitorData>);
 
   const rows = $derived(state.data?.sites ?? []);

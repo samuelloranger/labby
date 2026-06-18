@@ -4,7 +4,7 @@
 
   let { title, integrationId, max = 5 }: { title: string; integrationId: number; max?: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<ReelwardData>);
   const q = $derived($searchQuery.trim().toLowerCase());
   const upcoming = $derived(

@@ -6,7 +6,7 @@
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<DockerData>);
   const q = $derived($searchQuery.trim().toLowerCase());
   const all = $derived(state.data?.containers ?? []);
