@@ -12,6 +12,7 @@ function clearTimers(): void {
 async function runIntegration(id: number): Promise<void> {
   const row = getIntegration(id);
   if (!row) return;
+  if (!row.enabled) return;
   const def = INTEGRATIONS[row.type as IntegrationType];
   if (!def) {
     hub.publish(`int:${id}`, { error: `Unknown integration type: ${row.type}` });
@@ -19,6 +20,7 @@ async function runIntegration(id: number): Promise<void> {
   }
   try {
     const data = await def.fetch(row.config);
+    // fetch returns a ChannelPayload-compatible shape (or {error}); the cast bridges the registry's unknown return type.
     hub.publish(`int:${id}`, data as Parameters<typeof hub.publish>[1]);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
