@@ -1,14 +1,14 @@
 # Labby
 
-A self-hosted homelab dashboard — lightweight like [Glance](https://github.com/glanceapp/glance), interactive like [Homarr](https://github.com/homarr-labs/homarr). One Bun process, one container, config-as-code JSON on disk.
+A self-hosted homelab dashboard — lightweight like [Glance](https://github.com/glanceapp/glance), interactive like [Homarr](https://github.com/homarr-labs/homarr). One Bun process, one container, config stored in a small SQLite database and editable in-app.
 
 ## Features
 
 - **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
-- **Config on disk** — `config/dashboard.json`, Zod-validated, hot-reloaded
-- **Theming** — named color schemes saved to `config/dashboard.json`; no flash on first paint
+- **Config & credentials** — stored in SQLite (`config/labby.db`), seeded from `config/dashboard.example.json`, Zod-validated; edit service URLs/keys from the in-app Manage Services page
+- **Theming** — named color schemes saved to the DB; no flash on first paint
 
 ## Security
 
@@ -33,11 +33,10 @@ Open `http://localhost:8080`.
 
 ```bash
 cp .env.example .env
-cp config/dashboard.example.json config/dashboard.json
 docker compose up -d --build
 ```
 
-Point `.env` at your homelab services. Labby writes theme changes to `config/dashboard.json`, so `config/` must be writable. Adjust `docker-compose.yml` networks to match your setup.
+Point `.env` at your homelab services, then edit URLs/keys live from the **Manage Services** page (the Database icon in the header). On first run Labby seeds its SQLite DB (`config/labby.db`) from `config/dashboard.example.json`. The DB lives in the mounted `config/` volume, so it must be writable **by the user the container runs as** — set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`, or writes fail with `SQLITE_READONLY`. Adjust `docker-compose.yml` networks to match your setup.
 
 ## Configuration
 
@@ -90,7 +89,7 @@ For frontend work, run **both** dev servers. `bun run dev` alone does not serve 
 - **Runtime** — Bun, TypeScript (strict)
 - **Backend** — Hono (JSON API, static SPA, SSE)
 - **Frontend** — Svelte 5, Vite
-- **Config** — JSON on disk, Zod validation, file watcher
+- **Config** — SQLite (`bun:sqlite`), Zod validation, seeded from example JSON
 
 ## License
 
