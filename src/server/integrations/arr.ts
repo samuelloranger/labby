@@ -3,7 +3,7 @@ import type { ArrItem, ArrPayload } from '../types';
 export type ArrKind = 'radarr' | 'sonarr';
 export type ArrConfig = { url?: string; apiKey?: string };
 
-async function arrFetch(kind: ArrKind, config: ArrConfig, path: string): Promise<Response> {
+async function arrFetch(config: ArrConfig, kind: ArrKind, path: string): Promise<Response> {
   const base = config.url?.trim().replace(/\/$/, '') || null;
   const key = config.apiKey?.trim() || null;
   if (!base) throw new Error(`${kind.toUpperCase()}_URL not configured`);
@@ -37,13 +37,13 @@ function mapCalendar(kind: ArrKind, item: Record<string, unknown>): ArrItem {
   };
 }
 
-async function getJson<T>(kind: ArrKind, config: ArrConfig, path: string): Promise<T> {
-  const res = await arrFetch(kind, config, path);
+async function getJson<T>(config: ArrConfig, kind: ArrKind, path: string): Promise<T> {
+  const res = await arrFetch(config, kind, path);
   if (!res.ok) throw new Error(`${kind} error: ${res.status}`);
   return (await res.json()) as T;
 }
 
-export async function getArrSummary(kind: ArrKind, config: ArrConfig): Promise<ArrPayload | { error: string }> {
+export async function getArrSummary(config: ArrConfig, kind: ArrKind): Promise<ArrPayload | { error: string }> {
   const base = config.url?.trim().replace(/\/$/, '') || null;
   const key = config.apiKey?.trim() || null;
   if (!base) return { error: `${kind.toUpperCase()}_URL not configured` };
@@ -59,16 +59,16 @@ export async function getArrSummary(kind: ArrKind, config: ArrConfig): Promise<A
     });
 
     const [status, queue, wanted, calendar] = await Promise.all([
-      getJson<{ version?: string }>(kind, config, '/api/v3/system/status'),
+      getJson<{ version?: string }>(config, kind, '/api/v3/system/status'),
       getJson<{ totalRecords?: number; records?: unknown[] }>(
-        kind,
         config,
+        kind,
         '/api/v3/queue?page=1&pageSize=1',
       ),
-      getJson<{ totalRecords?: number }>(kind, config, '/api/v3/wanted/missing?page=1&pageSize=1').catch(
+      getJson<{ totalRecords?: number }>(config, kind, '/api/v3/wanted/missing?page=1&pageSize=1').catch(
         () => null,
       ),
-      getJson<Record<string, unknown>[]>(kind, config, `/api/v3/calendar?${params}`),
+      getJson<Record<string, unknown>[]>(config, kind, `/api/v3/calendar?${params}`),
     ]);
 
     return {
