@@ -1,3 +1,18 @@
+import { getAdGuardStats, setAdGuardProtection, type AdGuardConfig } from './adguard';
+import { getArrSummary, type ArrConfig } from './arr';
+import { getBeszelSystems, type BeszelConfig } from './beszel';
+import { getCalendarEvents, type CalendarConfig } from './calendar';
+import { containerAction, containerLogs, listContainers, type DockerConfig } from './docker-client';
+import { getHackerNews, type HNConfig } from './hackernews';
+import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
+import { checkSites, type MonitorConfig } from './monitor';
+import { getOpenWeather, type WeatherConfig } from './openweather';
+import { getQBittorrentTorrents, qbittorrentAction, type QbitConfig } from './qbittorrent';
+import { getRedditPosts, type RedditConfig } from './reddit';
+import { getReelwardSummary, type ReelwardConfig } from './reelward';
+import { getSpeedtestSummary, triggerSpeedtestRun, type SpeedtestConfig } from './speedtest';
+import { getTransmissionTorrents, transmissionAction, type TransmissionConfig } from './transmission';
+
 export type IntegrationType =
   | 'monitor'
   | 'docker'
@@ -31,16 +46,12 @@ export type IntegrationDef = {
   actions?: Record<string, (config: Record<string, unknown>, ...args: any[]) => Promise<unknown>>;
 };
 
-const stub = async (_config: Record<string, unknown>): Promise<unknown> => ({
-  error: 'not wired yet',
-});
-
 export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   monitor: {
     label: 'Monitor',
     defaultRefreshSeconds: 30,
     fields: [{ key: 'sites', label: 'Sites', kind: 'list' }],
-    fetch: stub,
+    fetch: (c) => checkSites(c as MonitorConfig),
   },
   docker: {
     label: 'Docker',
@@ -50,7 +61,13 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'rwHost', label: 'Write host' },
       { key: 'show', label: 'Show', kind: 'select', options: ['running', 'all'] },
     ],
-    fetch: stub,
+    fetch: (c) => listContainers(c as DockerConfig),
+    actions: {
+      start: (c, id) => containerAction(c as DockerConfig, id as string, 'start'),
+      stop: (c, id) => containerAction(c as DockerConfig, id as string, 'stop'),
+      restart: (c, id) => containerAction(c as DockerConfig, id as string, 'restart'),
+      logs: (c, id, tail) => containerLogs(c as DockerConfig, id as string, (tail as number) ?? 200),
+    },
   },
   qbittorrent: {
     label: 'qBittorrent',
@@ -60,7 +77,11 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getQBittorrentTorrents(c as QbitConfig),
+    actions: {
+      pause: (c, hash) => qbittorrentAction(c as QbitConfig, hash as string, 'pause'),
+      resume: (c, hash) => qbittorrentAction(c as QbitConfig, hash as string, 'resume'),
+    },
   },
   transmission: {
     label: 'Transmission',
@@ -70,7 +91,11 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getTransmissionTorrents(c as TransmissionConfig),
+    actions: {
+      pause: (c, hash) => transmissionAction(c as TransmissionConfig, hash as string, 'pause'),
+      resume: (c, hash) => transmissionAction(c as TransmissionConfig, hash as string, 'resume'),
+    },
   },
   adguard: {
     label: 'AdGuard',
@@ -80,7 +105,10 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getAdGuardStats(c as AdGuardConfig),
+    actions: {
+      protection: (c, enabled, ms) => setAdGuardProtection(c as AdGuardConfig, enabled as boolean, ms as number | undefined),
+    },
   },
   jellyfin: {
     label: 'Jellyfin',
@@ -89,7 +117,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getJellyfinSessions(c as JellyfinConfig),
   },
   beszel: {
     label: 'Beszel',
@@ -100,7 +128,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'pass', label: 'Password', secret: true },
       { key: 'token', label: 'Token', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getBeszelSystems(c as BeszelConfig),
   },
   radarr: {
     label: 'Radarr',
@@ -109,7 +137,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getArrSummary(c as ArrConfig, 'radarr'),
   },
   sonarr: {
     label: 'Sonarr',
@@ -118,7 +146,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getArrSummary(c as ArrConfig, 'sonarr'),
   },
   reelward: {
     label: 'Reelward',
@@ -127,19 +155,19 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getReelwardSummary(c as ReelwardConfig),
   },
   reddit: {
     label: 'Reddit',
     defaultRefreshSeconds: 240,
     fields: [{ key: 'subreddits', label: 'Subreddits', kind: 'list' }],
-    fetch: stub,
+    fetch: (c) => getRedditPosts(c as RedditConfig),
   },
   hackernews: {
     label: 'Hacker News',
     defaultRefreshSeconds: 240,
     fields: [],
-    fetch: stub,
+    fetch: (c) => getHackerNews(c as HNConfig),
   },
   weather: {
     label: 'Weather',
@@ -151,13 +179,13 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'lon', label: 'Longitude', kind: 'number' },
       { key: 'units', label: 'Units', kind: 'select', options: ['metric', 'imperial'] },
     ],
-    fetch: stub,
+    fetch: (c) => getOpenWeather(c as WeatherConfig),
   },
   calendar: {
     label: 'Calendar',
     defaultRefreshSeconds: 600,
     fields: [{ key: 'icsUrls', label: 'ICS URLs', kind: 'list' }],
-    fetch: stub,
+    fetch: (c) => getCalendarEvents(c as CalendarConfig),
   },
   speedtest: {
     label: 'Speedtest',
@@ -166,7 +194,10 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'apiToken', label: 'API Token', secret: true },
     ],
-    fetch: stub,
+    fetch: (c) => getSpeedtestSummary(c as SpeedtestConfig),
+    actions: {
+      run: (c) => triggerSpeedtestRun(c as SpeedtestConfig),
+    },
   },
 };
 

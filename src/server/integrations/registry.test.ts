@@ -7,6 +7,14 @@ const ALL_TYPES: IntegrationType[] = [
   'reddit', 'hackernews', 'weather', 'calendar', 'speedtest',
 ];
 
+const TYPES_WITH_ACTIONS: IntegrationType[] = [
+  'docker', 'qbittorrent', 'transmission', 'adguard', 'speedtest',
+];
+
+const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(
+  (t) => !TYPES_WITH_ACTIONS.includes(t),
+);
+
 describe('INTEGRATIONS registry', () => {
   it('has exactly 15 entries', () => {
     expect(Object.keys(INTEGRATIONS).length).toBe(15);
@@ -24,13 +32,6 @@ describe('INTEGRATIONS registry', () => {
     }
   });
 
-  it('fetch stubs return an error shape', async () => {
-    for (const type of ALL_TYPES) {
-      const result = await INTEGRATIONS[type].fetch({});
-      expect((result as any).error).toBeTruthy();
-    }
-  });
-
   it('every type has a defaultRefreshSeconds > 0', () => {
     for (const type of ALL_TYPES) {
       expect(INTEGRATIONS[type].defaultRefreshSeconds).toBeGreaterThan(0);
@@ -40,6 +41,52 @@ describe('INTEGRATIONS registry', () => {
   it('every type has a fields array', () => {
     for (const type of ALL_TYPES) {
       expect(Array.isArray(INTEGRATIONS[type].fields)).toBe(true);
+    }
+  });
+
+  it('docker has actions: start, stop, restart, logs', () => {
+    const actions = INTEGRATIONS.docker.actions;
+    expect(typeof actions).toBe('object');
+    expect(actions).not.toBeNull();
+    expect(typeof actions!.start).toBe('function');
+    expect(typeof actions!.stop).toBe('function');
+    expect(typeof actions!.restart).toBe('function');
+    expect(typeof actions!.logs).toBe('function');
+  });
+
+  it('qbittorrent has actions: pause, resume', () => {
+    const actions = INTEGRATIONS.qbittorrent.actions;
+    expect(typeof actions).toBe('object');
+    expect(actions).not.toBeNull();
+    expect(typeof actions!.pause).toBe('function');
+    expect(typeof actions!.resume).toBe('function');
+  });
+
+  it('transmission has actions: pause, resume', () => {
+    const actions = INTEGRATIONS.transmission.actions;
+    expect(typeof actions).toBe('object');
+    expect(actions).not.toBeNull();
+    expect(typeof actions!.pause).toBe('function');
+    expect(typeof actions!.resume).toBe('function');
+  });
+
+  it('adguard has actions: protection', () => {
+    const actions = INTEGRATIONS.adguard.actions;
+    expect(typeof actions).toBe('object');
+    expect(actions).not.toBeNull();
+    expect(typeof actions!.protection).toBe('function');
+  });
+
+  it('speedtest has actions: run', () => {
+    const actions = INTEGRATIONS.speedtest.actions;
+    expect(typeof actions).toBe('object');
+    expect(actions).not.toBeNull();
+    expect(typeof actions!.run).toBe('function');
+  });
+
+  it('types without actions have no actions property', () => {
+    for (const type of TYPES_WITHOUT_ACTIONS) {
+      expect(INTEGRATIONS[type].actions).toBeUndefined();
     }
   });
 });
