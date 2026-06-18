@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 import { getSetting, setSetting } from '../db';
 import { type Dashboard, DashboardSchema, type LayoutType, type ThemeName } from './schema';
 
@@ -31,12 +29,7 @@ async function readConfigRaw(): Promise<string> {
   if (dbConfig) {
     return dbConfig;
   }
-
-  const examplePath = path.join(process.cwd(), 'config', 'dashboard.example.json');
-  console.warn(`Dashboard config not found in DB; loading ${examplePath}`);
-  const raw = await readFile(examplePath, 'utf-8');
-  setSetting('dashboard', raw); // Persist default into db
-  return raw;
+  throw new Error('Dashboard config not found in database. Migration failed to run?');
 }
 
 export async function loadConfig(): Promise<ConfigState> {

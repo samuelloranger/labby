@@ -24,8 +24,7 @@ WORKDIR /app
 RUN groupadd --system labby && useradd --system --gid labby labby
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/web/dist ./web/dist
-# Ship the example so a bare `docker run` (no mounted config) boots a demo board.
-COPY --from=build /app/config/dashboard.example.json ./config/dashboard.example.json
+# The initial dashboard is now seeded natively via SQLite migrations.
 COPY package.json ./
 USER labby
 ENV LABBY_PORT=8080

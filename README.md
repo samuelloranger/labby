@@ -7,7 +7,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 - **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
-- **Config & credentials** — stored in SQLite (`config/labby.db`), seeded from `config/dashboard.example.json`, Zod-validated; edit service URLs/keys from the in-app Manage Services page
+- **Config & credentials** — stored in SQLite (`config/labby.db`), automatically seeded with a default layout on first run, Zod-validated; edit service URLs/keys from the in-app Manage Services page
 - **Theming** — named color schemes saved to the DB; no flash on first paint
 
 ## Security
@@ -20,7 +20,6 @@ Do not expose Labby to the public internet without network-level access control.
 
 ```bash
 cp .env.example .env
-cp config/dashboard.example.json config/dashboard.json
 # Edit .env with your service URLs and credentials
 bun install && (cd web && bun install)
 bun run build
@@ -36,11 +35,11 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Point `.env` at your homelab services, then edit URLs/keys live from the **Manage Services** page (the Database icon in the header). On first run Labby seeds its SQLite DB (`config/labby.db`) from `config/dashboard.example.json`. The DB lives in the mounted `config/` volume, so it must be writable **by the user the container runs as** — set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`, or writes fail with `SQLITE_READONLY`. Adjust `docker-compose.yml` networks to match your setup.
+Point `.env` at your homelab services, then edit URLs/keys live from the **Manage Services** page (the Database icon in the header). On first run Labby automatically seeds its SQLite DB (`config/labby.db`) with a default layout via built-in migrations. The DB lives in the mounted `config/` volume, so it must be writable **by the user the container runs as** — set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`, or writes fail with `SQLITE_READONLY`. Adjust `docker-compose.yml` networks to match your setup.
 
 ## Configuration
 
-User config lives in `config/dashboard.json`. Invalid config shows an error state instead of crashing the server. See `config/dashboard.example.json` for a full layout.
+User config lives in the SQLite database. Invalid config shows an error state instead of crashing the server.
 
 ### Widget types
 
@@ -89,7 +88,7 @@ For frontend work, run **both** dev servers. `bun run dev` alone does not serve 
 - **Runtime** — Bun, TypeScript (strict)
 - **Backend** — Hono (JSON API, static SPA, SSE)
 - **Frontend** — Svelte 5, Vite
-- **Config** — SQLite (`bun:sqlite`), Zod validation, seeded from example JSON
+- **Config** — SQLite (`bun:sqlite`), Zod validation, automatically seeded via migrations
 
 ## License
 
