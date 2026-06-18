@@ -1,5 +1,7 @@
 import type { BeszelDisk, BeszelPayload, BeszelSystem } from '../types';
 
+export type BeszelConfig = { url?: string; user?: string; pass?: string; token?: string };
+
 type BeszelInfo = {
   h?: string;
   u?: number;
@@ -42,15 +44,6 @@ type PocketBaseList<T> = {
 };
 
 let cachedToken: string | null = null;
-
-function baseUrl(): string | null {
-  const url = process.env.BESZEL_URL;
-  return url ? url.replace(/\/$/, '') : null;
-}
-
-function configuredToken(): string | null {
-  return process.env.BESZEL_TOKEN || cachedToken;
-}
 
 function clampPercent(n: number): number {
   if (!Number.isFinite(n)) return 0;
@@ -115,11 +108,11 @@ function usedPercentForDevice(
   return null;
 }
 
-async function authenticate(): Promise<string | null> {
-  const base = baseUrl();
+async function authenticate(config: BeszelConfig): Promise<string | null> {
+  const base = config.url?.replace(/\/$/, '') || null;
   if (!base) return null;
-  const identity = process.env.BESZEL_USER ?? '';
-  const password = process.env.BESZEL_PASS ?? '';
+  const identity = config.user ?? '';
+  const password = config.pass ?? '';
   if (!identity || !password) return null;
 
   const res = await fetch(`${base}/api/collections/users/auth-with-password`, {
@@ -136,11 +129,12 @@ async function authenticate(): Promise<string | null> {
   return cachedToken;
 }
 
-async function beszelFetch(path: string, retry = true): Promise<Response> {
-  const base = baseUrl();
+async function beszelFetch(config: BeszelConfig, path: string, retry = true): Promise<Response> {
+  const base = config.url?.replace(/\/$/, '') || null;
   if (!base) throw new Error('BESZEL_URL not configured');
 
-  const token = configuredToken() ?? (await authenticate());
+  const configToken = config.token || null;
+  const token = configToken ?? cachedToken ?? (await authenticate(config));
   if (!token) throw new Error('BESZEL_TOKEN or BESZEL_USER/BESZEL_PASS not configured');
 
   const res = await fetch(`${base}${path}`, {
@@ -148,9 +142,9 @@ async function beszelFetch(path: string, retry = true): Promise<Response> {
     signal: AbortSignal.timeout(15000),
   });
 
-  if (res.status === 401 && cachedToken && retry && !process.env.BESZEL_TOKEN) {
+  if (res.status === 401 && cachedToken && retry && !configToken) {
     cachedToken = null;
-    return beszelFetch(path, false);
+    return beszelFetch(config, path, false);
   }
 
   return res;
@@ -199,10 +193,12 @@ function diskFromRecord(
 }
 
 export async function getBeszelSystems(
+  config: BeszelConfig,
   names?: string[],
   max?: number,
 ): Promise<BeszelPayload | { error: string }> {
-  if (!baseUrl()) return { error: 'BESZEL_URL not configured' };
+  const base = config.url?.replace(/\/$/, '') || null;
+  if (!base) return { error: 'BESZEL_URL not configured' };
 
   try {
     const systemFields = encodeURIComponent('id,name,host,status,info');
@@ -210,8 +206,8 @@ export async function getBeszelSystems(
       'id,system,name,model,type,state,temp,capacity,hours,attributes',
     );
     const [systemsRes, disksRes] = await Promise.all([
-      beszelFetch(`/api/collections/systems/records?perPage=200&fields=${systemFields}`),
-      beszelFetch(`/api/collections/smart_devices/records?perPage=200&fields=${diskFields}`),
+      beszelFetch(config, `/api/collections/systems/records?perPage=200&fields=${systemFields}`),
+      beszelFetch(config, `/api/collections/smart_devices/records?perPage=200&fields=${diskFields}`),
     ]);
     if (!systemsRes.ok) return { error: `Beszel systems error: ${systemsRes.status}` };
     if (!disksRes.ok) return { error: `Beszel disks error: ${disksRes.status}` };

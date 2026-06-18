@@ -1,17 +1,14 @@
 import type { DownloadsPayload, Torrent } from '../types';
 
+export type QbitConfig = { url?: string; user?: string; pass?: string };
+
 let sid: string | null = null;
 
-function baseUrl(): string | null {
-  const url = process.env.QBIT_URL;
-  return url ? url.replace(/\/$/, '') : null;
-}
-
-async function login(): Promise<boolean> {
-  const base = baseUrl();
+async function login(config: QbitConfig): Promise<boolean> {
+  const base = config.url?.replace(/\/$/, '') || null;
   if (!base) return false;
-  const user = process.env.QBIT_USER ?? '';
-  const pass = process.env.QBIT_PASS ?? '';
+  const user = config.user ?? '';
+  const pass = config.pass ?? '';
   const body = new URLSearchParams({ username: user, password: pass });
   const res = await fetch(`${base}/api/v2/auth/login`, {
     method: 'POST',
@@ -32,8 +29,8 @@ async function login(): Promise<boolean> {
   return sid !== null || (await res.text()) === 'Ok.';
 }
 
-async function qbitFetch(path: string, init?: RequestInit): Promise<Response> {
-  const base = baseUrl();
+async function qbitFetch(config: QbitConfig, path: string, init?: RequestInit): Promise<Response> {
+  const base = config.url?.replace(/\/$/, '') || null;
   if (!base) throw new Error('QBIT_URL not configured');
 
   const headers = new Headers(init?.headers);
@@ -46,7 +43,7 @@ async function qbitFetch(path: string, init?: RequestInit): Promise<Response> {
   });
 
   if (res.status === 403) {
-    const ok = await login();
+    const ok = await login(config);
     if (!ok) throw new Error('qBittorrent auth failed');
     headers.set('Cookie', `SID=${sid}`);
     res = await fetch(`${base}${path}`, {
@@ -72,13 +69,14 @@ function normalizeTorrent(t: Record<string, unknown>): Torrent {
   };
 }
 
-export async function getQBittorrentTorrents(): Promise<DownloadsPayload | { error: string }> {
-  if (!baseUrl()) return { error: 'QBIT_URL not configured' };
+export async function getQBittorrentTorrents(config: QbitConfig): Promise<DownloadsPayload | { error: string }> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  if (!base) return { error: 'QBIT_URL not configured' };
 
   try {
     // qbitFetch lazily logs in on a 403, so no proactive login is needed and a
     // still-valid SID is reused across polls instead of re-authenticating each tick.
-    const res = await qbitFetch('/api/v2/torrents/info');
+    const res = await qbitFetch(config, '/api/v2/torrents/info');
     if (!res.ok) return { error: `qBittorrent error: ${res.status}` };
     const raw = (await res.json()) as Record<string, unknown>[];
     const torrents = raw.map(normalizeTorrent);
@@ -91,16 +89,18 @@ export async function getQBittorrentTorrents(): Promise<DownloadsPayload | { err
 }
 
 export async function qbittorrentAction(
+  config: QbitConfig,
   hash: string,
   action: 'pause' | 'resume',
 ): Promise<{ ok: true } | { error: string }> {
-  if (!baseUrl()) return { error: 'QBIT_URL not configured' };
+  const base = config.url?.replace(/\/$/, '') || null;
+  if (!base) return { error: 'QBIT_URL not configured' };
 
   const endpoints = action === 'pause' ? ['stop', 'pause'] : ['start', 'resume'];
 
   try {
     for (const ep of endpoints) {
-      const res = await qbitFetch(`/api/v2/torrents/${ep}?hashes=${encodeURIComponent(hash)}`, {
+      const res = await qbitFetch(config, `/api/v2/torrents/${ep}?hashes=${encodeURIComponent(hash)}`, {
         method: 'POST',
       });
       if (res.ok) return { ok: true };

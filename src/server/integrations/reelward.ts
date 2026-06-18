@@ -1,16 +1,10 @@
 import type { ReelwardPayload } from '../types';
 
-function baseUrl(): string | null {
-  return process.env.REELWARD_URL?.trim().replace(/\/$/, '') || null;
-}
+export type ReelwardConfig = { url?: string; apiKey?: string };
 
-function apiKey(): string | null {
-  return process.env.REELWARD_API_KEY?.trim() || null;
-}
-
-export async function getReelwardSummary(): Promise<ReelwardPayload | { error: string }> {
-  const base = baseUrl();
-  const key = apiKey();
+export async function getReelwardSummary(config: ReelwardConfig): Promise<ReelwardPayload | { error: string }> {
+  const base = config.url?.trim().replace(/\/$/, '') || null;
+  const key = config.apiKey?.trim() || null;
   if (!base) return { error: 'REELWARD_URL not configured' };
   if (!key) return { error: 'REELWARD_API_KEY not configured' };
 
