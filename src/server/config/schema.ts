@@ -15,6 +15,15 @@ export const ThemeSchema = z.enum([
   'dark-dracula',
   'dark-nord',
   'dark-cyberpunk',
+  'dark-slate',
+  'dark-mint',
+  'dark-rose',
+  'dark-peach',
+  'light-graphite',
+  'light-ocean',
+  'light-forest',
+  'light-dracula',
+  'light-cyberpunk',
 ]);
 export type ThemeName = z.infer<typeof ThemeSchema>;
 
