@@ -286,34 +286,34 @@
   <Modal title="Customize Dashboard" onClose={closeSettings}>
     <div class="settings-form">
       <div class="settings-group">
-        <label for="settings-theme">Theme Color Scheme</label>
+        <label for="settings-theme">Theme</label>
         <Select id="settings-theme" value={theme} options={themes} onchange={previewTheme} pill={false} style="width: 100%;" />
       </div>
 
       <div class="settings-group">
-        <span class="settings-label">Dashboard Layout</span>
+        <span class="settings-label">Layout</span>
         <div class="settings-radio-group">
           <label class="radio-label">
             <input type="radio" name="layout" value="masonry" checked={layout === 'masonry'} onchange={() => previewLayout('masonry')} />
-            <span>Masonry (Auto-pack)</span>
+            <span>Masonry</span>
           </label>
           <label class="radio-label">
             <input type="radio" name="layout" value="columns" checked={layout === 'columns'} onchange={() => previewLayout('columns')} />
-            <span>True Columns (As Configured)</span>
+            <span>Columns</span>
           </label>
         </div>
-        <p class="settings-help">Columns layout displays widgets in the exact columns specified in dashboard.json.</p>
+        <p class="settings-help">Masonry packs widgets to fill vertical gaps. Columns keeps them exactly where you arranged them.</p>
       </div>
 
       <div class="settings-group">
-        <label for="settings-css">Custom CSS Overrides</label>
-        <textarea id="settings-css" value={customCss} oninput={(e) => previewCss(e.currentTarget.value)} placeholder={"/* Add custom CSS overrides here (e.g. .card { border-radius: 12px; }) */"} rows={6}></textarea>
-        <p class="settings-help">Injects CSS rules into the head of the page. Reverts on close if not saved.</p>
+        <label for="settings-css">Custom CSS</label>
+        <textarea id="settings-css" value={customCss} oninput={(e) => previewCss(e.currentTarget.value)} placeholder={"/* Your styles, e.g. .card { border-radius: 12px; } */"} rows={6}></textarea>
+        <p class="settings-help">Applies your own styles across the dashboard. Previews live; discarded if you close without saving.</p>
       </div>
 
       <div class="settings-actions">
         <button class="settings-btn save" onclick={saveSettings} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Settings'}
+          {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>

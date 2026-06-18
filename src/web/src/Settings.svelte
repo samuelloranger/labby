@@ -597,20 +597,23 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 101;
-    width: min(520px, calc(100vw - 32px));
-    max-height: calc(100vh - 48px);
-    overflow: auto;
+    width: min(560px, calc(100vw - 24px));
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
     background: var(--wall);
     border: 1px solid var(--glass-brd);
     border-radius: var(--radius);
-    padding: 20px;
     box-shadow: var(--shadow);
+    overflow: hidden;
   }
   .form-head {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--glass-brd);
   }
   .form-head h2 {
     font-size: 1.1rem;
@@ -618,9 +621,12 @@
   }
 
   .svc-fields {
+    flex: 1 1 auto;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    padding: 18px 20px;
   }
   .field {
     display: flex;
@@ -688,8 +694,8 @@
     gap: 5px;
     font-size: 0.8rem;
     padding: 3px 4px 3px 9px;
-    border-radius: 999px;
-    background: var(--glass-1, rgba(255, 255, 255, 0.08));
+    border-radius: var(--pill);
+    background: var(--surface);
     border: 1px solid var(--glass-brd);
   }
   .tag button {
@@ -699,9 +705,9 @@
     place-items: center;
     padding: 0;
     border: none;
-    border-radius: 999px;
+    border-radius: var(--pill);
     background: transparent;
-    color: var(--ink-2, inherit);
+    color: var(--ink-dim);
     cursor: pointer;
     font-size: 14px;
     line-height: 1;
@@ -793,12 +799,13 @@
   }
 
   .settings-footer {
+    flex: 0 0 auto;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-top: 20px;
-    padding-top: 16px;
+    padding: 14px 20px;
     border-top: 1px solid var(--glass-brd);
+    background: var(--glass-2);
   }
   .btn-cancel,
   .btn-save {
@@ -822,5 +829,40 @@
   .btn-save:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 640px) {
+    .form-panel {
+      width: calc(100vw - 16px);
+      max-height: calc(100dvh - 16px);
+    }
+    /* roomier touch targets on phones */
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+    }
+    .tag button {
+      width: 26px;
+      height: 26px;
+      font-size: 16px;
+    }
+    .site-del {
+      width: 40px;
+      height: 40px;
+    }
+    /* full-width primary/secondary actions = easier to hit */
+    .settings-footer {
+      gap: 10px;
+    }
+    .btn-cancel,
+    .btn-save {
+      flex: 1;
+      padding: 13px 16px;
+    }
+    .row-field {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
   }
 </style>
