@@ -1,18 +1,27 @@
 import { app } from './app';
-import { getConfigPath, loadConfig, startConfigWatch } from './config/loader';
+import { loadConfig } from './config/loader';
 import { initScheduler } from './sse/scheduler';
+import { getAllSettings } from './db';
 
 const PORT = Number(process.env.LABBY_PORT ?? 8080);
 
 async function main() {
-  console.log(`Loading config from ${getConfigPath()}`);
+  console.log('Loading config from SQLite database');
+  
+  // Inject SQLite settings into process.env so integrations continue to work transparently
+  const dbSettings = getAllSettings();
+  for (const [key, value] of Object.entries(dbSettings)) {
+    if (key !== 'dashboard') {
+      process.env[key] = value;
+    }
+  }
+
   const state = await loadConfig();
   if (!state.ok) {
     // Invalid config is a degraded (not fatal) state by design: the dashboard
     // shows an error and hot-reload recovers once the file is fixed.
     console.warn(`Config warning: ${state.error}`);
   }
-  startConfigWatch();
   initScheduler();
 
   console.log(`Labby listening on :${PORT}`);

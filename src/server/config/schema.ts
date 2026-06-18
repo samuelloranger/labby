@@ -6,12 +6,27 @@ export const ThemeSchema = z.enum([
   'light-slate',
   'light-mint',
   'light-rose',
+  'light-nord',
+  'light-peach',
   'dark',
   'dark-graphite',
   'dark-ocean',
   'dark-forest',
+  'dark-dracula',
+  'dark-nord',
+  'dark-cyberpunk',
 ]);
 export type ThemeName = z.infer<typeof ThemeSchema>;
+
+export const LayoutSchema = z.enum(['masonry', 'columns']);
+export type LayoutType = z.infer<typeof LayoutSchema>;
+
+export const ThemeConfigSchema = z.object({
+  default: ThemeSchema.default('system'),
+  layout: LayoutSchema.default('masonry'),
+  customCss: z.string().optional(),
+});
+export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
 
 export const SiteSchema = z.object({
   title: z.string(),
@@ -99,6 +114,10 @@ export const WidgetSchema = z.discriminatedUnion('type', [
     title: z.string(),
     max: z.number().int().positive().optional(),
   }),
+  z.object({
+    type: z.literal('game'),
+    title: z.string(),
+  }),
 ]);
 
 export const ColumnSchema = z.object({
@@ -113,11 +132,7 @@ export const PageSchema = z.object({
 
 export const DashboardSchema = z.object({
   title: z.string().default('Labby'),
-  theme: z
-    .object({
-      default: ThemeSchema.default('system'),
-    })
-    .default({ default: 'system' }),
+  theme: ThemeConfigSchema.default({ default: 'system', layout: 'masonry' }),
   refreshSeconds: z
     .object({
       monitor: z.number().default(30),

@@ -14,7 +14,7 @@
   });
 </script>
 
-<Header title={config.title} />
+<Header {config} />
 
 <main class="page">
   {#if config.pages.length > 1}
@@ -33,13 +33,25 @@
     </div>
   {/if}
 
-  <div class="grid">
-    {#each page.columns as col}
-      {#each col.widgets as widget}
-        <WidgetHost {widget} />
+  {#if config.theme?.layout === 'columns'}
+    <div class="grid-columns">
+      {#each page.columns as col}
+        <div class="grid-column {col.size}">
+          {#each col.widgets as widget}
+            <WidgetHost {widget} />
+          {/each}
+        </div>
       {/each}
-    {/each}
-  </div>
+    </div>
+  {:else}
+    <div class="grid">
+      {#each page.columns as col}
+        {#each col.widgets as widget}
+          <WidgetHost {widget} />
+        {/each}
+      {/each}
+    </div>
+  {/if}
 </main>
 
 <footer class="f">labby · glass · config-as-code · no telemetry</footer>
