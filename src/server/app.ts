@@ -3,32 +3,19 @@ import path from 'node:path';
 import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import { getConfig, getConfigState, saveThemeSettings } from './config/loader';
+import { LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
 import {
-  collectMonitorSites,
-  collectWeatherLocations,
-  getDockerShow,
-  LayoutSchema,
-  sanitizeDashboard,
-  ThemeSchema,
-} from './config/schema';
-import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
-import { getArrSummary } from './integrations/arr';
-import { getBeszelSystems } from './integrations/beszel';
-import { cached } from './integrations/cache';
-import { getCalendarEvents } from './integrations/calendar';
-import { containerAction, containerLogs, listContainers } from './integrations/docker-client';
-import { getHackerNews } from './integrations/hackernews';
-import { getJellyfinImage, getJellyfinSessions } from './integrations/jellyfin';
-import { checkSites } from './integrations/monitor';
-import { getOpenWeather } from './integrations/openweather';
-import { getQBittorrentTorrents, qbittorrentAction } from './integrations/qbittorrent';
-import { getRedditPosts } from './integrations/reddit';
-import { getReelwardSummary } from './integrations/reelward';
-import { getSpeedtestSummary, triggerSpeedtestRun } from './integrations/speedtest';
-import { getTransmissionTorrents, transmissionAction } from './integrations/transmission';
+  createIntegration,
+  deleteIntegration,
+  getIntegration,
+  listIntegrations,
+  updateIntegration,
+} from './db';
+import { containerLogs, type DockerConfig } from './integrations/docker-client';
+import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
+import { INTEGRATIONS, integrationTypes, type IntegrationType } from './integrations/registry';
 import { hub } from './sse/hub';
-import { refreshChannel } from './sse/scheduler';
-import type { Channel } from './types';
+import { refreshIntegration, startScheduler } from './sse/scheduler';
 
 const app = new Hono();
 
@@ -70,142 +57,68 @@ app.get('/api/config', (c) => {
   return c.json(sanitizeDashboard(state.config));
 });
 
-import { deleteSetting, getAllSettings, setSetting } from './db';
+app.get('/api/integrations/types', (c) => c.json(integrationTypes()));
 
-app.get('/api/settings', (c) => {
-  const dbSettings = getAllSettings();
-  delete dbSettings.dashboard;
-  return c.json(dbSettings);
+app.get('/api/integrations', (c) => c.json(listIntegrations()));
+
+app.post('/api/integrations', async (c) => {
+  const b = await c.req.json();
+  const row = createIntegration({
+    name: b.name,
+    type: b.type,
+    config: b.config ?? {},
+    enabled: b.enabled ?? true,
+    refreshSeconds: b.refreshSeconds ?? null,
+  });
+  startScheduler();
+  return c.json(row);
 });
 
-app.post('/api/settings', async (c) => {
-  const body = await c.req.json<Record<string, string>>();
-  // Full replace: the form sends the complete desired set, so any stored key
-  // it omits was cleared/removed by the user and must be deleted to persist.
-  for (const [key, value] of Object.entries(body)) {
-    if (key !== 'dashboard') {
-      setSetting(key, value);
-      process.env[key] = value;
-    }
-  }
-  for (const key of Object.keys(getAllSettings())) {
-    if (key !== 'dashboard' && !(key in body)) {
-      deleteSetting(key);
-      delete process.env[key];
-    }
-  }
+app.put('/api/integrations/:id', async (c) => {
+  const b = await c.req.json();
+  const row = updateIntegration(Number(c.req.param('id')), {
+    name: b.name,
+    type: b.type,
+    config: b.config ?? {},
+    enabled: b.enabled ?? true,
+    refreshSeconds: b.refreshSeconds ?? null,
+  });
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  startScheduler();
+  return c.json(row);
+});
+
+app.delete('/api/integrations/:id', (c) => {
+  deleteIntegration(Number(c.req.param('id')));
+  startScheduler();
   return c.json({ ok: true });
 });
 
-app.get('/api/monitor', async (c) => {
-  const config = getConfig();
-  if (!config) return c.json({ error: 'Config not loaded' }, 500);
-  const sites = collectMonitorSites(config);
-  const data = await checkSites(sites);
-  return c.json(data);
+app.get('/api/integrations/:id/data', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  const def = INTEGRATIONS[row.type as IntegrationType];
+  if (!def) return c.json({ error: `Unknown integration type: ${row.type}` }, 400);
+  return c.json(await def.fetch(row.config));
 });
 
-app.get('/api/docker/containers', async (c) => {
-  const config = getConfig();
-  const show = config ? getDockerShow(config) : 'running';
-  const data = await listContainers(show);
-  return c.json(data);
-});
-
-app.post('/api/docker/containers/:id/:action', async (c) => {
-  const action = c.req.param('action') as 'start' | 'stop' | 'restart';
-  if (!['start', 'stop', 'restart'].includes(action)) {
-    return c.json({ error: 'Invalid action' }, 400);
-  }
-  const result = await containerAction(c.req.param('id'), action);
-  if ('error' in result) return c.json(result, 502);
-  await refreshChannel('docker');
+app.post('/api/integrations/:id/action/:action', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  const def = INTEGRATIONS[row.type as IntegrationType];
+  const fn = def?.actions?.[c.req.param('action')];
+  if (!fn) return c.json({ error: 'Unknown action' }, 400);
+  const body = await c.req.json<{ args?: unknown[] }>().catch(() => ({ args: [] }));
+  const result = await fn(row.config, ...(body.args ?? []));
+  if (result && typeof result === 'object' && 'error' in result) return c.json(result, 502);
+  await refreshIntegration(row.id);
   return c.json({ ok: true });
 });
 
-app.get('/api/docker/containers/:id/logs', async (c) => {
-  const tail = Number(c.req.query('tail') ?? 200);
-  const result = await containerLogs(c.req.param('id'), tail);
-  if ('error' in result) return c.json(result, 502);
-  return c.json(result);
-});
-
-app.get('/api/downloads/:client', async (c) => {
-  const client = c.req.param('client');
-  if (client === 'qbittorrent') return c.json(await getQBittorrentTorrents());
-  if (client === 'transmission') return c.json(await getTransmissionTorrents());
-  return c.json({ error: 'Unknown client' }, 400);
-});
-
-app.post('/api/downloads/:client/:hash/:action', async (c) => {
-  const client = c.req.param('client');
-  const action = c.req.param('action') as 'pause' | 'resume';
-  const hash = c.req.param('hash');
-  if (!['pause', 'resume'].includes(action)) return c.json({ error: 'Invalid action' }, 400);
-
-  const result =
-    client === 'qbittorrent'
-      ? await qbittorrentAction(hash, action)
-      : client === 'transmission'
-        ? await transmissionAction(hash, action)
-        : { error: 'Unknown client' };
-
-  if ('error' in result) return c.json(result, 502);
-  await refreshChannel(`downloads:${client}` as Channel);
-  return c.json({ ok: true });
-});
-
-app.get('/api/adguard/stats', async (c) => c.json(await getAdGuardStats()));
-
-app.post('/api/adguard/protection', async (c) => {
-  const body = await c.req.json<{ enabled: boolean; durationMs?: number }>();
-  const result = await setAdGuardProtection(body.enabled, body.durationMs);
-  if ('error' in result) return c.json(result, 502);
-  await refreshChannel('adguard');
-  return c.json({ ok: true });
-});
-
-app.get('/api/jellyfin/sessions', async (c) => c.json(await getJellyfinSessions()));
-
-app.get('/api/beszel/systems', async (c) => c.json(await getBeszelSystems()));
-
-app.get('/api/radarr/summary', async (c) => c.json(await getArrSummary('radarr')));
-
-app.get('/api/sonarr/summary', async (c) => c.json(await getArrSummary('sonarr')));
-
-app.get('/api/reelward/summary', async (c) => c.json(await getReelwardSummary()));
-
-app.get('/api/calendar', async (c) => c.json(await getCalendarEvents()));
-
-app.get('/api/speedtest/summary', async (c) => {
-  const max = Number(c.req.query('max') ?? 10);
-  return c.json(await getSpeedtestSummary(max));
-});
-
-app.post('/api/speedtest/run', async (c) => {
-  const result = await triggerSpeedtestRun();
-  if ('error' in result) return c.json(result, 502);
-  return c.json(result);
-});
-
-app.post('/api/speedtest/refresh', async (c) => {
-  await refreshChannel('speedtest');
-  return c.json({ ok: true });
-});
-
-app.get('/api/weather', async (c) => {
-  const config = getConfig();
-  if (!config) return c.json({ error: 'Config not loaded' }, 500);
-  const locations = collectWeatherLocations(config);
-  if (locations.length === 0) return c.json({ locations: {} });
-  const entries = await Promise.all(
-    locations.map(async (loc) => [loc.key, await getOpenWeather(loc)] as const),
-  );
-  return c.json({ locations: Object.fromEntries(entries) });
-});
-
-app.get('/api/jellyfin/image/:id', async (c) => {
-  const result = await getJellyfinImage(c.req.param('id'));
+app.get('/api/integrations/:id/jellyfin-image/:itemId', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (!row || row.type !== 'jellyfin') return c.json({ error: 'Not found' }, 404);
+  const result = await getJellyfinImage(row.config as JellyfinConfig, c.req.param('itemId'));
   if ('error' in result) return c.json(result, 502);
   return new Response(result.body, {
     headers: {
@@ -215,19 +128,14 @@ app.get('/api/jellyfin/image/:id', async (c) => {
   });
 });
 
-// 4-min server-side cache: the client polls every 5 min, so this collapses all
-// browsers/tabs into one upstream fetch per window and rides out Reddit 429s by
-// serving the last good payload (see integrations/cache.ts).
-const FEED_TTL = 240_000;
-
-app.get('/api/reddit/:subreddit', async (c) => {
-  const sub = c.req.param('subreddit');
-  return c.json(await cached(`reddit:${sub}`, FEED_TTL, () => getRedditPosts(sub)));
+app.get('/api/integrations/:id/logs/:containerId', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (!row || row.type !== 'docker') return c.json({ error: 'Not found' }, 404);
+  const tail = Number(c.req.query('tail') ?? 200);
+  const result = await containerLogs(row.config as DockerConfig, c.req.param('containerId'), tail);
+  if ('error' in result) return c.json(result, 502);
+  return c.json(result);
 });
-
-app.get('/api/hackernews', async (c) =>
-  c.json(await cached('hackernews', FEED_TTL, () => getHackerNews())),
-);
 
 app.post('/api/theme', async (c) => {
   const body = await c.req.json<{ theme?: string; layout?: string; customCss?: string }>();

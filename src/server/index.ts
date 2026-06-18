@@ -1,20 +1,11 @@
 import { app } from './app';
 import { loadConfig } from './config/loader';
-import { getAllSettings } from './db';
 import { initScheduler } from './sse/scheduler';
 
 const PORT = Number(process.env.LABBY_PORT ?? 8080);
 
 async function main() {
   console.log('Loading config from SQLite database');
-
-  // Inject SQLite settings into process.env so integrations continue to work transparently
-  const dbSettings = getAllSettings();
-  for (const [key, value] of Object.entries(dbSettings)) {
-    if (key !== 'dashboard') {
-      process.env[key] = value;
-    }
-  }
 
   const state = await loadConfig();
   if (!state.ok) {
