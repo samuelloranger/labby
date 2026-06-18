@@ -128,7 +128,34 @@
     updateSite(key, i, { okCodes: codes.length ? codes : undefined });
   }
 
-  // Normalize config before save: commit any pending tag, clean monitor sites.
+  // --- calendar feeds: stored as "Name|URL" strings (URL only if unnamed) ---
+  type CalForm = { name?: string; url?: string };
+  function cals(key: string): CalForm[] {
+    const v = formConfig[key];
+    if (!Array.isArray(v)) return [];
+    return v.map((entry) => {
+      const s = String(entry);
+      const pipe = s.indexOf('|');
+      return pipe > 0 ? { name: s.slice(0, pipe).trim(), url: s.slice(pipe + 1).trim() } : { name: '', url: s.trim() };
+    });
+  }
+  function writeCals(key: string, list: CalForm[]) {
+    formConfig = {
+      ...formConfig,
+      [key]: list.map((c) => (c.name?.trim() ? `${c.name.trim()}|${(c.url ?? '').trim()}` : (c.url ?? '').trim())),
+    };
+  }
+  function addCal(key: string) {
+    writeCals(key, [...cals(key), { name: '', url: '' }]);
+  }
+  function removeCal(key: string, i: number) {
+    writeCals(key, cals(key).filter((_, idx) => idx !== i));
+  }
+  function updateCal(key: string, i: number, patch: Partial<CalForm>) {
+    writeCals(key, cals(key).map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+  }
+
+  // Normalize config before save: commit any pending tag, clean monitor sites + calendar feeds.
   function cleanConfig(): Record<string, unknown> {
     for (const key of Object.keys(tagDraft)) if ((tagDraft[key] ?? '').trim()) addTag(key);
     const out: Record<string, unknown> = { ...formConfig };
@@ -143,6 +170,12 @@
             ...(s.okCodes?.length ? { okCodes: s.okCodes } : {}),
           }))
           .filter((s) => s.checkUrl);
+      } else if (k === 'icsUrls' && Array.isArray(v)) {
+        // drop rows with no URL
+        out[k] = (v as string[]).map((s) => String(s).trim()).filter((s) => {
+          const pipe = s.indexOf('|');
+          return (pipe > 0 ? s.slice(pipe + 1).trim() : s).length > 0;
+        });
       }
     }
     return out;
@@ -362,6 +395,33 @@
               {/each}
               <button type="button" class="btn-add-site" onclick={() => addSite(field.key)}>
                 <Plus size={14} /> Add service
+              </button>
+            </div>
+          {:else if field.key === 'icsUrls'}
+            <div class="sites-editor">
+              {#each cals(field.key) as cal, i (i)}
+                <div class="site-row">
+                  <div class="site-row-head">
+                    <span class="site-badge"><Icon icon="lucide:calendar" fallback="calendar" size={18} /></span>
+                    <span class="site-row-title">{cal.name?.trim() || cal.url?.trim() || `Calendar ${i + 1}`}</span>
+                    <button type="button" class="btn-icon danger" onclick={() => removeCal(field.key, i)} aria-label="Remove calendar" title="Remove calendar">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                  <div class="site-grid">
+                    <label class="sub-field span2">
+                      Name <span class="opt">optional — shown on events</span>
+                      <input type="text" placeholder="Work" value={cal.name ?? ''} oninput={(e) => updateCal(field.key, i, { name: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field span2">
+                      ICS feed URL
+                      <input type="text" placeholder="https://example.com/calendar.ics" value={cal.url ?? ''} oninput={(e) => updateCal(field.key, i, { url: e.currentTarget.value })} />
+                    </label>
+                  </div>
+                </div>
+              {/each}
+              <button type="button" class="btn-add-site" onclick={() => addCal(field.key)}>
+                <Plus size={14} /> Add calendar
               </button>
             </div>
           {:else if field.kind === 'list'}
