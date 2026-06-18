@@ -6,7 +6,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Features
 
-- **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, Reddit, Hacker News
+- **Widgets** — service monitor, Docker, qBittorrent/Transmission, AdGuard, Jellyfin, Beszel, Radarr, Sonarr, Reelward, weather, calendar, speedtest, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config & credentials** — stored in SQLite (`config/labby.db`), automatically seeded with a default layout on first run, Zod-validated; edit service URLs/keys from the in-app Manage Services page
@@ -21,14 +21,12 @@ Do not expose Labby to the public internet without network-level access control.
 ## Quick start
 
 ```bash
-cp .env.example .env
-# Edit .env with your service URLs and credentials
 bun install && (cd src/web && bun install)
 bun run build
 bun run start
 ```
 
-Open `http://localhost:8080`.
+Open `http://localhost:8080`, then add your service URLs and credentials on the **Manage Services** page (the Database icon in the header). Everything is stored in the SQLite DB.
 
 ### Docker
 
@@ -57,6 +55,7 @@ User config lives in the SQLite database. Invalid config shows an error state in
 | `sonarr`               | `SONARR_URL`, `SONARR_API_KEY`     |
 | `reelward`             | `REELWARD_URL`, `REELWARD_API_KEY` |
 | `weather`              | `OPENWEATHER_API_KEY`              |
+| `calendar`             | `CALENDAR_ICS_URLS`                |
 | `speedtest`            | `SPEEDTEST_TRACKER_URL`, `SPEEDTEST_TRACKER_API_TOKEN` |
 | `reddit`, `hackernews` | —                                  |
 
