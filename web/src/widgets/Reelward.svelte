@@ -16,7 +16,7 @@
 <section class="card">
   <div class="chead">
     <span class="ti">
-      <span class="ibox"><Icon icon="lucide:clapperboard" fallback="clapperboard" size={20} /></span>
+      <span class="ibox"><Icon icon="/icons/reelward.png" fallback="clapperboard" size={20} /></span>
       {title}
     </span>
     {#if state.data}

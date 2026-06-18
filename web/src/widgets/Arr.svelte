@@ -5,7 +5,7 @@
   let { title, kind, max = 5 }: { title: string; kind: 'radarr' | 'sonarr'; max?: number } = $props();
 
   const state: WidgetState<ArrData> = $derived(kind === 'radarr' ? $radarrStore : $sonarrStore);
-  const icon = $derived(kind === 'radarr' ? 'lucide:film' : 'lucide:tv');
+  const icon = $derived(kind === 'radarr' ? 'di:radarr' : 'di:sonarr');
   const q = $derived($searchQuery.trim().toLowerCase());
   const items = $derived(
     (state.data?.upcoming ?? []).filter((item) => !q || item.title.toLowerCase().includes(q)).slice(0, max),
