@@ -4,7 +4,7 @@
 
   let { title, integrationId, max = 8 }: { title: string; integrationId: number; max?: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<CalendarData>);
   const events = $derived.by<CalendarEvent[]>(() => {
     const all = state.data?.events ?? [];

@@ -5,7 +5,7 @@
   import { clampPercent } from '$lib/utils';
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<JellyfinData>);
 
   function posterSrc(url: string | undefined): string | undefined {

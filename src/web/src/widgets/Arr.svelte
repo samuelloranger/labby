@@ -4,7 +4,7 @@
 
   let { title, integrationId, kind, max = 5 }: { title: string; integrationId: number; kind: 'radarr' | 'sonarr'; max?: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state: WidgetState<ArrData> = $derived($store as WidgetState<ArrData>);
   const icon = $derived(kind === 'radarr' ? 'di:radarr' : 'di:sonarr');
   const q = $derived($searchQuery.trim().toLowerCase());

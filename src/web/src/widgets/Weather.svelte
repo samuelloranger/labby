@@ -5,7 +5,7 @@
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<WeatherLocationData>);
   const data = $derived(state.data && !('error' in state.data) ? state.data : null);
   const locationError = $derived(

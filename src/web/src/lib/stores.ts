@@ -302,10 +302,6 @@ export function markStale() {
   }
 }
 
-export async function refreshStreamSubscriptions() {
-  await syncStreamSubscriptions();
-}
-
 export function initStream() {
   void fetchIntegrationIds().then(() => {
     es = new EventSource('/api/stream');

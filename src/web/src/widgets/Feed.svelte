@@ -12,7 +12,7 @@
     max = 5,
   }: { title: string; integrationId: number; icon: string; fallback?: string; max?: number } = $props();
 
-  const store = getStore(integrationId);
+  const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<FeedData>);
   let modalOpen = $state(false);
 

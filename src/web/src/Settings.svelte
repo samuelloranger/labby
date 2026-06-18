@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { ArrowLeft, Database, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-svelte';
   import Icon from './components/Icon.svelte';
-  import { refreshStreamSubscriptions } from '$lib/stores';
   import type { FieldDef, IntegrationRow, IntegrationTypeMeta } from '$lib/types';
 
   let types = $state<IntegrationTypeMeta[]>([]);
@@ -181,7 +180,6 @@
       }
       closeForm();
       await load();
-      await refreshStreamSubscriptions();
     } catch (e) {
       error = e instanceof Error ? e.message : 'Unknown error';
     } finally {
@@ -197,7 +195,6 @@
       const res = await fetch(`/api/integrations/${row.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete integration');
       await load();
-      await refreshStreamSubscriptions();
     } catch (e) {
       error = e instanceof Error ? e.message : 'Unknown error';
     } finally {
