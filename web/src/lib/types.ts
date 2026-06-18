@@ -38,20 +38,31 @@ export type Widget =
 export type Column = { size: 'small' | 'full'; widgets: Widget[] };
 export type Page = { name: string; columns: Column[] };
 
+export type LayoutType = 'masonry' | 'columns';
+
 export type ThemeName =
   | 'system'
   | 'light'
   | 'light-slate'
   | 'light-mint'
   | 'light-rose'
+  | 'light-nord'
+  | 'light-peach'
   | 'dark'
   | 'dark-graphite'
   | 'dark-ocean'
-  | 'dark-forest';
+  | 'dark-forest'
+  | 'dark-dracula'
+  | 'dark-nord'
+  | 'dark-cyberpunk';
 
 export type Dashboard = {
   title: string;
-  theme: { default: ThemeName };
+  theme: {
+    default: ThemeName;
+    layout: LayoutType;
+    customCss?: string;
+  };
   refreshSeconds: Record<string, number>;
   pages: Page[];
 };

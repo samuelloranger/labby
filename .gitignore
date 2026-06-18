@@ -43,3 +43,9 @@ playwright/.cache/
 
 # Local tooling
 .codegraph/
+
+# Local settings database (holds service credentials — never commit)
+config/*.db
+
+# One-off scratch scripts
+patch.js

@@ -2,13 +2,14 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { getConfig, getConfigState, saveTheme } from './config/loader';
+import { getConfig, getConfigState, saveThemeSettings } from './config/loader';
 import {
   collectMonitorSites,
   collectWeatherLocations,
   getDockerShow,
   sanitizeDashboard,
   ThemeSchema,
+  LayoutSchema,
 } from './config/schema';
 import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
 import { getArrSummary } from './integrations/arr';
@@ -41,12 +42,19 @@ function themeFromConfig(): string {
   return '';
 }
 
+function customCssFromConfig(): string {
+  const config = getConfig();
+  return config?.theme.customCss ?? '';
+}
+
 app.use('*', async (c, next) => {
   if (c.req.path === '/' || c.req.path === '/index.html') {
     const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
     if (html) {
       const theme = themeFromConfig();
-      const patched = html.replaceAll('__LABBY_THEME__', theme);
+      let patched = html.replaceAll('__LABBY_THEME__', theme);
+      const customCss = customCssFromConfig();
+      patched = patched.replace('</head>', `<style id="labby-custom-css">${customCss}</style></head>`);
       return c.html(patched);
     }
   }
@@ -57,6 +65,33 @@ app.get('/api/config', (c) => {
   const state = getConfigState();
   if (!state.ok) return c.json({ error: state.error }, 500);
   return c.json(sanitizeDashboard(state.config));
+});
+
+import { deleteSetting, getAllSettings, setSetting } from './db';
+
+app.get('/api/settings', (c) => {
+  const dbSettings = getAllSettings();
+  delete dbSettings['dashboard'];
+  return c.json(dbSettings);
+});
+
+app.post('/api/settings', async (c) => {
+  const body = await c.req.json<Record<string, string>>();
+  // Full replace: the form sends the complete desired set, so any stored key
+  // it omits was cleared/removed by the user and must be deleted to persist.
+  for (const [key, value] of Object.entries(body)) {
+    if (key !== 'dashboard') {
+      setSetting(key, value);
+      process.env[key] = value;
+    }
+  }
+  for (const key of Object.keys(getAllSettings())) {
+    if (key !== 'dashboard' && !(key in body)) {
+      deleteSetting(key);
+      delete process.env[key];
+    }
+  }
+  return c.json({ ok: true });
 });
 
 app.get('/api/monitor', async (c) => {
@@ -192,12 +227,28 @@ app.get('/api/hackernews', async (c) =>
 );
 
 app.post('/api/theme', async (c) => {
-  const body = await c.req.json<{ theme: string }>();
-  const parsed = ThemeSchema.safeParse(body.theme);
-  if (!parsed.success) {
-    return c.json({ error: 'Invalid theme' }, 400);
+  const body = await c.req.json<{ theme?: string; layout?: string; customCss?: string }>();
+  const updates: Parameters<typeof saveThemeSettings>[0] = {};
+
+  if (body.theme !== undefined) {
+    const parsed = ThemeSchema.safeParse(body.theme);
+    if (!parsed.success) {
+      return c.json({ error: 'Invalid theme' }, 400);
+    }
+    updates.default = parsed.data;
   }
-  await saveTheme(parsed.data);
+  if (body.layout !== undefined) {
+    const parsed = LayoutSchema.safeParse(body.layout);
+    if (!parsed.success) {
+      return c.json({ error: 'Invalid layout' }, 400);
+    }
+    updates.layout = parsed.data;
+  }
+  if (body.customCss !== undefined) {
+    updates.customCss = body.customCss;
+  }
+
+  await saveThemeSettings(updates);
   return c.json({ ok: true });
 });
 
@@ -260,7 +311,10 @@ app.get('*', async (c) => {
   const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
   if (!html) return c.text('Labby frontend not built. Run: bun run build', 503);
   const theme = themeFromConfig();
-  return c.html(html.replaceAll('__LABBY_THEME__', theme));
+  let patched = html.replaceAll('__LABBY_THEME__', theme);
+  const customCss = customCssFromConfig();
+  patched = patched.replace('</head>', `<style id="labby-custom-css">${customCss}</style></head>`);
+  return c.html(patched);
 });
 
 export { app };

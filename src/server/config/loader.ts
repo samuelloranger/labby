@@ -1,10 +1,7 @@
-import { watch } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { type Dashboard, DashboardSchema, type ThemeName } from './schema';
-
-const CONFIG_PATH =
-  process.env.LABBY_CONFIG_PATH ?? path.join(process.cwd(), 'config', 'dashboard.json');
+import { type Dashboard, DashboardSchema, type ThemeName, type LayoutType } from './schema';
+import { getSetting, setSetting } from '../db';
 
 export type ConfigState = { ok: true; config: Dashboard } | { ok: false; error: string };
 
@@ -30,18 +27,16 @@ function setState(next: ConfigState) {
 }
 
 async function readConfigRaw(): Promise<string> {
-  try {
-    return await readFile(CONFIG_PATH, 'utf-8');
-  } catch (err) {
-    // Fall back to the shipped example so a fresh `docker run` (no mounted
-    // config) boots a working demo dashboard instead of an error state.
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      const examplePath = path.join(path.dirname(CONFIG_PATH), 'dashboard.example.json');
-      console.warn(`Config ${CONFIG_PATH} not found; loading ${examplePath}`);
-      return await readFile(examplePath, 'utf-8');
-    }
-    throw err;
+  const dbConfig = getSetting('dashboard');
+  if (dbConfig) {
+    return dbConfig;
   }
+  
+  const examplePath = path.join(process.cwd(), 'config', 'dashboard.example.json');
+  console.warn(`Dashboard config not found in DB; loading ${examplePath}`);
+  const raw = await readFile(examplePath, 'utf-8');
+  setSetting('dashboard', raw); // Persist default into db
+  return raw;
 }
 
 export async function loadConfig(): Promise<ConfigState> {
@@ -60,33 +55,25 @@ export async function loadConfig(): Promise<ConfigState> {
   }
 }
 
-export async function saveTheme(theme: ThemeName): Promise<void> {
+export async function saveThemeSettings(settings: {
+  default?: ThemeName;
+  layout?: LayoutType;
+  customCss?: string;
+}): Promise<void> {
   const raw = await readConfigRaw();
   const parsed = JSON.parse(raw) as Record<string, unknown>;
   const oldTheme = typeof parsed.theme === 'object' && parsed.theme !== null ? parsed.theme : {};
-  parsed.theme = { ...oldTheme, default: theme };
+  parsed.theme = {
+    ...oldTheme,
+    ...(settings.default ? { default: settings.default } : {}),
+    ...(settings.layout ? { layout: settings.layout } : {}),
+    ...(settings.customCss !== undefined ? { customCss: settings.customCss } : {}),
+  };
   const config = DashboardSchema.parse(parsed);
-  await writeFile(CONFIG_PATH, `${JSON.stringify(parsed, null, 2)}\n`);
+  setSetting('dashboard', JSON.stringify(parsed, null, 2));
   setState({ ok: true, config });
 }
 
-export function startConfigWatch(): void {
-  const dir = path.dirname(CONFIG_PATH);
-  const file = path.basename(CONFIG_PATH);
-  let timer: ReturnType<typeof setTimeout> | null = null;
-
-  const watcher = watch(dir, { persistent: true }, (_event, filename) => {
-    if (filename && filename !== file) return;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      void loadConfig();
-    }, 200);
-  });
-  // Don't let an inotify failure (EMFILE, etc.) crash the process; hot-reload
-  // simply stops while the rest of the server keeps serving.
-  watcher.on('error', (err) => console.error('[config] file watch error:', err));
-}
-
-export function getConfigPath(): string {
-  return CONFIG_PATH;
+export function reloadConfig(): void {
+  void loadConfig();
 }
