@@ -11,7 +11,6 @@
   import Weather from '../widgets/Weather.svelte';
   import Calendar from '../widgets/Calendar.svelte';
   import Speedtest from '../widgets/Speedtest.svelte';
-  import Game from '../widgets/Game.svelte';
   import type { Widget } from '$lib/types';
 
   let { widget }: { widget: Widget } = $props();
@@ -57,6 +56,4 @@
   <Calendar title={widget.title} max={widget.max} />
 {:else if widget.type === 'speedtest'}
   <Speedtest title={widget.title} max={widget.max} />
-{:else if widget.type === 'game'}
-  <Game title={widget.title} />
 {/if}
