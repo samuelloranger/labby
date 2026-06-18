@@ -7,9 +7,9 @@ import {
   collectMonitorSites,
   collectWeatherLocations,
   getDockerShow,
+  LayoutSchema,
   sanitizeDashboard,
   ThemeSchema,
-  LayoutSchema,
 } from './config/schema';
 import { getAdGuardStats, setAdGuardProtection } from './integrations/adguard';
 import { getArrSummary } from './integrations/arr';
@@ -54,7 +54,10 @@ app.use('*', async (c, next) => {
       const theme = themeFromConfig();
       let patched = html.replaceAll('__LABBY_THEME__', theme);
       const customCss = customCssFromConfig();
-      patched = patched.replace('</head>', `<style id="labby-custom-css">${customCss}</style></head>`);
+      patched = patched.replace(
+        '</head>',
+        `<style id="labby-custom-css">${customCss}</style></head>`,
+      );
       return c.html(patched);
     }
   }
@@ -71,7 +74,7 @@ import { deleteSetting, getAllSettings, setSetting } from './db';
 
 app.get('/api/settings', (c) => {
   const dbSettings = getAllSettings();
-  delete dbSettings['dashboard'];
+  delete dbSettings.dashboard;
   return c.json(dbSettings);
 });
 
