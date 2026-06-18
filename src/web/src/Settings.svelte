@@ -327,49 +327,41 @@
             <div class="sites-editor">
               {#each sites(field.key) as site, i (i)}
                 <div class="site-row">
-                  <div class="site-main">
-                    <input
-                      type="text"
-                      placeholder="Name (e.g. Jellyfin)"
-                      value={site.title ?? ''}
-                      oninput={(e) => updateSite(field.key, i, { title: e.currentTarget.value })}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Check URL — pinged for status (e.g. http://jellyfin:8096/health)"
-                      value={site.checkUrl ?? ''}
-                      oninput={(e) => updateSite(field.key, i, { checkUrl: e.currentTarget.value })}
-                    />
+                  <div class="site-row-head">
+                    <span class="site-badge">
+                      <Icon icon={site.icon?.trim() || 'lucide:globe'} fallback="globe" size={18} />
+                    </span>
+                    <span class="site-row-title">{site.title?.trim() || site.checkUrl?.trim() || `Service ${i + 1}`}</span>
+                    <button type="button" class="btn-icon danger" onclick={() => removeSite(field.key, i)} aria-label="Remove service" title="Remove service">
+                      <Trash2 size={15} />
+                    </button>
                   </div>
-                  <div class="site-extra">
-                    <input
-                      type="text"
-                      placeholder="Link URL — opened on click (e.g. https://jellyfin.example.com)"
-                      value={site.url ?? ''}
-                      oninput={(e) => updateSite(field.key, i, { url: e.currentTarget.value })}
-                    />
-                    <input
-                      type="text"
-                      class="site-narrow"
-                      placeholder="Icon (e.g. di:jellyfin)"
-                      value={site.icon ?? ''}
-                      oninput={(e) => updateSite(field.key, i, { icon: e.currentTarget.value })}
-                    />
-                    <input
-                      type="text"
-                      class="site-narrow"
-                      placeholder="OK codes (e.g. 200,401)"
-                      value={okCodesValue(site)}
-                      oninput={(e) => setOkCodes(field.key, i, e.currentTarget.value)}
-                    />
+                  <div class="site-grid">
+                    <label class="sub-field">
+                      Name
+                      <input type="text" placeholder="Jellyfin" value={site.title ?? ''} oninput={(e) => updateSite(field.key, i, { title: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field">
+                      Icon <span class="opt">optional</span>
+                      <input type="text" placeholder="di:jellyfin" value={site.icon ?? ''} oninput={(e) => updateSite(field.key, i, { icon: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field span2">
+                      Status check URL
+                      <input type="text" placeholder="http://jellyfin:8096/health" value={site.checkUrl ?? ''} oninput={(e) => updateSite(field.key, i, { checkUrl: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field span2">
+                      Link URL <span class="opt">optional — opens on click</span>
+                      <input type="text" placeholder="https://jellyfin.example.com" value={site.url ?? ''} oninput={(e) => updateSite(field.key, i, { url: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field span2">
+                      OK status codes <span class="opt">optional</span>
+                      <input type="text" placeholder="200, 401" value={okCodesValue(site)} oninput={(e) => setOkCodes(field.key, i, e.currentTarget.value)} />
+                    </label>
                   </div>
-                  <button type="button" class="btn-icon danger site-del" onclick={() => removeSite(field.key, i)} aria-label="Remove site" title="Remove site">
-                    <Trash2 size={15} />
-                  </button>
                 </div>
               {/each}
               <button type="button" class="btn-add-site" onclick={() => addSite(field.key)}>
-                <Plus size={14} /> Add site
+                <Plus size={14} /> Add service
               </button>
             </div>
           {:else if field.kind === 'list'}
@@ -480,7 +472,7 @@
 
   .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
     gap: 18px;
     margin-bottom: 18px;
   }
@@ -728,37 +720,76 @@
   .sites-editor {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   .site-row {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px 40px 10px 10px;
-    background: var(--glass-2);
     border: 1px solid var(--glass-brd);
     border-radius: var(--radius-sm);
+    background: var(--surface);
+    padding: 12px;
   }
-  .site-main,
-  .site-extra {
+  .site-row-head {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
   }
-  .site-main input {
-    flex: 1 1 100%;
+  .site-badge {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--glass-2);
+    border: 1px solid var(--glass-brd);
   }
-  .site-extra input {
-    flex: 1 1 100%;
+  .site-badge :global(img),
+  .site-badge :global(svg) {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
   }
-  .site-extra .site-narrow {
-    flex: 1 1 130px;
+  .site-row-title {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .site-del {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+  .site-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+  }
+  .sub-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .sub-field input {
+    min-width: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+  .sub-field .opt {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    color: var(--ink-faint);
+  }
+  .span2 {
+    grid-column: 1 / -1;
   }
   .btn-add-site {
     display: inline-flex;
@@ -846,9 +877,8 @@
       height: 26px;
       font-size: 16px;
     }
-    .site-del {
-      width: 40px;
-      height: 40px;
+    .site-grid {
+      grid-template-columns: 1fr;
     }
     /* full-width primary/secondary actions = easier to hit */
     .settings-footer {
