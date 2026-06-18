@@ -87,4 +87,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "docs: update dashboard screenshot [skip ci]"
-          file_pattern: "docs/screenshot.png"
+          file_pattern: "docs/screenshot-*.png README.md"
