@@ -1,17 +1,21 @@
 <script lang="ts">
   import {
-    Activity, Box, Download, Film, Flame, Folder, Globe, LayoutGrid, MessageSquare, Moon, Radio,
-    Search, Shield, Sun, Wallet, LayoutDashboard,
+    Activity, Box, Calendar, Clapperboard, CloudSun, Download, Film, Flame, Folder, Gauge, Globe,
+    LayoutGrid, MessageSquare, Moon, Radio, Search, Shield, Sun, Tv, Wallet, LayoutDashboard,
   } from 'lucide-svelte';
   import { resolveIconSrc } from '$lib/utils';
 
   const ICONS: Record<string, typeof Box> = {
     activity: Activity,
     box: Box,
+    calendar: Calendar,
+    clapperboard: Clapperboard,
+    'cloud-sun': CloudSun,
     download: Download,
     film: Film,
     flame: Flame,
     folder: Folder,
+    gauge: Gauge,
     globe: Globe,
     'layout-grid': LayoutGrid,
     'layout-dashboard': LayoutDashboard,
@@ -21,6 +25,7 @@
     search: Search,
     shield: Shield,
     sun: Sun,
+    tv: Tv,
     wallet: Wallet,
   };
 
