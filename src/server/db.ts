@@ -8,20 +8,6 @@ export const db = new Database(DB_PATH, { create: true });
 const DEFAULT_DASHBOARD = JSON.stringify({
   title: 'Labby',
   theme: { default: 'system' },
-  refreshSeconds: {
-    monitor: 30,
-    docker: 10,
-    downloads: 5,
-    adguard: 60,
-    jellyfin: 15,
-    beszel: 15,
-    radarr: 60,
-    sonarr: 60,
-    reelward: 60,
-    weather: 900,
-    calendar: 600,
-    speedtest: 1800,
-  },
   pages: [
     {
       name: 'Overview',
@@ -32,48 +18,20 @@ const DEFAULT_DASHBOARD = JSON.stringify({
             {
               type: 'monitor',
               title: 'Core',
+              integrationId: 1,
               style: 'compact',
-              sites: [
-                {
-                  title: 'AdGuard',
-                  url: 'https://adguard.example.com',
-                  checkUrl: 'http://adguardhome:3000',
-                  icon: 'di:adguard-home',
-                  okCodes: [200, 301, 302, 401, 403],
-                },
-                {
-                  title: 'qBittorrent',
-                  url: 'https://qb.example.com',
-                  checkUrl: 'http://qbittorrent:8080',
-                  icon: 'di:qbittorrent',
-                  okCodes: [200, 301, 302, 401, 403],
-                },
-                {
-                  title: 'Jellyfin',
-                  url: 'https://jellyfin.example.com',
-                  checkUrl: 'http://jellyfin:8096/health',
-                  icon: 'di:jellyfin',
-                },
-              ],
             },
           ],
         },
         {
           size: 'full',
           widgets: [
-            { type: 'docker', title: 'Containers', show: 'running' },
+            { type: 'docker', title: 'Containers', integrationId: 2 },
             {
               type: 'monitor',
               title: 'Launcher',
+              integrationId: 3,
               variant: 'tiles',
-              sites: [
-                {
-                  title: 'Jellyfin',
-                  url: 'https://jellyfin.example.com',
-                  checkUrl: 'http://jellyfin:8096/health',
-                  icon: 'di:jellyfin',
-                },
-              ],
             },
           ],
         },
