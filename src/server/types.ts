@@ -193,20 +193,9 @@ export type SpeedtestPayload = {
   history: SpeedtestResult[];
 };
 
-export type Channel =
-  | 'monitor'
-  | 'docker'
-  | 'downloads:qbittorrent'
-  | 'downloads:transmission'
-  | 'adguard'
-  | 'jellyfin'
-  | 'beszel'
-  | 'radarr'
-  | 'sonarr'
-  | 'reelward'
-  | 'weather'
-  | 'calendar'
-  | 'speedtest';
+export type Channel = string;
+
+export type IntegrationConfig = Record<string, unknown>;
 
 export type ChannelPayload =
   | MonitorPayload
