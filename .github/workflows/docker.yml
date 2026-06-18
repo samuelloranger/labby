@@ -53,3 +53,38 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
+
+  update-screenshot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: |
+          bun install
+          cd web && bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+
+      - name: Generate Screenshot
+        run: |
+          mkdir -p docs
+          bun run scripts/screenshot.ts
+
+      - name: Commit and push screenshot
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update dashboard screenshot [skip ci]"
+          file_pattern: "docs/screenshot.png"
