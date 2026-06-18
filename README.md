@@ -1,6 +1,6 @@
 # Labby
 
-![Dashboard Screenshot](docs/screenshot-v1.0.0.png)
+![Dashboard Screenshot](docs/screenshot-v1.0.2.png)
 
 A self-hosted homelab dashboard — lightweight like [Glance](https://github.com/glanceapp/glance), interactive like [Homarr](https://github.com/homarr-labs/homarr). One Bun process, one container, config stored in a small SQLite database and editable in-app.
 
