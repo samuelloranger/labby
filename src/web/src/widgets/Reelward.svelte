@@ -1,10 +1,11 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { reelwardStore, searchQuery } from '$lib/stores';
+  import { getStore, searchQuery, type ReelwardData, type WidgetState } from '$lib/stores';
 
-  let { title, max = 5 }: { title: string; max?: number } = $props();
+  let { title, integrationId, max = 5 }: { title: string; integrationId: number; max?: number } = $props();
 
-  const state = $derived($reelwardStore);
+  const store = getStore(integrationId);
+  const state = $derived($store as WidgetState<ReelwardData>);
   const q = $derived($searchQuery.trim().toLowerCase());
   const upcoming = $derived(
     (state.data?.upcoming ?? []).filter((item) => !q || item.title.toLowerCase().includes(q)).slice(0, max),

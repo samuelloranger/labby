@@ -1,36 +1,25 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { monitorStore, searchQuery } from '$lib/stores';
-  import type { Site } from '../lib/types';
+  import { getStore, searchQuery, type MonitorData, type WidgetState } from '$lib/stores';
 
   let {
     title,
-    sites,
+    integrationId,
     style = 'default',
     variant = 'rows',
     headerIcon = 'lucide:activity',
   }: {
     title: string;
-    sites: Site[];
+    integrationId: number;
     style?: 'compact' | 'default';
     variant?: 'rows' | 'tiles';
     headerIcon?: string;
   } = $props();
 
-  const state = $derived($monitorStore);
+  const store = getStore(integrationId);
+  const state = $derived($store as WidgetState<MonitorData>);
 
-  const rows = $derived.by(() => {
-    if (!state.data) return [];
-    const byUrl = new Map(state.data.sites.map((s) => [s.checkUrl, s]));
-    return sites.map((site) => {
-      const live = byUrl.get(site.checkUrl);
-      return {
-        ...site,
-        status: live?.status ?? 'down',
-        latencyMs: live?.latencyMs ?? null,
-      };
-    });
-  });
+  const rows = $derived(state.data?.sites ?? []);
 
   const q = $derived($searchQuery.trim().toLowerCase());
   const shown = $derived(q ? rows.filter((r) => r.title.toLowerCase().includes(q)) : rows);

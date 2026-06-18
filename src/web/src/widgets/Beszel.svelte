@@ -1,14 +1,15 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { beszelStore, searchQuery } from '$lib/stores';
+  import { getStore, searchQuery, type BeszelData, type WidgetState } from '$lib/stores';
   import { clampPercent, formatBytes, formatNumber, formatUptime } from '$lib/utils';
 
-  let { title, systems, max = 8 }: { title: string; systems?: string[]; max?: number } = $props();
+  let { title, integrationId, systems, max = 8 }: { title: string; integrationId: number; systems?: string[]; max?: number } = $props();
 
   let disksOpen = $state(false);
 
-  const state = $derived($beszelStore);
+  const store = getStore(integrationId);
+  const state = $derived($store as WidgetState<BeszelData>);
   const q = $derived($searchQuery.trim().toLowerCase());
   const wanted = $derived(new Set((systems ?? []).map((name) => name.toLowerCase())));
   const visible = $derived.by(() => {

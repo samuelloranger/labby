@@ -3,7 +3,8 @@
   import { Search, Settings, Database } from 'lucide-svelte';
   import Modal from './Modal.svelte';
   import Select from './Select.svelte';
-  import { monitorStore, searchQuery, streamConnected } from '$lib/stores';
+  import { get } from 'svelte/store';
+  import { getStore, searchQuery, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
   import type { Dashboard } from '$lib/types';
 
   const themes = [
@@ -44,7 +45,41 @@
   let searchEl = $state<HTMLInputElement>();
   let currentTime = $state('');
 
-  const summary = $derived($monitorStore.data?.summary ?? { up: 0, warn: 0, down: 0 });
+  const monitorIds = $derived.by(() => {
+    const ids = new Set<number>();
+    for (const page of config.pages) {
+      for (const col of page.columns) {
+        for (const w of col.widgets) {
+          if (w.type === 'monitor') ids.add(w.integrationId);
+        }
+      }
+    }
+    return [...ids];
+  });
+
+  let summary = $state({ up: 0, warn: 0, down: 0 });
+
+  $effect(() => {
+    const ids = monitorIds;
+    const recompute = () => {
+      let up = 0;
+      let warn = 0;
+      let down = 0;
+      for (const id of ids) {
+        const s = get(getStore(id)) as WidgetState<MonitorData>;
+        if (s.data?.summary) {
+          up += s.data.summary.up;
+          warn += s.data.summary.warn;
+          down += s.data.summary.down;
+        }
+      }
+      summary = { up, warn, down };
+    };
+    recompute();
+    const unsubs = ids.map((id) => getStore(id).subscribe(recompute));
+    return () => unsubs.forEach((u) => u());
+  });
+
   const connectedVal = $derived($streamConnected);
 
   onMount(() => {

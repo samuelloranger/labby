@@ -1,20 +1,21 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { adguardStore, searchQuery } from '$lib/stores';
+  import { getStore, searchQuery, type AdGuardData, type WidgetState } from '$lib/stores';
   import { formatNumber } from '$lib/utils';
 
-  let { title }: { title: string } = $props();
-  const state = $derived($adguardStore);
+  let { title, integrationId }: { title: string; integrationId: number } = $props();
+  const store = getStore(integrationId);
+  const state = $derived($store as WidgetState<AdGuardData>);
   let toggling = $state(false);
 
   async function toggleProtection() {
     if (!state.data || toggling) return;
     toggling = true;
     try {
-      await fetch('/api/adguard/protection', {
+      await fetch(`/api/integrations/${integrationId}/action/protection`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: !state.data.protectionEnabled }),
+        body: JSON.stringify({ args: [!state.data.protectionEnabled] }),
       });
     } finally {
       toggling = false;
