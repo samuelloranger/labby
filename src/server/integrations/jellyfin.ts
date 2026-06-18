@@ -1,17 +1,10 @@
 import type { JellyfinPayload, JellyfinSession } from '../types';
 
-function baseUrl(): string | null {
-  const url = process.env.JELLYFIN_URL;
-  return url ? url.replace(/\/$/, '') : null;
-}
+export type JellyfinConfig = { url?: string; apiKey?: string };
 
-function apiKey(): string | null {
-  return process.env.JELLYFIN_API_KEY ?? null;
-}
-
-export async function getJellyfinSessions(): Promise<JellyfinPayload | { error: string }> {
-  const base = baseUrl();
-  const key = apiKey();
+export async function getJellyfinSessions(config: JellyfinConfig): Promise<JellyfinPayload | { error: string }> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  const key = config.apiKey ?? null;
   if (!base) return { error: 'JELLYFIN_URL not configured' };
   if (!key) return { error: 'JELLYFIN_API_KEY not configured' };
 
@@ -82,9 +75,9 @@ export async function getJellyfinSessions(): Promise<JellyfinPayload | { error: 
  * browser can render it without ever seeing the token. Returns the upstream
  * Response for the route to stream back.
  */
-export async function getJellyfinImage(itemId: string): Promise<Response | { error: string }> {
-  const base = baseUrl();
-  const key = apiKey();
+export async function getJellyfinImage(config: JellyfinConfig, itemId: string): Promise<Response | { error: string }> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  const key = config.apiKey ?? null;
   if (!base) return { error: 'JELLYFIN_URL not configured' };
   if (!key) return { error: 'JELLYFIN_API_KEY not configured' };
 

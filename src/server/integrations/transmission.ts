@@ -1,24 +1,22 @@
 import type { DownloadsPayload, Torrent } from '../types';
 
-function rpcUrl(): string | null {
-  const url = process.env.TRANSMISSION_URL;
-  return url ?? null;
-}
+export type TransmissionConfig = { url?: string; user?: string; pass?: string };
 
 let sessionId: string | null = null;
 
 async function transmissionRpc(
+  config: TransmissionConfig,
   method: string,
   arguments_: Record<string, unknown> = {},
 ): Promise<unknown> {
-  const url = rpcUrl();
+  const url = config.url ?? null;
   if (!url) throw new Error('TRANSMISSION_URL not configured');
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (sessionId) headers['X-Transmission-Session-Id'] = sessionId;
 
-  const user = process.env.TRANSMISSION_USER;
-  const pass = process.env.TRANSMISSION_PASS;
+  const user = config.user;
+  const pass = config.pass;
   if (user && pass) {
     headers.Authorization = `Basic ${btoa(`${user}:${pass}`)}`;
   }
@@ -77,11 +75,11 @@ function normalizeTorrent(t: Record<string, unknown>): Torrent {
   };
 }
 
-export async function getTransmissionTorrents(): Promise<DownloadsPayload | { error: string }> {
-  if (!rpcUrl()) return { error: 'TRANSMISSION_URL not configured' };
+export async function getTransmissionTorrents(config: TransmissionConfig): Promise<DownloadsPayload | { error: string }> {
+  if (!config.url) return { error: 'TRANSMISSION_URL not configured' };
 
   try {
-    const json = (await transmissionRpc('torrent-get', {
+    const json = (await transmissionRpc(config, 'torrent-get', {
       fields: [
         'id',
         'name',
@@ -105,14 +103,15 @@ export async function getTransmissionTorrents(): Promise<DownloadsPayload | { er
 }
 
 export async function transmissionAction(
+  config: TransmissionConfig,
   hash: string,
   action: 'pause' | 'resume',
 ): Promise<{ ok: true } | { error: string }> {
-  if (!rpcUrl()) return { error: 'TRANSMISSION_URL not configured' };
+  if (!config.url) return { error: 'TRANSMISSION_URL not configured' };
 
   const method = action === 'pause' ? 'torrent-stop' : 'torrent-start';
   try {
-    await transmissionRpc(method, { ids: [hash] });
+    await transmissionRpc(config, method, { ids: [hash] });
     return { ok: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : `Transmission ${action} failed` };

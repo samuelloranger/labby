@@ -1,13 +1,10 @@
 import type { AdGuardPayload } from '../types';
 
-function baseUrl(): string | null {
-  const url = process.env.ADGUARD_URL;
-  return url ? url.replace(/\/$/, '') : null;
-}
+export type AdGuardConfig = { url?: string; user?: string; pass?: string };
 
-function authHeaders(): HeadersInit {
-  const user = process.env.ADGUARD_USER ?? '';
-  const pass = process.env.ADGUARD_PASS ?? '';
+function buildAuthHeaders(config: AdGuardConfig): Record<string, string> {
+  const user = config.user ?? '';
+  const pass = config.pass ?? '';
   const headers: Record<string, string> = {};
   if (user || pass) {
     headers.Authorization = `Basic ${btoa(`${user}:${pass}`)}`;
@@ -15,23 +12,24 @@ function authHeaders(): HeadersInit {
   return headers;
 }
 
-async function adguardFetch(path: string, init?: RequestInit): Promise<Response> {
-  const base = baseUrl();
+async function adguardFetch(config: AdGuardConfig, path: string, init?: RequestInit): Promise<Response> {
+  const base = config.url?.replace(/\/$/, '') || null;
   if (!base) throw new Error('ADGUARD_URL not configured');
   return fetch(`${base}${path}`, {
     ...init,
-    headers: { ...authHeaders(), ...(init?.headers as Record<string, string>) },
+    headers: { ...buildAuthHeaders(config), ...(init?.headers as Record<string, string>) },
     signal: init?.signal ?? AbortSignal.timeout(15000),
   });
 }
 
-export async function getAdGuardStats(): Promise<AdGuardPayload | { error: string }> {
-  if (!baseUrl()) return { error: 'ADGUARD_URL not configured' };
+export async function getAdGuardStats(config: AdGuardConfig): Promise<AdGuardPayload | { error: string }> {
+  const base = config.url?.replace(/\/$/, '') || null;
+  if (!base) return { error: 'ADGUARD_URL not configured' };
 
   try {
     const [statsRes, statusRes] = await Promise.all([
-      adguardFetch('/control/stats'),
-      adguardFetch('/control/status'),
+      adguardFetch(config, '/control/stats'),
+      adguardFetch(config, '/control/status'),
     ]);
 
     if (!statsRes.ok) return { error: `AdGuard stats error: ${statsRes.status}` };
@@ -58,15 +56,17 @@ export async function getAdGuardStats(): Promise<AdGuardPayload | { error: strin
 }
 
 export async function setAdGuardProtection(
+  config: AdGuardConfig,
   enabled: boolean,
   durationMs?: number,
 ): Promise<{ ok: true } | { error: string }> {
-  if (!baseUrl()) return { error: 'ADGUARD_URL not configured' };
+  const base = config.url?.replace(/\/$/, '') || null;
+  if (!base) return { error: 'ADGUARD_URL not configured' };
 
   try {
     const body: Record<string, unknown> = { enabled };
     if (durationMs != null) body.duration = Math.round(durationMs / 1000);
-    const res = await adguardFetch('/control/protection', {
+    const res = await adguardFetch(config, '/control/protection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

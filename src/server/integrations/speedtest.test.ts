@@ -1,30 +1,20 @@
 import { describe, expect, mock, test } from 'bun:test';
+import { getSpeedtestSummary, triggerSpeedtestRun } from './speedtest';
+import type { SpeedtestConfig } from './speedtest';
 
 describe('Speedtest Tracker client', () => {
-  test('reports missing env', async () => {
-    const prevUrl = process.env.SPEEDTEST_TRACKER_URL;
-    const prevToken = process.env.SPEEDTEST_TRACKER_API_TOKEN;
-    delete process.env.SPEEDTEST_TRACKER_URL;
-    delete process.env.SPEEDTEST_TRACKER_API_TOKEN;
-
-    const { getSpeedtestSummary } = await import('./speedtest');
-
-    expect(await getSpeedtestSummary()).toEqual({
+  test('reports missing config', async () => {
+    expect(await getSpeedtestSummary({})).toEqual({
       error: 'SPEEDTEST_TRACKER_URL not configured',
     });
 
-    process.env.SPEEDTEST_TRACKER_URL = 'http://speedtest.test';
-    expect(await getSpeedtestSummary()).toEqual({
+    expect(await getSpeedtestSummary({ url: 'http://speedtest.test' })).toEqual({
       error: 'SPEEDTEST_TRACKER_API_TOKEN not configured',
     });
-
-    process.env.SPEEDTEST_TRACKER_URL = prevUrl;
-    process.env.SPEEDTEST_TRACKER_API_TOKEN = prevToken;
   });
 
   test('maps speedtest results payload', async () => {
-    process.env.SPEEDTEST_TRACKER_URL = 'http://speedtest.test';
-    process.env.SPEEDTEST_TRACKER_API_TOKEN = 'test_token';
+    const config: SpeedtestConfig = { url: 'http://speedtest.test', apiToken: 'test_token' };
 
     const originalFetch = globalThis.fetch;
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -57,8 +47,7 @@ describe('Speedtest Tracker client', () => {
       return new Response('not found', { status: 404 });
     }) as unknown as typeof fetch;
 
-    const { getSpeedtestSummary } = await import('./speedtest');
-    const result = await getSpeedtestSummary();
+    const result = await getSpeedtestSummary(config);
     globalThis.fetch = originalFetch;
 
     expect('history' in result).toBe(true);
@@ -73,8 +62,7 @@ describe('Speedtest Tracker client', () => {
   });
 
   test('triggers speedtest run', async () => {
-    process.env.SPEEDTEST_TRACKER_URL = 'http://speedtest.test';
-    process.env.SPEEDTEST_TRACKER_API_TOKEN = 'test_token';
+    const config: SpeedtestConfig = { url: 'http://speedtest.test', apiToken: 'test_token' };
 
     const originalFetch = globalThis.fetch;
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -86,8 +74,7 @@ describe('Speedtest Tracker client', () => {
       return new Response('not found', { status: 404 });
     }) as unknown as typeof fetch;
 
-    const { triggerSpeedtestRun } = await import('./speedtest');
-    const result = await triggerSpeedtestRun();
+    const result = await triggerSpeedtestRun(config);
     globalThis.fetch = originalFetch;
 
     expect(result).toEqual({ ok: true });

@@ -1,14 +1,11 @@
 import type { ArrItem, ArrPayload } from '../types';
 
-type ArrKind = 'radarr' | 'sonarr';
+export type ArrKind = 'radarr' | 'sonarr';
+export type ArrConfig = { url?: string; apiKey?: string };
 
-function env(kind: ArrKind, name: 'URL' | 'API_KEY'): string | null {
-  return process.env[`${kind.toUpperCase()}_${name}`]?.trim() || null;
-}
-
-async function arrFetch(kind: ArrKind, path: string): Promise<Response> {
-  const base = env(kind, 'URL')?.replace(/\/$/, '');
-  const key = env(kind, 'API_KEY');
+async function arrFetch(kind: ArrKind, config: ArrConfig, path: string): Promise<Response> {
+  const base = config.url?.trim().replace(/\/$/, '') || null;
+  const key = config.apiKey?.trim() || null;
   if (!base) throw new Error(`${kind.toUpperCase()}_URL not configured`);
   if (!key) throw new Error(`${kind.toUpperCase()}_API_KEY not configured`);
   return fetch(`${base}${path}`, {
@@ -40,13 +37,18 @@ function mapCalendar(kind: ArrKind, item: Record<string, unknown>): ArrItem {
   };
 }
 
-async function getJson<T>(kind: ArrKind, path: string): Promise<T> {
-  const res = await arrFetch(kind, path);
+async function getJson<T>(kind: ArrKind, config: ArrConfig, path: string): Promise<T> {
+  const res = await arrFetch(kind, config, path);
   if (!res.ok) throw new Error(`${kind} error: ${res.status}`);
   return (await res.json()) as T;
 }
 
-export async function getArrSummary(kind: ArrKind): Promise<ArrPayload | { error: string }> {
+export async function getArrSummary(kind: ArrKind, config: ArrConfig): Promise<ArrPayload | { error: string }> {
+  const base = config.url?.trim().replace(/\/$/, '') || null;
+  const key = config.apiKey?.trim() || null;
+  if (!base) return { error: `${kind.toUpperCase()}_URL not configured` };
+  if (!key) return { error: `${kind.toUpperCase()}_API_KEY not configured` };
+
   try {
     const now = new Date();
     const end = new Date(now.getTime() + 14 * 86_400_000);
@@ -57,15 +59,16 @@ export async function getArrSummary(kind: ArrKind): Promise<ArrPayload | { error
     });
 
     const [status, queue, wanted, calendar] = await Promise.all([
-      getJson<{ version?: string }>(kind, '/api/v3/system/status'),
+      getJson<{ version?: string }>(kind, config, '/api/v3/system/status'),
       getJson<{ totalRecords?: number; records?: unknown[] }>(
         kind,
+        config,
         '/api/v3/queue?page=1&pageSize=1',
       ),
-      getJson<{ totalRecords?: number }>(kind, '/api/v3/wanted/missing?page=1&pageSize=1').catch(
+      getJson<{ totalRecords?: number }>(kind, config, '/api/v3/wanted/missing?page=1&pageSize=1').catch(
         () => null,
       ),
-      getJson<Record<string, unknown>[]>(kind, `/api/v3/calendar?${params}`),
+      getJson<Record<string, unknown>[]>(kind, config, `/api/v3/calendar?${params}`),
     ]);
 
     return {
