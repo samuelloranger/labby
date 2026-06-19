@@ -1665,7 +1665,7 @@ footer.f {
 
 .card,
 .tile {
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.4s var(--ease) both;
 }
 
 @keyframes rise {
@@ -2086,36 +2086,11 @@ header.top {
   }
 }
 
-/* staggered card cascade — overrides the flat rise timing */
+/* Entrance rise. Per-card delay is stamped in JS (the cascade action in
+   App.svelte) so the stagger follows on-screen position — CSS nth-child can't,
+   because masonry flows cards column-major in the DOM. */
 .grid > .card {
-  animation: rise 0.55s var(--ease) both;
-}
-.grid > .card:nth-child(1) {
-  animation-delay: 0.04s;
-}
-.grid > .card:nth-child(2) {
-  animation-delay: 0.1s;
-}
-.grid > .card:nth-child(3) {
-  animation-delay: 0.16s;
-}
-.grid > .card:nth-child(4) {
-  animation-delay: 0.22s;
-}
-.grid > .card:nth-child(5) {
-  animation-delay: 0.28s;
-}
-.grid > .card:nth-child(6) {
-  animation-delay: 0.34s;
-}
-.grid > .card:nth-child(7) {
-  animation-delay: 0.4s;
-}
-.grid > .card:nth-child(8) {
-  animation-delay: 0.46s;
-}
-.grid > .card:nth-child(n + 9) {
-  animation-delay: 0.52s;
+  animation: rise 0.4s var(--ease) both;
 }
 
 /* staggered tile pop-in within a card */
