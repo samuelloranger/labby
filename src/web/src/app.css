@@ -610,6 +610,9 @@ header.top {
 .summary {
   display: flex;
   gap: 13px;
+  /* Pushes the summary + theme select + icon buttons to the right edge,
+     restoring the brand-left / controls-right split the search pill used to hold. */
+  margin-left: auto;
 }
 
 .chip {
