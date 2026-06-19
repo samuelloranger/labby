@@ -1626,14 +1626,6 @@ header.top {
   margin-top: 8px;
 }
 
-footer.f {
-  padding: 0 40px 36px;
-  color: var(--ink-dim);
-  font-size: 0.78rem;
-  font-weight: 500;
-  text-align: center;
-}
-
 .state-msg {
   color: var(--ink-dim);
   font-size: 0.85rem;
