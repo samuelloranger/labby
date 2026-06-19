@@ -1737,10 +1737,6 @@ footer.f {
     transform 0.18s var(--ease),
     box-shadow 0.18s var(--ease);
 }
-.summary-card:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hi);
-}
 .summary-card:disabled {
   cursor: default;
 }
@@ -2109,14 +2105,6 @@ header.top {
     box-shadow 0.3s var(--ease),
     border-color 0.3s var(--ease);
 }
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    var(--shadow-hi),
-    inset 0 1px 0 var(--glass-hi),
-    0 0 0 1px var(--accent-soft);
-  border-color: var(--accent-soft);
-}
 
 /* tile / row hover */
 .tile,
@@ -2182,28 +2170,6 @@ header.top {
   }
 }
 
-/* card-header icon pops on card hover */
-.chead .ti {
-  transition: transform 0.25s var(--ease);
-}
-.card:hover .chead .ti svg.ic,
-.card:hover .chead .ti img.logo {
-  animation: wiggle 0.5s var(--ease);
-}
-@keyframes wiggle {
-  0% {
-    transform: rotate(0);
-  }
-  25% {
-    transform: rotate(-9deg) scale(1.1);
-  }
-  60% {
-    transform: rotate(7deg) scale(1.1);
-  }
-  100% {
-    transform: rotate(0) scale(1);
-  }
-}
 
 /* meter / progress bars grow on load */
 .bar > *,
