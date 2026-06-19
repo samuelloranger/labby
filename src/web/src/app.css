@@ -1663,21 +1663,6 @@ footer.f {
   }
 }
 
-.card,
-.tile {
-  animation: rise 0.4s var(--ease) both;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -2086,12 +2071,6 @@ header.top {
   }
 }
 
-/* Entrance rise. Per-card delay is stamped in JS (the cascade action in
-   App.svelte) so the stagger follows on-screen position — CSS nth-child can't,
-   because masonry flows cards column-major in the DOM. */
-.grid > .card {
-  animation: rise 0.4s var(--ease) both;
-}
 
 /* staggered tile pop-in within a card */
 .tile {

@@ -18,19 +18,6 @@
       });
     return initStream();
   });
-
-  // Entrance cascade ordered by on-screen position. CSS nth-child can't do this
-  // under masonry (column-count flows top-of-col-1, top-of-col-2, … in DOM order),
-  // so the stagger scattered. Sort the real rects top→left and stamp delays.
-  function cascade(node: HTMLElement) {
-    const cards = [...node.querySelectorAll<HTMLElement>('.card')];
-    cards
-      .map((el) => ({ el, r: el.getBoundingClientRect() }))
-      .sort((a, b) => a.r.top - b.r.top || a.r.left - b.r.left)
-      .forEach(({ el }, i) => {
-        el.style.animationDelay = `${Math.min(i * 0.025, 0.3)}s`;
-      });
-  }
 </script>
 
 <Header {config} />
@@ -53,7 +40,7 @@
   {/if}
 
   {#if config.theme?.layout === 'columns'}
-    <div class="grid-columns" use:cascade>
+    <div class="grid-columns">
       {#each page.columns as col}
         <div class="grid-column {col.size}">
           {#each col.widgets as widget}
@@ -63,7 +50,7 @@
       {/each}
     </div>
   {:else}
-    <div class="grid" use:cascade>
+    <div class="grid">
       {#each page.columns as col}
         {#each col.widgets as widget}
           <WidgetHost {widget} integrationType={integrationsById.get(widget.integrationId)?.type} />
