@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { getStore, searchQuery, type AdGuardData, type WidgetState } from '$lib/stores';
+  import { getStore, type AdGuardData, type WidgetState } from '$lib/stores';
   import { formatNumber } from '$lib/utils';
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
@@ -30,7 +30,6 @@
   }
 </script>
 
-{#if !$searchQuery.trim()}
 <section class="card">
   <div class="chead">
     <span class="ti">
@@ -65,4 +64,3 @@
     </div>
   {/if}
 </section>
-{/if}

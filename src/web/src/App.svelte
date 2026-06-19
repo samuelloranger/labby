@@ -59,5 +59,3 @@
     </div>
   {/if}
 </main>
-
-<footer class="f">labby · glass · config-as-code · no telemetry</footer>
