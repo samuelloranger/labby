@@ -40,6 +40,17 @@ describe('DashboardSchema', () => {
     expect(config.theme.default).toBe('dark-ocean');
   });
 
+  test('parses theme with layout and density', () => {
+    const config = DashboardSchema.parse({
+      title: 'Labby',
+      theme: { default: 'dark-ocean', layout: 'columns', density: 'compact' },
+      pages: [{ name: 'Overview', columns: [{ size: 'small', widgets: [] }] }],
+    });
+    expect(config.theme.default).toBe('dark-ocean');
+    expect(config.theme.layout).toBe('columns');
+    expect(config.theme.density).toBe('compact');
+  });
+
   test('parses weather widget with integrationId', () => {
     const config = DashboardSchema.parse({
       title: 'Labby',

@@ -38,6 +38,7 @@
 
   let theme = $state(config.theme?.default ?? 'system');
   let layout = $state(config.theme?.layout ?? 'masonry');
+  let density = $state<'default' | 'compact'>('default');
   let customCss = $state(config.theme?.customCss ?? '');
   let settingsOpen = $state(false);
   let saving = $state(false);
@@ -98,6 +99,16 @@
       }
     } catch {}
 
+    try {
+      const storedDensity = localStorage.getItem('labby-density');
+      if (storedDensity) {
+        density = storedDensity as any;
+      } else {
+        density = config.theme?.density ?? 'default';
+      }
+      document.documentElement.dataset.density = density;
+    } catch {}
+
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const mon = [
       'January', 'February', 'March', 'April', 'May', 'June',
@@ -141,6 +152,12 @@
     config.theme.layout = next;
   }
 
+  function previewDensity(next: 'default' | 'compact') {
+    density = next;
+    config.theme.density = next;
+    document.documentElement.dataset.density = next;
+  }
+
   function previewCss(next: string) {
     customCss = next;
     config.theme.customCss = next;
@@ -172,6 +189,7 @@
   function openSettings() {
     theme = config.theme?.default ?? 'system';
     layout = config.theme?.layout ?? 'masonry';
+    density = config.theme?.density ?? 'default';
     customCss = config.theme?.customCss ?? '';
     settingsOpen = true;
   }
@@ -187,8 +205,11 @@
     }
     theme = originalTheme;
     config.theme.layout = config.theme?.layout ?? 'masonry';
+    config.theme.density = config.theme?.density ?? 'default';
     config.theme.customCss = config.theme?.customCss ?? '';
     layout = config.theme?.layout ?? 'masonry';
+    density = config.theme?.density ?? 'default';
+    document.documentElement.dataset.density = density;
     customCss = config.theme?.customCss ?? '';
   }
 
@@ -201,12 +222,14 @@
         body: JSON.stringify({
           theme: theme,
           layout: layout,
+          density: density,
           customCss: customCss,
         }),
       });
       if (res.ok) {
         config.theme.default = theme;
         config.theme.layout = layout;
+        config.theme.density = density;
         config.theme.customCss = customCss;
         try {
           if (theme === 'system') {
@@ -214,6 +237,7 @@
           } else {
             localStorage.setItem('labby-theme', theme);
           }
+          localStorage.setItem('labby-density', density);
         } catch {}
         settingsOpen = false;
       }
@@ -303,6 +327,21 @@
           </label>
         </div>
         <p class="settings-help">Masonry packs widgets to fill vertical gaps. Columns keeps them exactly where you arranged them.</p>
+      </div>
+
+      <div class="settings-group">
+        <span class="settings-label">Density</span>
+        <div class="settings-radio-group">
+          <label class="radio-label">
+            <input type="radio" name="density" value="default" checked={density === 'default'} onchange={() => previewDensity('default')} />
+            <span>Default</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="density" value="compact" checked={density === 'compact'} onchange={() => previewDensity('compact')} />
+            <span>Compact</span>
+          </label>
+        </div>
+        <p class="settings-help">Compact reduces padding, card margins, and list item spacing so more content fits on screen.</p>
       </div>
 
       <div class="settings-group">

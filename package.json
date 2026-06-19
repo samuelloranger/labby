@@ -1,6 +1,6 @@
 {
   "name": "labby",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "license": "MIT",
   "description": "Self-hosted homelab dashboard: one Bun process serving a JSON API, a Svelte SPA, and an SSE stream.",

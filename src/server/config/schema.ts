@@ -30,9 +30,13 @@ export type ThemeName = z.infer<typeof ThemeSchema>;
 export const LayoutSchema = z.enum(['masonry', 'columns']);
 export type LayoutType = z.infer<typeof LayoutSchema>;
 
+export const DensitySchema = z.enum(['default', 'compact']);
+export type DensityType = z.infer<typeof DensitySchema>;
+
 export const ThemeConfigSchema = z.object({
   default: ThemeSchema.default('system'),
   layout: LayoutSchema.default('masonry'),
+  density: DensitySchema.default('default'),
   customCss: z.string().optional(),
 });
 export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
