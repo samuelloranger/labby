@@ -1,3 +1,5 @@
+import { TIMEOUT_MS } from './http';
+
 export type RedditPost = {
   title: string;
   url: string;
@@ -74,7 +76,7 @@ export async function getRedditPosts(
               'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             Accept: 'application/atom+xml, text/xml',
           },
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(TIMEOUT_MS),
         });
         if (!res.ok) {
           anyFailed = true;
