@@ -22,21 +22,42 @@
 
   let listOpen = $state(false);
   let pending = $state<Record<string, boolean>>({});
+  // Optimistic paused state per hash: flip the row immediately on click, then
+  // clear once the live SSE state agrees (or revert if the action failed).
+  let optimistic = $state<Record<string, boolean>>({});
 
   async function toggle(hash: string, action: 'pause' | 'resume') {
+    optimistic = { ...optimistic, [hash]: action === 'pause' };
     pending = { ...pending, [hash]: true };
     try {
-      await fetch(`/api/integrations/${integrationId}/action/${action}`, {
+      const res = await fetch(`/api/integrations/${integrationId}/action/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ args: [hash] }),
       });
-    } finally {
-      const next = { ...pending };
+      if (!res.ok) throw new Error('action failed');
+    } catch {
+      // Revert the optimistic flip if the action did not take.
+      const next = { ...optimistic };
       delete next[hash];
-      pending = next;
+      optimistic = next;
+    } finally {
+      const p = { ...pending };
+      delete p[hash];
+      pending = p;
     }
   }
+
+  // Drop the optimistic override once the live state reflects the intent.
+  $effect(() => {
+    for (const t of allTorrents) {
+      if (t.hash in optimistic && isPaused(t.state) === optimistic[t.hash]) {
+        const next = { ...optimistic };
+        delete next[t.hash];
+        optimistic = next;
+      }
+    }
+  });
 
   function isPaused(s: string): boolean {
     // qBittorrent 5.x: stoppedUP / stoppedDL; older: pausedUP / pausedDL; transmission: stopped
@@ -76,7 +97,7 @@
     <div class="dl">
       {#each list as t (t.hash)}
         {@const seed = isSeedingTorrent(t.state, t.progress)}
-        {@const paused = isPaused(t.state)}
+        {@const paused = t.hash in optimistic ? optimistic[t.hash] : isPaused(t.state)}
         <div class="tor" class:seed={seed} class:paused={paused}>
           <div class="top">
             <span class="dot {paused ? 'idle' : seed ? 'ok' : 'live'}"></span>
