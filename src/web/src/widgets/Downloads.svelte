@@ -79,14 +79,17 @@
         <div class="tor" class:seed={seed}>
           <div class="top">
             <span class="dot {paused ? 'idle' : seed ? 'ok' : 'live'}"></span>
+            <span class="tname" title={t.name}>{t.name}</span>
+            <span class="pct">{Math.round(clampPercent(t.progress))}%</span>
             <button
-              class="tname"
-              style="background:none;border:none;cursor:pointer;text-align:left;padding:0"
+              class="tor-action"
               title={paused ? 'Resume' : 'Pause'}
+              aria-label={paused ? 'Resume torrent' : 'Pause torrent'}
               disabled={pending[t.hash]}
               onclick={() => toggle(t.hash, paused ? 'resume' : 'pause')}
-            >{t.name}</button>
-            <span class="pct">{Math.round(clampPercent(t.progress))}%</span>
+            >
+              <Icon icon={paused ? 'lucide:play' : 'lucide:pause'} size={15} />
+            </button>
           </div>
           <div class="bar"><i style:width="{clampPercent(t.progress)}%"></i></div>
           <div class="spd">
@@ -101,3 +104,30 @@
     </div>
   </Modal>
 {/if}
+
+<style>
+  .tor-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition:
+      background 0.15s var(--ease),
+      color 0.15s var(--ease);
+  }
+  .tor-action:hover:not(:disabled) {
+    background: var(--accent);
+    color: #fff;
+  }
+  .tor-action:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+</style>
