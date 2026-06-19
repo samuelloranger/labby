@@ -12,7 +12,7 @@
   --radius: 20px;
   --radius-sm: 12px;
   --pill: 999px;
-  --blur: saturate(180%) blur(20px);
+  --blur: saturate(180%) blur(12px);
   --accent: #ff9500;
   --accent-soft: rgba(255, 149, 0, 0.15);
   --ok: #30b85f;
@@ -1688,6 +1688,17 @@ footer.f {
   }
 }
 
+/* Drop the glass blur for users/devices that ask for less transparency — also
+   the cheapest escape hatch for weak GPUs where backdrop-filter is the bottleneck. */
+@media (prefers-reduced-transparency: reduce) {
+  *,
+  *::before,
+  *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
 .logs-modal {
   position: fixed;
   inset: 0;
@@ -2266,7 +2277,10 @@ header.top {
   animation: breathe 2.4s var(--ease) infinite;
 }
 
-/* slow drifting aurora over the wallpaper */
+/* Static aurora over the wallpaper. It used to drift (animation: drift), but a
+   fixed full-viewport layer moving under the glass cards forced every
+   backdrop-filter to re-blur each frame — sustained jank on weak GPUs. Static =
+   the glass composites once and idle cost drops to ~zero. */
 body::before {
   content: "";
   position: fixed;
@@ -2277,15 +2291,6 @@ body::before {
     radial-gradient(35% 35% at 30% 30%, var(--accent-soft) 0%, transparent 70%),
     radial-gradient(40% 40% at 70% 70%, var(--accent-soft) 0%, transparent 70%);
   opacity: 0.5;
-  animation: drift 24s ease-in-out infinite alternate;
-}
-@keyframes drift {
-  from {
-    transform: translate(-4%, -3%) rotate(0deg) scale(1);
-  }
-  to {
-    transform: translate(5%, 4%) rotate(8deg) scale(1.15);
-  }
 }
 
 /* grid-columns layout and columns settings */
