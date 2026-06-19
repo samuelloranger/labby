@@ -63,6 +63,7 @@ export type Dashboard = {
   theme: {
     default: ThemeName;
     layout: LayoutType;
+    density?: 'default' | 'compact';
     customCss?: string;
   };
   pages: Page[];

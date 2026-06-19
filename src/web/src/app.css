@@ -811,21 +811,57 @@ header.top {
 }
 
 @media (max-width: 720px) {
+  .header-time,
+  .custom-select {
+    display: none !important;
+  }
   .top-in {
+    display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    padding: 12px 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
   }
   .searchpill {
-    order: 3;
+    order: 10;
     width: 100%;
     margin: 0;
+    height: 36px;
+  }
+  .searchpill input {
+    height: 34px;
+  }
+  .searchpill .go {
+    height: 34px;
+    width: 34px;
+  }
+  .brand {
+    font-size: 1.1rem;
+    gap: 6px;
+  }
+  .brand .logo {
+    width: 22px;
+    height: 22px;
+  }
+  .summary {
+    margin-left: auto;
+    gap: 4px;
+  }
+  .chip {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+  }
+  .iconbtn {
+    padding: 6px;
+    width: 32px;
+    height: 32px;
   }
   .page {
-    padding: 20px 16px 40px;
+    padding: 12px 12px 30px;
   }
   .page-h h1 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
   }
   /* cpu meter doesn't fit beside the name + action buttons on a phone */
   .ctr .usage {
@@ -2476,4 +2512,235 @@ body::before {
 .settings-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Compact Density */
+:root[data-density="compact"] {
+  --radius: 12px;
+  --radius-sm: 8px;
+  font-size: 15px;
+}
+
+:root[data-density="compact"] .top-in {
+  padding: 8px 24px;
+  gap: 16px;
+}
+
+:root[data-density="compact"] .brand {
+  font-size: 1.1rem;
+  gap: 8px;
+}
+
+:root[data-density="compact"] .brand .logo {
+  width: 24px;
+  height: 24px;
+}
+
+:root[data-density="compact"] .searchpill {
+  padding: 5px 12px 5px 6px;
+}
+
+:root[data-density="compact"] .searchpill input {
+}
+
+:root[data-density="compact"] .summary {
+  gap: 6px;
+}
+
+:root[data-density="compact"] .chip {
+  padding: 3px 8px;
+  font-size: 0.8rem;
+}
+
+:root[data-density="compact"] .header-time {
+  font-size: 0.8rem;
+}
+
+:root[data-density="compact"] .page {
+  padding: 16px 24px 30px;
+}
+
+:root[data-density="compact"] .page-h {
+  margin-bottom: 12px;
+}
+
+:root[data-density="compact"] .page-tab {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+:root[data-density="compact"] .grid {
+  column-gap: 12px;
+}
+
+:root[data-density="compact"] .grid > .card {
+  margin-bottom: 12px;
+}
+
+:root[data-density="compact"] .grid-columns {
+  gap: 12px;
+}
+
+:root[data-density="compact"] .grid-column {
+  gap: 12px;
+}
+
+:root[data-density="compact"] .card {
+  padding: 12px;
+}
+
+:root[data-density="compact"] .chead {
+  margin-bottom: 10px;
+}
+
+:root[data-density="compact"] .chead .ti {
+  font-size: 0.95rem;
+}
+
+:root[data-density="compact"] .chead .ibox {
+  width: 24px;
+  height: 24px;
+}
+
+:root[data-density="compact"] .row {
+  padding: 6px 0;
+  font-size: 0.85rem;
+  gap: 8px;
+}
+
+:root[data-density="compact"] .gauges {
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+:root[data-density="compact"] .gauge {
+  padding: 8px 12px;
+}
+
+:root[data-density="compact"] .gauge .v {
+  font-size: 1.3rem;
+}
+
+:root[data-density="compact"] .gauge .k {
+  font-size: 0.68rem;
+  margin-top: 1px;
+}
+
+:root[data-density="compact"] .sess {
+  gap: 8px;
+}
+
+:root[data-density="compact"] .jf {
+  gap: 10px;
+}
+
+:root[data-density="compact"] .poster {
+  width: 32px;
+  height: 45px;
+  border-radius: 6px;
+}
+
+:root[data-density="compact"] .jf .cti {
+  font-size: 0.85rem;
+}
+
+:root[data-density="compact"] .jf .sub {
+  font-size: 0.76rem;
+}
+
+:root[data-density="compact"] .jf .who {
+  font-size: 0.72rem;
+}
+
+:root[data-density="compact"] .beszel-summary {
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+:root[data-density="compact"] .beszel-summary div {
+  padding: 8px 10px;
+}
+
+:root[data-density="compact"] .beszel-summary b {
+  font-size: 1.1rem;
+  margin-top: 1px;
+}
+
+:root[data-density="compact"] .beszel-host {
+  margin: -2px 0 8px;
+  gap: 8px;
+}
+
+:root[data-density="compact"] .beszel-host strong {
+  font-size: 0.85rem;
+}
+
+:root[data-density="compact"] .beszel-disk-head {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+}
+
+:root[data-density="compact"] .agenda-day {
+  margin: 6px 0 2px;
+}
+
+:root[data-density="compact"] .agenda-row {
+  padding: 4px 6px;
+  gap: 8px;
+}
+
+:root[data-density="compact"] .agenda-time {
+  flex: 0 0 56px;
+  font-size: 0.75rem;
+}
+
+:root[data-density="compact"] .agenda-title {
+  font-size: 0.85rem;
+}
+
+:root[data-density="compact"] .agenda-loc {
+  font-size: 0.7rem;
+}
+
+:root[data-density="compact"] .weather-hero {
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+:root[data-density="compact"] .weather-temp {
+  font-size: 1.8rem;
+}
+
+:root[data-density="compact"] .weather-desc {
+  font-size: 0.85rem;
+}
+
+:root[data-density="compact"] .weather-forecast {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+:root[data-density="compact"] .chart-container {
+  margin: 8px 0 4px;
+  padding: 6px;
+}
+
+:root[data-density="compact"] .sparkline-svg {
+  height: 60px;
+}
+
+:root[data-density="compact"] .history-list {
+  margin-top: 8px;
+  padding-top: 8px;
+  gap: 4px;
+}
+
+:root[data-density="compact"] .history-item {
+  font-size: 0.75rem;
+}
+
+:root[data-density="compact"] .rows {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 12px;
 }

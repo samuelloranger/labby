@@ -3,7 +3,7 @@ import path from 'node:path';
 import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import { getConfig, getConfigState, saveThemeSettings } from './config/loader';
-import { LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
+import { DensitySchema, LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
 import {
   createIntegration,
   deleteIntegration,
@@ -143,7 +143,12 @@ app.get('/api/integrations/:id/logs/:containerId', async (c) => {
 });
 
 app.post('/api/theme', async (c) => {
-  const body = await c.req.json<{ theme?: string; layout?: string; customCss?: string }>();
+  const body = await c.req.json<{
+    theme?: string;
+    layout?: string;
+    density?: string;
+    customCss?: string;
+  }>();
   const updates: Parameters<typeof saveThemeSettings>[0] = {};
 
   if (body.theme !== undefined) {
@@ -159,6 +164,13 @@ app.post('/api/theme', async (c) => {
       return c.json({ error: 'Invalid layout' }, 400);
     }
     updates.layout = parsed.data;
+  }
+  if (body.density !== undefined) {
+    const parsed = DensitySchema.safeParse(body.density);
+    if (!parsed.success) {
+      return c.json({ error: 'Invalid density' }, 400);
+    }
+    updates.density = parsed.data;
   }
   if (body.customCss !== undefined) {
     updates.customCss = body.customCss;
@@ -215,9 +227,11 @@ async function serveStatic(c: Context) {
   // Set an explicit Content-Type — c.body() does not infer it, and browsers
   // reject JS modules / CSS served without the correct MIME type.
   c.header('Content-Type', file.type || 'application/octet-stream');
-  // Build output is content-hashed (e.g. index-BQsN9bVw.js), so it's safe to
-  // cache forever; a new build emits new filenames and the no-cache HTML points to them.
-  c.header('Cache-Control', 'public, max-age=31536000, immutable');
+  if (c.req.path === '/sw.js' || c.req.path === '/manifest.webmanifest') {
+    c.header('Cache-Control', 'no-cache');
+  } else {
+    c.header('Cache-Control', 'public, max-age=31536000, immutable');
+  }
   return c.body(file.stream());
 }
 
@@ -225,6 +239,7 @@ app.get('/assets/*', serveStatic);
 app.get('/icons/*', serveStatic);
 app.get('/fonts/*', serveStatic);
 app.get('/manifest.webmanifest', serveStatic);
+app.get('/sw.js', serveStatic);
 
 app.get('*', async (c) => {
   const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
