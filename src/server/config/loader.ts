@@ -1,5 +1,11 @@
 import { getSetting, setSetting } from '../db';
-import { type Dashboard, DashboardSchema, type LayoutType, type ThemeName } from './schema';
+import {
+  type Dashboard,
+  DashboardSchema,
+  type DensityType,
+  type LayoutType,
+  type ThemeName,
+} from './schema';
 
 export type ConfigState = { ok: true; config: Dashboard } | { ok: false; error: string };
 
@@ -51,6 +57,7 @@ export async function loadConfig(): Promise<ConfigState> {
 export async function saveThemeSettings(settings: {
   default?: ThemeName;
   layout?: LayoutType;
+  density?: DensityType;
   customCss?: string;
 }): Promise<void> {
   const raw = await readConfigRaw();
@@ -60,6 +67,7 @@ export async function saveThemeSettings(settings: {
     ...oldTheme,
     ...(settings.default ? { default: settings.default } : {}),
     ...(settings.layout ? { layout: settings.layout } : {}),
+    ...(settings.density ? { density: settings.density } : {}),
     ...(settings.customCss !== undefined ? { customCss: settings.customCss } : {}),
   };
   const config = DashboardSchema.parse(parsed);
