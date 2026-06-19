@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
 import type { QbitConfig } from './qbittorrent';
-import { getQBittorrentTorrents } from './qbittorrent';
+import { getQBittorrentTorrents, qbittorrentAction } from './qbittorrent';
 
 describe('qBittorrent client', () => {
   test('reports missing config', async () => {
@@ -45,5 +45,36 @@ describe('qBittorrent client', () => {
       expect(result.torrents[0].name).toBe('test.iso');
       expect(result.torrents[0].progress).toBe(42);
     }
+  });
+
+  // qBittorrent 5.x reads `hashes` from the x-www-form-urlencoded body and
+  // rejects it as a query param with 400. Regression test: the action must
+  // send hashes in the body, never the URL.
+  test('pause sends hashes in the request body, not the query string', async () => {
+    const config: QbitConfig = { url: 'http://qb.test', user: 'admin', pass: 'admin' };
+    let captured: { url: string; body: string; contentType: string | null } | null = null;
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith('/api/v2/auth/login')) {
+        return new Response('Ok.', { status: 200, headers: { 'set-cookie': 'SID=x; path=/' } });
+      }
+      captured = {
+        url,
+        body: init?.body ? String(init.body) : '',
+        contentType: new Headers(init?.headers).get('Content-Type'),
+      };
+      return new Response('', { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const result = await qbittorrentAction(config, 'HASH123', 'pause');
+    globalThis.fetch = originalFetch;
+
+    expect(result).toEqual({ ok: true });
+    expect(captured).not.toBeNull();
+    expect(captured?.url).not.toContain('hashes=');
+    expect(captured?.body).toContain('hashes=HASH123');
+    expect(captured?.contentType).toContain('application/x-www-form-urlencoded');
   });
 });

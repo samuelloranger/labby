@@ -102,13 +102,13 @@ export async function qbittorrentAction(
 
   try {
     for (const ep of endpoints) {
-      const res = await qbitFetch(
-        config,
-        `/api/v2/torrents/${ep}?hashes=${encodeURIComponent(hash)}`,
-        {
-          method: 'POST',
-        },
-      );
+      // qBittorrent reads `hashes` from the form body; sending it as a query
+      // param returns 400 on 5.x (and is ignored elsewhere).
+      const res = await qbitFetch(config, `/api/v2/torrents/${ep}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ hashes: hash }),
+      });
       if (res.ok) return { ok: true };
     }
     return { error: `qBittorrent ${action} failed` };
