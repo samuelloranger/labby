@@ -31,23 +31,36 @@ Do not expose Labby to the public internet without network-level access control.
 
 ## Quick start
 
-Requires [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`). Prefer no local toolchain? Use [Docker](#docker) instead — no Bun needed.
+Labby runs as a single container. Copy [`docker-compose.yml`](docker-compose.yml) and start it:
+
+```bash
+docker compose up -d
+```
+
+```yaml
+services:
+  labby:
+    image: ghcr.io/samuelloranger/labby:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config
+```
+
+Open `http://localhost:8080`, then add your service URLs and credentials on the **Manage Services** page (the Database icon in the header). On first run Labby seeds its SQLite DB (`config/labby.db`) with a default layout via built-in migrations; everything you configure is stored there, in the mounted `config/` volume.
+
+> **`config/` must be writable by the user the container runs as.** If the DB errors with `SQLITE_READONLY`, set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`. Labby has no auth — keep it behind a LAN/VPN reverse proxy (see [Security](#security)).
+
+## Build from source
+
+Requires [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`).
 
 ```bash
 bun install && (cd src/web && bun install)
 bun run build
 bun run start
 ```
-
-Open `http://localhost:8080`, then add your service URLs and credentials on the **Manage Services** page (the Database icon in the header). Everything is stored in the SQLite DB.
-
-### Docker
-
-```bash
-docker compose up -d --build
-```
-
-On first run Labby automatically seeds its SQLite DB (`config/labby.db`) with a default layout and example integrations via built-in migrations. Configure your homelab services on the **Manage Services** page (the Database icon in the header). The DB lives in the mounted `config/` volume, so it must be writable **by the user the container runs as** — set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`, or writes fail with `SQLITE_READONLY`. Adjust `docker-compose.yml` networks to match your setup.
 
 ## Configuration
 
