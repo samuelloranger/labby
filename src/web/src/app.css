@@ -1655,7 +1655,6 @@ header.top {
   }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -2059,7 +2058,6 @@ header.top {
   }
 }
 
-
 /* staggered tile pop-in within a card */
 .tile {
   animation: pop-in 0.45s var(--ease) both;
@@ -2161,7 +2159,6 @@ header.top {
     transform: translateY(-4px);
   }
 }
-
 
 /* meter / progress bars grow on load */
 .bar > *,
