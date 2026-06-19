@@ -38,7 +38,7 @@
 
   let theme = $state(config.theme?.default ?? 'system');
   let layout = $state(config.theme?.layout ?? 'masonry');
-  let density = $state<'default' | 'compact'>('default');
+  let density = $state<'default' | 'compact'>('compact');
   let customCss = $state(config.theme?.customCss ?? '');
   let settingsOpen = $state(false);
   let saving = $state(false);
@@ -104,7 +104,7 @@
       if (storedDensity) {
         density = storedDensity as any;
       } else {
-        density = config.theme?.density ?? 'default';
+        density = config.theme?.density ?? 'compact';
       }
       document.documentElement.dataset.density = density;
     } catch {}

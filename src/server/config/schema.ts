@@ -36,7 +36,7 @@ export type DensityType = z.infer<typeof DensitySchema>;
 export const ThemeConfigSchema = z.object({
   default: ThemeSchema.default('system'),
   layout: LayoutSchema.default('masonry'),
-  density: DensitySchema.default('default'),
+  density: DensitySchema.default('compact'),
   customCss: z.string().optional(),
 });
 export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
