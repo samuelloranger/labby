@@ -798,6 +798,12 @@ header.top {
   column-gap: 20px;
 }
 
+@media (min-width: 1600px) {
+  .grid {
+    column-count: 4;
+  }
+}
+
 /* masonry: cards flow into columns; keep each card intact and spaced */
 .grid > .card {
   break-inside: avoid;
