@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test';
-import { parseRedditFeed } from './reddit';
+import { describe, expect, mock, test } from 'bun:test';
+import { getRedditPosts, parseRedditFeed } from './reddit';
 
 describe('parseRedditFeed', () => {
   const xml = `<feed>
@@ -47,5 +47,61 @@ describe('parseRedditFeed', () => {
     const posts = parseRedditFeed(merged, 'homelab+selfhosted', 12);
     expect(posts[0].subreddit).toBe('r/homelab');
     expect(posts[1].subreddit).toBe('r/homelab');
+  });
+});
+
+describe('getRedditPosts', () => {
+  const feedXml = `<feed>
+    <entry>
+      <title>Hot post</title>
+      <link href="https://www.reddit.com/r/selfhosted/comments/a/title/" />
+      <updated>2024-06-15T12:00:00+00:00</updated>
+    </entry>
+  </feed>`;
+
+  test('returns empty posts when no subreddits configured', async () => {
+    expect(await getRedditPosts({})).toEqual({ subreddit: '', posts: [] });
+  });
+
+  test('fetches and merges subreddit feeds', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      expect(url).toContain('/r/selfhosted/hot.rss');
+      return new Response(feedXml, { status: 200, headers: { 'Content-Type': 'application/xml' } });
+    }) as unknown as typeof fetch;
+
+    const result = await getRedditPosts({ subreddits: ['selfhosted'], max: 5 });
+    globalThis.fetch = originalFetch;
+
+    expect('posts' in result).toBe(true);
+    if ('posts' in result) {
+      expect(result.subreddit).toBe('selfhosted');
+      expect(result.posts[0].title).toBe('Hot post');
+    }
+  });
+
+  test('returns error when all feeds fail', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(
+      async () => new Response('fail', { status: 503 }),
+    ) as unknown as typeof fetch;
+
+    const result = await getRedditPosts({ subreddits: ['selfhosted'] });
+    globalThis.fetch = originalFetch;
+
+    expect(result).toEqual({ error: 'Reddit feed unavailable' });
+  });
+
+  test('returns error when fetch throws', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async () => {
+      throw new Error('reddit down');
+    }) as unknown as typeof fetch;
+
+    const result = await getRedditPosts({ subreddits: ['selfhosted'] });
+    globalThis.fetch = originalFetch;
+
+    expect(result).toEqual({ error: 'Reddit feed unavailable' });
   });
 });
