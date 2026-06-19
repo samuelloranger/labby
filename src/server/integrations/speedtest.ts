@@ -1,4 +1,5 @@
 import type { SpeedtestPayload } from '../types';
+import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type SpeedtestConfig = { url?: string; apiToken?: string };
 
@@ -7,7 +8,7 @@ async function speedtestFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const tok = config.apiToken?.trim() || null;
   if (!base) throw new Error('SPEEDTEST_TRACKER_URL not configured');
   if (!tok) throw new Error('SPEEDTEST_TRACKER_API_TOKEN not configured');
@@ -19,7 +20,7 @@ async function speedtestFetch(
       Accept: 'application/json',
       ...(init?.headers as Record<string, string>),
     },
-    signal: init?.signal ?? AbortSignal.timeout(15000),
+    signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS),
   });
 }
 
@@ -35,12 +36,12 @@ export async function getSpeedtestSummary(
   config: SpeedtestConfig,
   max = 10,
 ): Promise<SpeedtestPayload | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const tok = config.apiToken?.trim() || null;
   if (!base) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
   if (!tok) return { error: 'SPEEDTEST_TRACKER_API_TOKEN not configured' };
 
-  try {
+  return soft('Speedtest Tracker', async () => {
     const res = await speedtestFetch(config, `/api/v1/results?sort=-created_at&per_page=${max}`);
     if (!res.ok) return { error: `Speedtest Tracker error: ${res.status}` };
 
@@ -61,17 +62,13 @@ export async function getSpeedtestSummary(
       latest: history[0] ?? null,
       history,
     };
-  } catch (err) {
-    return {
-      error: err instanceof Error ? err.message : 'Speedtest Tracker unreachable',
-    };
-  }
+  });
 }
 
 export async function triggerSpeedtestRun(
   config: SpeedtestConfig,
 ): Promise<{ ok: true } | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const tok = config.apiToken?.trim() || null;
   if (!base) return { error: 'SPEEDTEST_TRACKER_URL not configured' };
   if (!tok) return { error: 'SPEEDTEST_TRACKER_API_TOKEN not configured' };

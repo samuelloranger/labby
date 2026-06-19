@@ -8,6 +8,7 @@ import {
   normalizeContainerName,
   type RawDockerContainer,
 } from './docker';
+import { soft } from './http';
 
 export type { DockerConfig };
 
@@ -18,7 +19,7 @@ export async function listContainers(
   const base = dockerHost(config.roHost);
   if (!base) return { error: 'DOCKER_RO_HOST not configured' };
 
-  try {
+  return soft('Docker', async () => {
     const all = show === 'all';
     const res = await dockerFetch(base, `/containers/json?all=${all}`);
     if (!res.ok) return { error: `Docker API error: ${res.status}` };
@@ -65,9 +66,7 @@ export async function listContainers(
     );
 
     return { containers };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Docker unreachable' };
-  }
+  });
 }
 
 export async function containerAction(

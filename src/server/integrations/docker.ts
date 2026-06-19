@@ -1,3 +1,5 @@
+import { TIMEOUT_MS } from './http';
+
 export type DockerConfig = { roHost?: string; rwHost?: string; show?: 'all' | 'running' };
 
 export function dockerHost(host: string | undefined): string | null {
@@ -11,7 +13,7 @@ export async function dockerFetch(
   init?: RequestInit,
 ): Promise<Response> {
   const url = `${base}${path}`;
-  return fetch(url, { ...init, signal: init?.signal ?? AbortSignal.timeout(15000) });
+  return fetch(url, { ...init, signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS) });
 }
 
 export function demuxDockerLogs(buffer: ArrayBuffer): string {

@@ -1,4 +1,5 @@
 import type { CalendarEvent, CalendarPayload } from '../types';
+import { TIMEOUT_MS } from './http';
 
 type IcsDate = { epoch: number; allDay: boolean };
 type IcsSource = { name: string; url: string };
@@ -191,7 +192,7 @@ export async function getCalendarEvents(
   const lists = await Promise.all(
     srcs.map(async (src) => {
       try {
-        const res = await fetch(src.url, { signal: AbortSignal.timeout(15000) });
+        const res = await fetch(src.url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
         if (!res.ok) return [];
         return parseICS(await res.text(), src.name, now, windowEnd);
       } catch {

@@ -1,4 +1,5 @@
 import type { BeszelDisk, BeszelPayload, BeszelSystem } from '../types';
+import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type BeszelConfig = { url?: string; user?: string; pass?: string; token?: string };
 
@@ -109,7 +110,7 @@ function usedPercentForDevice(
 }
 
 async function authenticate(config: BeszelConfig): Promise<string | null> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return null;
   const identity = config.user ?? '';
   const password = config.pass ?? '';
@@ -119,7 +120,7 @@ async function authenticate(config: BeszelConfig): Promise<string | null> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ identity, password }),
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`Beszel auth error: ${res.status}`);
 
@@ -130,7 +131,7 @@ async function authenticate(config: BeszelConfig): Promise<string | null> {
 }
 
 async function beszelFetch(config: BeszelConfig, path: string, retry = true): Promise<Response> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) throw new Error('BESZEL_URL not configured');
 
   const configToken = config.token || null;
@@ -139,7 +140,7 @@ async function beszelFetch(config: BeszelConfig, path: string, retry = true): Pr
 
   const res = await fetch(`${base}${path}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 
   if (res.status === 401 && cachedToken && retry && !configToken) {
@@ -197,10 +198,10 @@ export async function getBeszelSystems(
   names?: string[],
   max?: number,
 ): Promise<BeszelPayload | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return { error: 'BESZEL_URL not configured' };
 
-  try {
+  return soft('Beszel', async () => {
     const systemFields = encodeURIComponent('id,name,host,status,info');
     const diskFields = encodeURIComponent(
       'id,system,name,model,type,state,temp,capacity,hours,attributes',
@@ -241,7 +242,5 @@ export async function getBeszelSystems(
       });
 
     return { systems, disks, summary };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Beszel unreachable' };
-  }
+  });
 }
