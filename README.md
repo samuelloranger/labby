@@ -11,7 +11,7 @@
   <a href="https://github.com/samuelloranger/labby/pkgs/container/labby"><img src="https://img.shields.io/badge/ghcr.io-labby-2496ED?logo=docker&logoColor=white" alt="Container image" /></a>
 </p>
 
-![Dashboard Screenshot](docs/screenshot-v1.2.1.png)
+![Dashboard Screenshot](docs/screenshot-v1.3.0.png)
 
 A self-hosted homelab dashboard — lightweight like [Glance](https://github.com/glanceapp/glance), interactive like [Homarr](https://github.com/homarr-labs/homarr). One Bun process, one container, config stored in a small SQLite database and editable in-app.
 
