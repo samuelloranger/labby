@@ -39,7 +39,8 @@
   }
 
   function isPaused(s: string): boolean {
-    return s.includes('paused') || s === 'stopped';
+    // qBittorrent 5.x: stoppedUP / stoppedDL; older: pausedUP / pausedDL; transmission: stopped
+    return s.includes('paused') || s.includes('stopped');
   }
 </script>
 
@@ -76,7 +77,7 @@
       {#each list as t (t.hash)}
         {@const seed = isSeedingTorrent(t.state, t.progress)}
         {@const paused = isPaused(t.state)}
-        <div class="tor" class:seed={seed}>
+        <div class="tor" class:seed={seed} class:paused={paused}>
           <div class="top">
             <span class="dot {paused ? 'idle' : seed ? 'ok' : 'live'}"></span>
             <span class="tname" title={t.name}>{t.name}</span>
@@ -96,7 +97,7 @@
             <span class="dn">↓ {formatBytesPerSec(t.dlSpeed)}</span>
             <span>↑ {formatBytesPerSec(t.upSpeed)}</span>
             <span style="color:var(--ink-faint)">
-              {#if seed}seeding{#if t.ratio != null} · ratio {t.ratio.toFixed(1)}{/if}{:else}{formatEta(t.eta)}{/if}
+              {#if paused}paused{:else if seed}seeding{#if t.ratio != null} · ratio {t.ratio.toFixed(1)}{/if}{:else}{formatEta(t.eta)}{/if}
             </span>
           </div>
         </div>
@@ -129,5 +130,11 @@
   .tor-action:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+  .tor.paused {
+    opacity: 0.55;
+  }
+  .tor.paused .bar i {
+    background: var(--ink-faint);
   }
 </style>
