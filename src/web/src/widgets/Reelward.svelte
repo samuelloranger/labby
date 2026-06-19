@@ -1,19 +1,15 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { getStore, searchQuery, type ReelwardData, type WidgetState } from '$lib/stores';
+  import { getStore, type ReelwardData, type WidgetState } from '$lib/stores';
 
   let { title, integrationId, max = 5 }: { title: string; integrationId: number; max?: number } = $props();
 
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<ReelwardData>);
-  const q = $derived($searchQuery.trim().toLowerCase());
-  const upcoming = $derived(
-    (state.data?.upcoming ?? []).filter((item) => !q || item.title.toLowerCase().includes(q)).slice(0, max),
-  );
+  const upcoming = $derived((state.data?.upcoming ?? []).slice(0, max));
   const online = $derived((state.data?.trackers ?? []).filter((tracker) => tracker.connected).length);
 </script>
 
-{#if !$searchQuery.trim() || upcoming.length}
 <section class="card">
   <div class="chead">
     <span class="ti">
@@ -62,7 +58,6 @@
     {/if}
   {/if}
 </section>
-{/if}
 
 <style>
   .list-head {

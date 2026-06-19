@@ -12,7 +12,7 @@
   --radius: 20px;
   --radius-sm: 12px;
   --pill: 999px;
-  --blur: saturate(180%) blur(20px);
+  --blur: saturate(180%) blur(12px);
   --accent: #ff9500;
   --accent-soft: rgba(255, 149, 0, 0.15);
   --ok: #30b85f;
@@ -607,54 +607,12 @@ header.top {
   }
 }
 
-.searchpill {
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-radius: var(--pill);
-  padding: 8px 8px 8px 20px;
-  width: min(380px, 100%);
-  background: var(--glass-2);
-  -webkit-backdrop-filter: var(--blur);
-  backdrop-filter: var(--blur);
-  border: 1px solid var(--glass-brd);
-  transition: 0.18s var(--ease);
-}
-
-.searchpill:focus-within {
-  box-shadow: var(--shadow-hi);
-}
-
-.searchpill input {
-  flex: 1;
-  border: none;
-  background: none;
-  outline: none;
-  font-family: var(--font);
-  /* 16px keeps iOS Safari from zooming when the field is focused. */
-  font-size: 16px;
-  color: var(--ink);
-}
-
-.searchpill input::placeholder {
-  color: var(--ink-dim);
-}
-
-.searchpill .go {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-
 .summary {
   display: flex;
   gap: 13px;
+  /* Pushes the summary + theme select + icon buttons to the right edge,
+     restoring the brand-left / controls-right split the search pill used to hold. */
+  margin-left: auto;
 }
 
 .chip {
@@ -828,19 +786,6 @@ header.top {
     justify-content: space-between;
     gap: 8px;
     padding: 8px 12px;
-  }
-  .searchpill {
-    order: 10;
-    width: 100%;
-    margin: 0;
-    height: 36px;
-  }
-  .searchpill input {
-    height: 34px;
-  }
-  .searchpill .go {
-    height: 34px;
-    width: 34px;
   }
   .brand {
     font-size: 1.1rem;
@@ -1681,14 +1626,6 @@ header.top {
   margin-top: 8px;
 }
 
-footer.f {
-  padding: 0 40px 36px;
-  color: var(--ink-dim);
-  font-size: 0.78rem;
-  font-weight: 500;
-  text-align: center;
-}
-
 .state-msg {
   color: var(--ink-dim);
   font-size: 0.85rem;
@@ -1718,21 +1655,6 @@ footer.f {
   }
 }
 
-.card,
-.tile {
-  animation: rise 0.5s var(--ease) both;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1740,6 +1662,17 @@ footer.f {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* Drop the glass blur for users/devices that ask for less transparency — also
+   the cheapest escape hatch for weak GPUs where backdrop-filter is the bottleneck. */
+@media (prefers-reduced-transparency: reduce) {
+  *,
+  *::before,
+  *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 
@@ -1795,10 +1728,6 @@ footer.f {
   transition:
     transform 0.18s var(--ease),
     box-shadow 0.18s var(--ease);
-}
-.summary-card:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hi);
 }
 .summary-card:disabled {
   cursor: default;
@@ -2130,37 +2059,6 @@ header.top {
   }
 }
 
-/* staggered card cascade — overrides the flat rise timing */
-.grid > .card {
-  animation: rise 0.55s var(--ease) both;
-}
-.grid > .card:nth-child(1) {
-  animation-delay: 0.04s;
-}
-.grid > .card:nth-child(2) {
-  animation-delay: 0.1s;
-}
-.grid > .card:nth-child(3) {
-  animation-delay: 0.16s;
-}
-.grid > .card:nth-child(4) {
-  animation-delay: 0.22s;
-}
-.grid > .card:nth-child(5) {
-  animation-delay: 0.28s;
-}
-.grid > .card:nth-child(6) {
-  animation-delay: 0.34s;
-}
-.grid > .card:nth-child(7) {
-  animation-delay: 0.4s;
-}
-.grid > .card:nth-child(8) {
-  animation-delay: 0.46s;
-}
-.grid > .card:nth-child(n + 9) {
-  animation-delay: 0.52s;
-}
 
 /* staggered tile pop-in within a card */
 .tile {
@@ -2199,14 +2097,6 @@ header.top {
     box-shadow 0.3s var(--ease),
     border-color 0.3s var(--ease);
 }
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    var(--shadow-hi),
-    inset 0 1px 0 var(--glass-hi),
-    0 0 0 1px var(--accent-soft);
-  border-color: var(--accent-soft);
-}
 
 /* tile / row hover */
 .tile,
@@ -2229,7 +2119,6 @@ header.top {
 .iconbtn,
 .stop,
 .chip,
-.searchpill,
 .card-cta {
   transition:
     transform 0.18s var(--ease),
@@ -2250,9 +2139,6 @@ header.top {
 .chip:active,
 .card-cta:active {
   transform: scale(0.93);
-}
-.searchpill:focus-within {
-  transform: scale(1.02);
 }
 
 /* header logo: idle float, spin on hover */
@@ -2276,28 +2162,6 @@ header.top {
   }
 }
 
-/* card-header icon pops on card hover */
-.chead .ti {
-  transition: transform 0.25s var(--ease);
-}
-.card:hover .chead .ti svg.ic,
-.card:hover .chead .ti img.logo {
-  animation: wiggle 0.5s var(--ease);
-}
-@keyframes wiggle {
-  0% {
-    transform: rotate(0);
-  }
-  25% {
-    transform: rotate(-9deg) scale(1.1);
-  }
-  60% {
-    transform: rotate(7deg) scale(1.1);
-  }
-  100% {
-    transform: rotate(0) scale(1);
-  }
-}
 
 /* meter / progress bars grow on load */
 .bar > *,
@@ -2325,7 +2189,10 @@ header.top {
   animation: breathe 2.4s var(--ease) infinite;
 }
 
-/* slow drifting aurora over the wallpaper */
+/* Static aurora over the wallpaper. It used to drift (animation: drift), but a
+   fixed full-viewport layer moving under the glass cards forced every
+   backdrop-filter to re-blur each frame — sustained jank on weak GPUs. Static =
+   the glass composites once and idle cost drops to ~zero. */
 body::before {
   content: "";
   position: fixed;
@@ -2336,15 +2203,6 @@ body::before {
     radial-gradient(35% 35% at 30% 30%, var(--accent-soft) 0%, transparent 70%),
     radial-gradient(40% 40% at 70% 70%, var(--accent-soft) 0%, transparent 70%);
   opacity: 0.5;
-  animation: drift 24s ease-in-out infinite alternate;
-}
-@keyframes drift {
-  from {
-    transform: translate(-4%, -3%) rotate(0deg) scale(1);
-  }
-  to {
-    transform: translate(5%, 4%) rotate(8deg) scale(1.15);
-  }
 }
 
 /* grid-columns layout and columns settings */
@@ -2540,13 +2398,6 @@ body::before {
 :root[data-density="compact"] .brand .logo {
   width: 24px;
   height: 24px;
-}
-
-:root[data-density="compact"] .searchpill {
-  padding: 5px 12px 5px 6px;
-}
-
-:root[data-density="compact"] .searchpill input {
 }
 
 :root[data-density="compact"] .summary {

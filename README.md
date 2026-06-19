@@ -1,4 +1,15 @@
-# Labby
+<p align="center">
+  <img src="src/web/public/icons/labby.svg" width="96" alt="Labby logo" />
+</p>
+
+<h1 align="center">Labby</h1>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/samuelloranger/labby" alt="License: MIT" /></a>
+  <a href="https://github.com/samuelloranger/labby/releases"><img src="https://img.shields.io/github/v/release/samuelloranger/labby" alt="Latest release" /></a>
+  <a href="https://github.com/samuelloranger/labby/actions/workflows/docker.yml"><img src="https://github.com/samuelloranger/labby/actions/workflows/docker.yml/badge.svg" alt="Docker build" /></a>
+  <a href="https://github.com/samuelloranger/labby/pkgs/container/labby"><img src="https://img.shields.io/badge/ghcr.io-labby-2496ED?logo=docker&logoColor=white" alt="Container image" /></a>
+</p>
 
 ![Dashboard Screenshot](docs/screenshot-v1.2.1.png)
 
@@ -19,6 +30,8 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 Do not expose Labby to the public internet without network-level access control.
 
 ## Quick start
+
+Requires [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`). Prefer no local toolchain? Use [Docker](#docker) instead — no Bun needed.
 
 ```bash
 bun install && (cd src/web && bun install)

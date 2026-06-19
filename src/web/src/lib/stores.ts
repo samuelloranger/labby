@@ -209,9 +209,6 @@ let knownIntegrationIds: number[] = [];
 
 export const streamConnected = writable(true);
 
-/** Global search across services + containers + torrents (header search pill). */
-export const searchQuery = writable('');
-
 export function idFromEvent(name: string): number | null {
   const m = /^int:(\d+)$/.exec(name);
   return m ? Number(m[1]) : null;

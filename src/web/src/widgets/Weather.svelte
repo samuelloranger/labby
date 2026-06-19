@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { getStore, searchQuery, type WeatherLocationData, type WidgetState } from '$lib/stores';
+  import { getStore, type WeatherLocationData, type WidgetState } from '$lib/stores';
   import { tempUnit, weatherIconUrl, windLabel, windUnit } from '$lib/utils';
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
@@ -13,7 +13,6 @@
   );
 </script>
 
-{#if !$searchQuery.trim()}
 <section class="card weather-card">
   <div class="chead">
     <span class="ti">
@@ -78,4 +77,3 @@
     {/if}
   {/if}
 </section>
-{/if}

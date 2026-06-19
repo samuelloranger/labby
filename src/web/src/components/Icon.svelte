@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     Activity, Box, Calendar, Clapperboard, CloudSun, Download, Film, Flame, Folder, Gauge, Globe,
-    LayoutGrid, MessageSquare, Moon, Radio, Search, Shield, Sun, Tv, Wallet, LayoutDashboard,
+    LayoutGrid, MessageSquare, Moon, Pause, Play, Radio, Search, Shield, Sun, Tv, Wallet, LayoutDashboard,
   } from 'lucide-svelte';
   import { resolveIconSrc } from '$lib/utils';
 
@@ -21,6 +21,8 @@
     'layout-dashboard': LayoutDashboard,
     'message-square': MessageSquare,
     moon: Moon,
+    pause: Pause,
+    play: Play,
     radio: Radio,
     search: Search,
     shield: Shield,
