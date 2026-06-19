@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Play } from 'lucide-svelte';
   import Icon from '../components/Icon.svelte';
-  import { getStore, searchQuery, type JellyfinData, type WidgetState } from '$lib/stores';
+  import { getStore, type JellyfinData, type WidgetState } from '$lib/stores';
   import { clampPercent } from '$lib/utils';
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
@@ -14,7 +14,6 @@
   }
 </script>
 
-{#if !$searchQuery.trim()}
 <section class="card">
   <div class="chead">
     <span class="ti">
@@ -54,4 +53,3 @@
     </div>
   {/if}
 </section>
-{/if}

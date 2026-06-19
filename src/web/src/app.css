@@ -607,51 +607,6 @@ header.top {
   }
 }
 
-.searchpill {
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-radius: var(--pill);
-  padding: 8px 8px 8px 20px;
-  width: min(380px, 100%);
-  background: var(--glass-2);
-  -webkit-backdrop-filter: var(--blur);
-  backdrop-filter: var(--blur);
-  border: 1px solid var(--glass-brd);
-  transition: 0.18s var(--ease);
-}
-
-.searchpill:focus-within {
-  box-shadow: var(--shadow-hi);
-}
-
-.searchpill input {
-  flex: 1;
-  border: none;
-  background: none;
-  outline: none;
-  font-family: var(--font);
-  /* 16px keeps iOS Safari from zooming when the field is focused. */
-  font-size: 16px;
-  color: var(--ink);
-}
-
-.searchpill input::placeholder {
-  color: var(--ink-dim);
-}
-
-.searchpill .go {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-
 .summary {
   display: flex;
   gap: 13px;
@@ -828,19 +783,6 @@ header.top {
     justify-content: space-between;
     gap: 8px;
     padding: 8px 12px;
-  }
-  .searchpill {
-    order: 10;
-    width: 100%;
-    margin: 0;
-    height: 36px;
-  }
-  .searchpill input {
-    height: 34px;
-  }
-  .searchpill .go {
-    height: 34px;
-    width: 34px;
   }
   .brand {
     font-size: 1.1rem;
@@ -2229,7 +2171,6 @@ header.top {
 .iconbtn,
 .stop,
 .chip,
-.searchpill,
 .card-cta {
   transition:
     transform 0.18s var(--ease),
@@ -2250,9 +2191,6 @@ header.top {
 .chip:active,
 .card-cta:active {
   transform: scale(0.93);
-}
-.searchpill:focus-within {
-  transform: scale(1.02);
 }
 
 /* header logo: idle float, spin on hover */
@@ -2540,13 +2478,6 @@ body::before {
 :root[data-density="compact"] .brand .logo {
   width: 24px;
   height: 24px;
-}
-
-:root[data-density="compact"] .searchpill {
-  padding: 5px 12px 5px 6px;
-}
-
-:root[data-density="compact"] .searchpill input {
 }
 
 :root[data-density="compact"] .summary {

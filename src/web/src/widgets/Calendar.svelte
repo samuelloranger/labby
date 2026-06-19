@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { getStore, searchQuery, type CalendarData, type CalendarEvent, type WidgetState } from '$lib/stores';
+  import { getStore, type CalendarData, type CalendarEvent, type WidgetState } from '$lib/stores';
 
   let { title, integrationId, max = 8 }: { title: string; integrationId: number; max?: number } = $props();
 
@@ -75,7 +75,6 @@
   }
 </script>
 
-{#if !$searchQuery.trim()}
 <section class="card">
   <div class="chead">
     <span class="ti">
@@ -111,4 +110,3 @@
     </div>
   {/if}
 </section>
-{/if}

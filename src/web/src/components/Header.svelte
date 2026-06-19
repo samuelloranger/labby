@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Search, Settings, Database } from 'lucide-svelte';
+  import { Settings, Database } from 'lucide-svelte';
   import Modal from './Modal.svelte';
   import Select from './Select.svelte';
   import { get } from 'svelte/store';
-  import { getStore, searchQuery, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
+  import { getStore, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
   import type { Dashboard } from '$lib/types';
 
   const themes = [
@@ -43,7 +43,6 @@
   let settingsOpen = $state(false);
   let saving = $state(false);
 
-  let searchEl = $state<HTMLInputElement>();
   let currentTime = $state('');
 
   const monitorIds = $derived.by(() => {
@@ -124,17 +123,10 @@
     return () => clearInterval(timer);
   });
 
-  // "/" focuses search; ignore when already typing in a field.
   function onGlobalKey(e: KeyboardEvent) {
     if (e.key === 'Escape' && settingsOpen) {
       closeSettings();
-      return;
     }
-    if (e.key !== '/') return;
-    const t = e.target as HTMLElement;
-    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
-    e.preventDefault();
-    searchEl?.focus();
   }
 
   function previewTheme(next: string) {
@@ -276,17 +268,6 @@
     {#if currentTime}
       <span class="header-time">{currentTime}</span>
     {/if}
-
-    <div class="searchpill">
-      <input
-        placeholder="Search services, containers…"
-        aria-label="Search services, containers and torrents"
-        bind:value={$searchQuery}
-        bind:this={searchEl}
-        onkeydown={(e) => { if (e.key === 'Escape') { $searchQuery = ''; searchEl?.blur(); } }}
-      />
-      <span class="go"><Search size={16} color="#fff" strokeWidth={2.5} /></span>
-    </div>
 
     <div class="summary">
       <span class="chip" title="Services up"><span class="dot ok"></span><b>{summary.up}</b></span>

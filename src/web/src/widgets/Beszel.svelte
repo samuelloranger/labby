@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { getStore, searchQuery, type BeszelData, type WidgetState } from '$lib/stores';
+  import { getStore, type BeszelData, type WidgetState } from '$lib/stores';
   import { clampPercent, formatBytes, formatNumber, formatUptime } from '$lib/utils';
 
   let { title, integrationId, systems, max = 8 }: { title: string; integrationId: number; systems?: string[]; max?: number } = $props();
@@ -10,13 +10,11 @@
 
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<BeszelData>);
-  const q = $derived($searchQuery.trim().toLowerCase());
   const wanted = $derived(new Set((systems ?? []).map((name) => name.toLowerCase())));
   const visible = $derived.by(() => {
     const all = state.data?.systems ?? [];
     return all
       .filter((system) => wanted.size === 0 || wanted.has(system.name.toLowerCase()))
-      .filter((system) => !q || system.name.toLowerCase().includes(q))
       .slice(0, max);
   });
 
@@ -40,14 +38,7 @@
     const visibleIds = new Set(visible.map((system) => system.id));
     const all = state.data?.disks ?? [];
     return all
-      .filter((disk) => visibleIds.has(disk.systemId))
-      .filter(
-        (disk) =>
-          !q ||
-          disk.name.toLowerCase().includes(q) ||
-          disk.model.toLowerCase().includes(q) ||
-          disk.state.toLowerCase().includes(q),
-      );
+      .filter((disk) => visibleIds.has(disk.systemId));
   });
   const primary = $derived(visible[0]);
 
@@ -83,7 +74,6 @@
   }
 </script>
 
-{#if !$searchQuery.trim() || visible.length}
 <section class="card beszel-card">
   <div class="chead">
     <span class="ti">
@@ -98,7 +88,7 @@
   {:else if state.error && !state.data}
     <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
   {:else if visible.length === 0}
-    <p class="state-msg">No matching systems</p>
+    <p class="state-msg">No systems</p>
   {:else}
     {#if primary}
       <div class="beszel-host">
@@ -131,7 +121,6 @@
     {/if}
   {/if}
 </section>
-{/if}
 
 {#if disksOpen}
   <Modal title={`${title} · storage`} meta={`${disks.length} disks`} onClose={() => (disksOpen = false)}>

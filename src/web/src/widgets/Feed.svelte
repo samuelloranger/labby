@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { getStore, searchQuery, type FeedData, type WidgetState } from '$lib/stores';
+  import { getStore, type FeedData, type WidgetState } from '$lib/stores';
   import { formatNumber, timeAgo } from '$lib/utils';
 
   let {
@@ -36,7 +36,6 @@
   </div>
 {/snippet}
 
-{#if !$searchQuery.trim()}
   <section class="card">
     <div class="chead">
       <span class="ti">
@@ -59,7 +58,6 @@
       {/if}
     {/if}
   </section>
-{/if}
 
 {#if modalOpen}
   <Modal title={title} meta={`${posts.length} posts`} onClose={() => (modalOpen = false)}>

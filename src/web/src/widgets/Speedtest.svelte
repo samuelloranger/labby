@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { getStore, searchQuery, type SpeedtestData, type WidgetState } from '$lib/stores';
+  import { getStore, type SpeedtestData, type WidgetState } from '$lib/stores';
 
   let { title, integrationId, max = 5 }: { title: string; integrationId: number; max?: number } = $props();
 
@@ -94,7 +94,6 @@
   }
 </script>
 
-{#if !$searchQuery.trim()}
 <section class="card">
   <div class="chead">
     <span class="ti">
@@ -184,7 +183,6 @@
     {/if}
   {/if}
 </section>
-{/if}
 
 <style>
   .btn-run {

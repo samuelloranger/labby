@@ -2,13 +2,12 @@
   import { FileText, Play, RotateCcw, Square } from 'lucide-svelte';
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { getStore, searchQuery, type DockerData, type WidgetState } from '$lib/stores';
+  import { getStore, type DockerData, type WidgetState } from '$lib/stores';
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
 
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<DockerData>);
-  const q = $derived($searchQuery.trim().toLowerCase());
   const all = $derived(state.data?.containers ?? []);
   const total = $derived(all.length);
   const avgCpu = $derived.by(() => {
@@ -16,9 +15,7 @@
     return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0;
   });
   const containers = $derived(
-    all
-      .filter((c) => !q || c.name.toLowerCase().includes(q))
-      .sort((a, b) => (b.cpuPercent ?? -1) - (a.cpuPercent ?? -1) || a.name.localeCompare(b.name)),
+    [...all].sort((a, b) => (b.cpuPercent ?? -1) - (a.cpuPercent ?? -1) || a.name.localeCompare(b.name)),
   );
 
   let listOpen = $state(false);
@@ -85,7 +82,7 @@
 {#if listOpen}
   <Modal title="Containers" meta={`${total} running`} onClose={() => (listOpen = false)}>
     {#if containers.length === 0}
-      <p class="state-msg">No matching containers</p>
+      <p class="state-msg">No containers</p>
     {/if}
     {#each containers as c (c.id)}
       <div class="ctr">

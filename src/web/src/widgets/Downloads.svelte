@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
-  import { getStore, searchQuery, type DownloadsData, type WidgetState } from '$lib/stores';
+  import { getStore, type DownloadsData, type WidgetState } from '$lib/stores';
   import { clampPercent, formatBytesPerSec, formatEta, isSeedingTorrent, prepareDownloads } from '$lib/utils';
 
   let {
@@ -14,11 +14,9 @@
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<DownloadsData>);
   const icon = $derived(client === 'qbittorrent' ? 'di:qbittorrent' : 'di:transmission');
-  const q = $derived($searchQuery.trim().toLowerCase());
   const allTorrents = $derived(state.data?.torrents ?? []);
   const counts = $derived(prepareDownloads(allTorrents, 0));
-  const filtered = $derived(allTorrents.filter((t) => !q || t.name.toLowerCase().includes(q)));
-  const list = $derived(prepareDownloads(filtered, filtered.length).visible);
+  const list = $derived(prepareDownloads(allTorrents, allTorrents.length).visible);
 
   let listOpen = $state(false);
   let pending = $state<Record<string, boolean>>({});
@@ -92,7 +90,7 @@
 {#if listOpen}
   <Modal title={title} meta={`${allTorrents.length} torrents`} onClose={() => (listOpen = false)}>
     {#if list.length === 0}
-      <p class="state-msg">No matching torrents</p>
+      <p class="state-msg">No torrents</p>
     {/if}
     <div class="dl">
       {#each list as t (t.hash)}
