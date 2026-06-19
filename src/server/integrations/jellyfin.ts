@@ -1,22 +1,23 @@
 import type { JellyfinPayload, JellyfinSession } from '../types';
+import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type JellyfinConfig = { url?: string; apiKey?: string };
 
 export async function getJellyfinSessions(
   config: JellyfinConfig,
 ): Promise<JellyfinPayload | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const key = config.apiKey ?? null;
   if (!base) return { error: 'JELLYFIN_URL not configured' };
   if (!key) return { error: 'JELLYFIN_API_KEY not configured' };
 
-  try {
+  return soft('Jellyfin', async () => {
     const res = await fetch(`${base}/Sessions`, {
       headers: {
         'X-Emby-Token': key,
         Accept: 'application/json',
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) return { error: `Jellyfin error: ${res.status}` };
 
@@ -67,9 +68,7 @@ export async function getJellyfinSessions(
     }
 
     return { sessions, playing: sessions.length };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Jellyfin unreachable' };
-  }
+  });
 }
 
 /**
@@ -81,7 +80,7 @@ export async function getJellyfinImage(
   config: JellyfinConfig,
   itemId: string,
 ): Promise<Response | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const key = config.apiKey ?? null;
   if (!base) return { error: 'JELLYFIN_URL not configured' };
   if (!key) return { error: 'JELLYFIN_API_KEY not configured' };
@@ -91,7 +90,7 @@ export async function getJellyfinImage(
       `${base}/Items/${encodeURIComponent(itemId)}/Images/Primary?maxHeight=120`,
       {
         headers: { 'X-Emby-Token': key },
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
       },
     );
     if (!res.ok) return { error: `Jellyfin image error: ${res.status}` };

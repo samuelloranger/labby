@@ -1,11 +1,12 @@
 import type { DownloadsPayload, Torrent } from '../types';
+import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type QbitConfig = { url?: string; user?: string; pass?: string };
 
 let sid: string | null = null;
 
 async function login(config: QbitConfig): Promise<boolean> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return false;
   const user = config.user ?? '';
   const pass = config.pass ?? '';
@@ -30,7 +31,7 @@ async function login(config: QbitConfig): Promise<boolean> {
 }
 
 async function qbitFetch(config: QbitConfig, path: string, init?: RequestInit): Promise<Response> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) throw new Error('QBIT_URL not configured');
 
   const headers = new Headers(init?.headers);
@@ -39,7 +40,7 @@ async function qbitFetch(config: QbitConfig, path: string, init?: RequestInit): 
   let res = await fetch(`${base}${path}`, {
     ...init,
     headers,
-    signal: init?.signal ?? AbortSignal.timeout(15000),
+    signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS),
   });
 
   if (res.status === 403) {
@@ -49,7 +50,7 @@ async function qbitFetch(config: QbitConfig, path: string, init?: RequestInit): 
     res = await fetch(`${base}${path}`, {
       ...init,
       headers,
-      signal: init?.signal ?? AbortSignal.timeout(15000),
+      signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS),
     });
   }
 
@@ -72,10 +73,10 @@ function normalizeTorrent(t: Record<string, unknown>): Torrent {
 export async function getQBittorrentTorrents(
   config: QbitConfig,
 ): Promise<DownloadsPayload | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return { error: 'QBIT_URL not configured' };
 
-  try {
+  return soft('qBittorrent', async () => {
     // qbitFetch lazily logs in on a 403, so no proactive login is needed and a
     // still-valid SID is reused across polls instead of re-authenticating each tick.
     const res = await qbitFetch(config, '/api/v2/torrents/info');
@@ -85,9 +86,7 @@ export async function getQBittorrentTorrents(
     const aggregateDlSpeed = torrents.reduce((s, t) => s + t.dlSpeed, 0);
     const aggregateUpSpeed = torrents.reduce((s, t) => s + t.upSpeed, 0);
     return { torrents, aggregateDlSpeed, aggregateUpSpeed };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'qBittorrent unreachable' };
-  }
+  });
 }
 
 export async function qbittorrentAction(
@@ -95,7 +94,7 @@ export async function qbittorrentAction(
   hash: string,
   action: 'pause' | 'resume',
 ): Promise<{ ok: true } | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return { error: 'QBIT_URL not configured' };
 
   const endpoints = action === 'pause' ? ['stop', 'pause'] : ['start', 'resume'];

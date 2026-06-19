@@ -1,3 +1,5 @@
+import { soft, TIMEOUT_MS } from './http';
+
 export type HNPost = {
   id: string;
   title: string;
@@ -14,12 +16,12 @@ export type HNPayload = { posts: HNPost[] };
 
 export async function getHackerNews(config: HNConfig = {}): Promise<HNPayload | { error: string }> {
   const limit = config.max ?? 15;
-  try {
+  return soft('Hacker News', async () => {
     // Algolia front-page search returns title/url/points/comments in one call —
     // no per-item fetches like the Firebase API needs.
     const res = await fetch(
       `https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=${limit}`,
-      { signal: AbortSignal.timeout(15000) },
+      { signal: AbortSignal.timeout(TIMEOUT_MS) },
     );
     if (!res.ok) return { error: `Hacker News error: ${res.status}` };
     const json = (await res.json()) as { hits?: Array<Record<string, unknown>> };
@@ -36,7 +38,5 @@ export async function getHackerNews(config: HNConfig = {}): Promise<HNPayload | 
       };
     });
     return { posts };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Hacker News unreachable' };
-  }
+  });
 }

@@ -1,16 +1,17 @@
 import type { ArrItem, ArrPayload } from '../types';
+import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type ArrKind = 'radarr' | 'sonarr';
 export type ArrConfig = { url?: string; apiKey?: string };
 
 async function arrFetch(config: ArrConfig, kind: ArrKind, path: string): Promise<Response> {
-  const base = config.url?.trim().replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const key = config.apiKey?.trim() || null;
   if (!base) throw new Error(`${kind.toUpperCase()}_URL not configured`);
   if (!key) throw new Error(`${kind.toUpperCase()}_API_KEY not configured`);
   return fetch(`${base}${path}`, {
     headers: { 'X-Api-Key': key, Accept: 'application/json' },
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 }
 
@@ -47,12 +48,12 @@ export async function getArrSummary(
   config: ArrConfig,
   kind: ArrKind,
 ): Promise<ArrPayload | { error: string }> {
-  const base = config.url?.trim().replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   const key = config.apiKey?.trim() || null;
   if (!base) return { error: `${kind.toUpperCase()}_URL not configured` };
   if (!key) return { error: `${kind.toUpperCase()}_API_KEY not configured` };
 
-  try {
+  return soft(kind, async () => {
     const now = new Date();
     const end = new Date(now.getTime() + 14 * 86_400_000);
     const params = new URLSearchParams({
@@ -82,7 +83,5 @@ export async function getArrSummary(
       missing: wanted ? Number(wanted.totalRecords ?? 0) : null,
       upcoming: calendar.map((item) => mapCalendar(kind, item)).slice(0, 5),
     };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : `${kind} unreachable` };
-  }
+  });
 }

@@ -1,4 +1,5 @@
 import type { DownloadsPayload, Torrent } from '../types';
+import { soft, TIMEOUT_MS } from './http';
 
 export type TransmissionConfig = { url?: string; user?: string; pass?: string };
 
@@ -27,7 +28,7 @@ async function transmissionRpc(
     method: 'POST',
     headers,
     body,
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 
   if (res.status === 409) {
@@ -38,7 +39,7 @@ async function transmissionRpc(
       method: 'POST',
       headers,
       body,
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   }
 
@@ -80,7 +81,7 @@ export async function getTransmissionTorrents(
 ): Promise<DownloadsPayload | { error: string }> {
   if (!config.url) return { error: 'TRANSMISSION_URL not configured' };
 
-  try {
+  return soft('Transmission', async () => {
     const json = (await transmissionRpc(config, 'torrent-get', {
       fields: [
         'id',
@@ -99,9 +100,7 @@ export async function getTransmissionTorrents(
     const aggregateDlSpeed = torrents.reduce((s, t) => s + t.dlSpeed, 0);
     const aggregateUpSpeed = torrents.reduce((s, t) => s + t.upSpeed, 0);
     return { torrents, aggregateDlSpeed, aggregateUpSpeed };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Transmission unreachable' };
-  }
+  });
 }
 
 export async function transmissionAction(

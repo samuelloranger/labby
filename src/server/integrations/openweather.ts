@@ -1,4 +1,5 @@
 import type { WeatherForecastDay, WeatherLocationData } from '../types';
+import { soft, TIMEOUT_MS } from './http';
 
 export type WeatherConfig = {
   apiKey?: string;
@@ -120,16 +121,16 @@ export async function getOpenWeather(
 
   const units = config.units ?? 'metric';
 
-  try {
+  return soft('OpenWeather', async () => {
     const params = locationParams(config);
     params.set('appid', key);
 
     const [currentRes, forecastRes] = await Promise.all([
       fetch(`https://api.openweathermap.org/data/2.5/weather?${params}`, {
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
       }),
       fetch(`https://api.openweathermap.org/data/2.5/forecast?${params}&cnt=32`, {
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
       }),
     ]);
 
@@ -154,7 +155,5 @@ export async function getOpenWeather(
     const forecast = aggregateForecastDays(forecastJson.list ?? []);
 
     return parseCurrentWeather(current, forecast, units);
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'OpenWeather unreachable' };
-  }
+  });
 }

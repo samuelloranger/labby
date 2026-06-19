@@ -1,4 +1,5 @@
 import type { AdGuardPayload } from '../types';
+import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type AdGuardConfig = { url?: string; user?: string; pass?: string };
 
@@ -17,22 +18,22 @@ async function adguardFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) throw new Error('ADGUARD_URL not configured');
   return fetch(`${base}${path}`, {
     ...init,
     headers: { ...buildAuthHeaders(config), ...(init?.headers as Record<string, string>) },
-    signal: init?.signal ?? AbortSignal.timeout(15000),
+    signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS),
   });
 }
 
 export async function getAdGuardStats(
   config: AdGuardConfig,
 ): Promise<AdGuardPayload | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return { error: 'ADGUARD_URL not configured' };
 
-  try {
+  return soft('AdGuard', async () => {
     const [statsRes, statusRes] = await Promise.all([
       adguardFetch(config, '/control/stats'),
       adguardFetch(config, '/control/status'),
@@ -56,9 +57,7 @@ export async function getAdGuardStats(
       rulesCount: Number(status.rules_count ?? status.filtering_enabled_rules ?? 0),
       protectionEnabled: Boolean(status.protection_enabled),
     };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'AdGuard unreachable' };
-  }
+  });
 }
 
 export async function setAdGuardProtection(
@@ -66,7 +65,7 @@ export async function setAdGuardProtection(
   enabled: boolean,
   durationMs?: number,
 ): Promise<{ ok: true } | { error: string }> {
-  const base = config.url?.replace(/\/$/, '') || null;
+  const base = normalizeBase(config.url);
   if (!base) return { error: 'ADGUARD_URL not configured' };
 
   try {
