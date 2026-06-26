@@ -306,12 +306,43 @@
     window.location.href = '/api/backup';
   }
 
+  let dragIndex = $state<number | null>(null);
+
+  async function persistOrder() {
+    try {
+      await fetch('/api/integrations/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: rows.map((r) => r.id) }),
+      });
+    } catch {
+      /* order will resync on next load */
+    }
+  }
+
+  function onDragStart(i: number) {
+    dragIndex = i;
+  }
+  function onDragOver(e: DragEvent, i: number) {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === i) return;
+    const next = [...rows];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(i, 0, moved);
+    rows = next;
+    dragIndex = i;
+  }
+  function onDrop() {
+    dragIndex = null;
+    void persistOrder();
+  }
+
   async function onImportFile(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    if (!confirm('This replaces ALL services and your dashboard layout with the backup’s contents. Continue?')) return;
+    if (!confirm("This replaces ALL services and your dashboard layout with the backup's contents. Continue?")) return;
     importing = true;
     error = null;
     try {
@@ -358,9 +389,18 @@
     </div>
   {:else}
     <div class="services-grid">
-      {#each rows as row}
-        <div class="svc-card">
+      {#each rows as row, i (row.id)}
+        <div
+          class="svc-card"
+          class:dragging={dragIndex === i}
+          draggable="true"
+          ondragstart={() => onDragStart(i)}
+          ondragover={(e) => onDragOver(e, i)}
+          ondrop={onDrop}
+          ondragend={onDrop}
+        >
           <div class="svc-head">
+            <span class="drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>
             <span class="svc-mark"><Icon icon={TYPE_ICONS[row.type] ?? 'lucide:box'} fallback="box" size={20} /></span>
             <div class="svc-title">
               <h3>{row.name}</h3>
@@ -1148,4 +1188,16 @@
       gap: 12px;
     }
   }
+
+  .svc-card[draggable='true'] { cursor: default; }
+  .svc-card.dragging { opacity: 0.5; }
+  .drag-handle {
+    cursor: grab;
+    color: var(--ink-faint);
+    font-size: 18px;
+    line-height: 1;
+    user-select: none;
+    padding-right: 2px;
+  }
+  .drag-handle:active { cursor: grabbing; }
 </style>
