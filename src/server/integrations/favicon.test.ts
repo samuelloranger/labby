@@ -8,7 +8,7 @@ afterEach(() => {
 
 function mockHtml(html: string) {
   globalThis.fetch = (async () =>
-    new Response(html, { headers: { 'content-type': 'text/html' } })) as typeof fetch;
+    new Response(html, { headers: { 'content-type': 'text/html' } })) as unknown as typeof fetch;
 }
 
 describe('resolveFavicon', () => {
@@ -32,7 +32,7 @@ describe('resolveFavicon', () => {
   it('returns fallback icon when the fetch throws', async () => {
     globalThis.fetch = (async () => {
       throw new Error('network');
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
     const out = await resolveFavicon('https://example.com');
     expect(out.icon).toBe('https://example.com/favicon.ico');
   });
