@@ -32,7 +32,8 @@ export type IntegrationType =
   | 'hackernews'
   | 'weather'
   | 'calendar'
-  | 'speedtest';
+  | 'speedtest'
+  | 'bookmarks';
 
 export type FieldDef = {
   key: string;
@@ -204,6 +205,15 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     actions: {
       run: (c) => triggerSpeedtestRun(c as SpeedtestConfig),
     },
+  },
+  bookmarks: {
+    label: 'Bookmarks',
+    // ponytail: static links, no polling — large interval so the no-op re-publish is rare
+    defaultRefreshSeconds: 86_400,
+    fields: [{ key: 'links', label: 'Links', kind: 'list' }],
+    fetch: async (c) => ({
+      links: Array.isArray(c.links) ? (c.links as Array<Record<string, unknown>>) : [],
+    }),
   },
 };
 

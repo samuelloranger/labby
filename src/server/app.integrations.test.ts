@@ -14,7 +14,7 @@ test('GET /api/integrations/types returns metadata without fetch', async () => {
   const res = await app.request('/api/integrations/types');
   expect(res.status).toBe(200);
   const body = (await res.json()) as any[];
-  expect(body.length).toBe(15);
+  expect(body.length).toBe(16);
   for (const item of body) {
     expect(item).toHaveProperty('type');
     expect(item).toHaveProperty('label');
