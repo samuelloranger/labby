@@ -36,6 +36,7 @@ test('GET /api/backup returns version, dashboard, and integrations', async () =>
   expect(body.version).toBe(1);
   expect(body.dashboard).toBeDefined();
   expect(Array.isArray(body.integrations)).toBe(true);
+  expect(res.headers.get('Content-Disposition')).toMatch(/attachment; filename="labby-backup-/);
 });
 
 test('POST /api/restore rejects a malformed payload with 400 and leaves the DB intact', async () => {
