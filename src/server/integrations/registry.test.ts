@@ -117,6 +117,20 @@ describe('INTEGRATIONS registry', () => {
   });
 });
 
+describe('display-option fields', () => {
+  it('monitor exposes variant and style display fields', () => {
+    const keys = INTEGRATIONS.monitor.fields.map((f) => f.key);
+    expect(keys).toContain('variant');
+    expect(keys).toContain('style');
+  });
+
+  it('feed/arr/calendar/download/beszel types expose a max field', () => {
+    for (const t of ['qbittorrent', 'transmission', 'beszel', 'radarr', 'sonarr', 'reelward', 'reddit', 'hackernews', 'calendar'] as const) {
+      expect(INTEGRATIONS[t].fields.map((f) => f.key)).toContain('max');
+    }
+  });
+});
+
 describe('integrationTypes()', () => {
   it('returns an array of 16 entries', () => {
     expect(integrationTypes().length).toBe(16);

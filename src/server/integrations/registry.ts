@@ -55,7 +55,11 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   monitor: {
     label: 'Monitor',
     defaultRefreshSeconds: 30,
-    fields: [{ key: 'sites', label: 'Sites', kind: 'list' }],
+    fields: [
+      { key: 'sites', label: 'Sites', kind: 'list' },
+      { key: 'variant', label: 'Display', kind: 'select', options: ['rows', 'tiles'] },
+      { key: 'style', label: 'Density', kind: 'select', options: ['default', 'compact'] },
+    ],
     fetch: (c) => checkSites(c as MonitorConfig),
   },
   docker: {
@@ -82,6 +86,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
+      { key: 'max', label: 'Max items', kind: 'number' },
     ],
     fetch: (c) => getQBittorrentTorrents(c as QbitConfig),
     actions: {
@@ -96,6 +101,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
+      { key: 'max', label: 'Max items', kind: 'number' },
     ],
     fetch: (c) => getTransmissionTorrents(c as TransmissionConfig),
     actions: {
@@ -134,6 +140,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
       { key: 'token', label: 'Token', secret: true },
+      { key: 'max', label: 'Max systems', kind: 'number' },
     ],
     fetch: (c) => getBeszelSystems(c as BeszelConfig),
   },
@@ -143,6 +150,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
+      { key: 'max', label: 'Max items', kind: 'number' },
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'radarr'),
   },
@@ -152,6 +160,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
+      { key: 'max', label: 'Max items', kind: 'number' },
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'sonarr'),
   },
@@ -161,19 +170,23 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
+      { key: 'max', label: 'Max items', kind: 'number' },
     ],
     fetch: (c) => getReelwardSummary(c as ReelwardConfig),
   },
   reddit: {
     label: 'Reddit',
     defaultRefreshSeconds: 240,
-    fields: [{ key: 'subreddits', label: 'Subreddits', kind: 'list' }],
+    fields: [
+      { key: 'subreddits', label: 'Subreddits', kind: 'list' },
+      { key: 'max', label: 'Max items', kind: 'number' },
+    ],
     fetch: (c) => getRedditPosts(c as RedditConfig),
   },
   hackernews: {
     label: 'Hacker News',
     defaultRefreshSeconds: 240,
-    fields: [],
+    fields: [{ key: 'max', label: 'Max items', kind: 'number' }],
     fetch: (c) => getHackerNews(c as HNConfig),
   },
   weather: {
@@ -191,7 +204,10 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   calendar: {
     label: 'Calendar',
     defaultRefreshSeconds: 600,
-    fields: [{ key: 'icsUrls', label: 'ICS URLs', kind: 'list' }],
+    fields: [
+      { key: 'icsUrls', label: 'ICS URLs', kind: 'list' },
+      { key: 'max', label: 'Max events', kind: 'number' },
+    ],
     fetch: (c) => getCalendarEvents(c as CalendarConfig),
   },
   speedtest: {
