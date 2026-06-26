@@ -283,8 +283,9 @@ export function reorderIntegrations(orderedIds: number[]): void {
   tx(orderedIds);
 }
 
-export function replaceAllIntegrations(rows: IntegrationRow[]): void {
-  const tx = db.transaction((list: IntegrationRow[]) => {
+export function replaceAllIntegrations(rows: Array<Omit<IntegrationRow, 'position'> & { position?: number }>): void {
+  type RowIn = Omit<IntegrationRow, 'position'> & { position?: number };
+  const tx = db.transaction((list: RowIn[]) => {
     db.query('DELETE FROM integrations').run();
     const stmt = db.query(
       'INSERT INTO integrations (id, name, type, config, enabled, refresh_seconds, position) VALUES ($id,$name,$type,$config,$enabled,$rs,$pos)',
