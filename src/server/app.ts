@@ -12,6 +12,7 @@ import {
   getSetting,
   listIntegrations,
   replaceAllIntegrations,
+  reorderIntegrations,
   setSetting,
   updateIntegration,
 } from './db';
@@ -107,6 +108,14 @@ app.put('/api/integrations/:id', async (c) => {
 app.delete('/api/integrations/:id', (c) => {
   deleteIntegration(Number(c.req.param('id')));
   startScheduler();
+  return c.json({ ok: true });
+});
+
+app.post('/api/integrations/reorder', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const parsed = z.object({ ids: z.array(z.number().int()) }).safeParse(body);
+  if (!parsed.success) return c.json({ error: 'Invalid reorder payload' }, 400);
+  reorderIntegrations(parsed.data.ids);
   return c.json({ ok: true });
 });
 
@@ -289,6 +298,7 @@ const RestoreSchema = z.object({
       config: z.record(z.unknown()),
       enabled: z.boolean(),
       refreshSeconds: z.number().int().nullable(),
+      position: z.number().int().optional(),
     }),
   ),
 });
