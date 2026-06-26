@@ -303,6 +303,7 @@ app.post('/api/restore', async (c) => {
   replaceAllIntegrations(integrations);
   setSetting('dashboard', JSON.stringify(dashboard, null, 2));
   reloadConfig();
+  startScheduler();
   return c.json({ ok: true });
 });
 
