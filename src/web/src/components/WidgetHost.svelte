@@ -11,6 +11,7 @@
   import Weather from '../widgets/Weather.svelte';
   import Calendar from '../widgets/Calendar.svelte';
   import Speedtest from '../widgets/Speedtest.svelte';
+  import Bookmarks from '../widgets/Bookmarks.svelte';
   import type { Widget } from '$lib/types';
 
   let {
@@ -67,4 +68,6 @@
   <Calendar title={widget.title} integrationId={widget.integrationId} max={widget.max} />
 {:else if widget.type === 'speedtest'}
   <Speedtest title={widget.title} integrationId={widget.integrationId} max={widget.max} />
+{:else if widget.type === 'bookmarks'}
+  <Bookmarks title={widget.title} integrationId={widget.integrationId} />
 {/if}
