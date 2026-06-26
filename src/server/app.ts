@@ -12,6 +12,7 @@ import {
   updateIntegration,
 } from './db';
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
+import { resolveFavicon } from './integrations/favicon';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
 import { hub } from './sse/hub';
@@ -58,6 +59,12 @@ app.get('/api/config', (c) => {
   const state = getConfigState();
   if (!state.ok) return c.json({ error: state.error }, 500);
   return c.json(sanitizeDashboard(state.config));
+});
+
+app.get('/api/favicon', async (c) => {
+  const url = c.req.query('url');
+  if (!url) return c.json({ icon: null });
+  return c.json(await resolveFavicon(url));
 });
 
 app.get('/api/integrations/types', (c) => c.json(integrationTypes()));
