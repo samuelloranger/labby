@@ -35,6 +35,7 @@
     weather: '/icons/openweather.png',
     calendar: 'lucide:calendar',
     speedtest: '/icons/speedtest-tracker.svg',
+    bookmarks: 'lucide:layout-grid',
   };
 
   const selectedMeta = $derived(types.find((t) => t.type === formType));
@@ -128,6 +129,36 @@
     updateSite(key, i, { okCodes: codes.length ? codes : undefined });
   }
 
+  // --- bookmarks links editor ---
+  type LinkForm = { title?: string; url?: string; icon?: string };
+  function links(key: string): LinkForm[] {
+    const v = formConfig[key];
+    return Array.isArray(v) ? (v as LinkForm[]) : [];
+  }
+  function addLink(key: string) {
+    formConfig = { ...formConfig, [key]: [...links(key), { title: '', url: '', icon: '' }] };
+  }
+  function removeLink(key: string, i: number) {
+    formConfig = { ...formConfig, [key]: links(key).filter((_, idx) => idx !== i) };
+  }
+  function updateLink(key: string, i: number, patch: Partial<LinkForm>) {
+    formConfig = {
+      ...formConfig,
+      [key]: links(key).map((l, idx) => (idx === i ? { ...l, ...patch } : l)),
+    };
+  }
+  async function fetchFavicon(key: string, i: number) {
+    const link = links(key)[i];
+    if (!link?.url?.trim() || link.icon?.trim()) return;
+    try {
+      const res = await fetch(`/api/favicon?url=${encodeURIComponent(link.url.trim())}`);
+      const data = (await res.json()) as { icon: string | null };
+      if (data.icon) updateLink(key, i, { icon: data.icon });
+    } catch {
+      /* leave icon empty — falls back to a glyph */
+    }
+  }
+
   // --- calendar feeds: stored as "Name|URL" strings (URL only if unnamed) ---
   type CalForm = { name?: string; url?: string };
   function cals(key: string): CalForm[] {
@@ -176,6 +207,14 @@
           const pipe = s.indexOf('|');
           return (pipe > 0 ? s.slice(pipe + 1).trim() : s).length > 0;
         });
+      } else if (k === 'links' && Array.isArray(v)) {
+        out[k] = (v as LinkForm[])
+          .map((l) => ({
+            title: (l.title ?? '').trim() || (l.url ?? '').trim(),
+            url: (l.url ?? '').trim(),
+            ...(l.icon?.trim() ? { icon: l.icon.trim() } : {}),
+          }))
+          .filter((l) => l.url);
       }
     }
     return out;
@@ -422,6 +461,39 @@
               {/each}
               <button type="button" class="btn-add-site" onclick={() => addCal(field.key)}>
                 <Plus size={14} /> Add calendar
+              </button>
+            </div>
+          {:else if field.key === 'links'}
+            <div class="sites-editor">
+              {#each links(field.key) as l, i}
+                <div class="site-row">
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    value={l.title ?? ''}
+                    oninput={(e) => updateLink(field.key, i, { title: e.currentTarget.value })}
+                  />
+                  <input
+                    type="text"
+                    placeholder="https://service.lan"
+                    value={l.url ?? ''}
+                    oninput={(e) => updateLink(field.key, i, { url: e.currentTarget.value })}
+                    onblur={() => fetchFavicon(field.key, i)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Icon (auto)"
+                    value={l.icon ?? ''}
+                    oninput={(e) => updateLink(field.key, i, { icon: e.currentTarget.value })}
+                  />
+                  <span class="ibox"><Icon icon={l.icon ?? ''} fallback="globe" size={18} /></span>
+                  <button type="button" class="btn-icon danger" onclick={() => removeLink(field.key, i)} aria-label="Remove link" title="Remove link">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              {/each}
+              <button type="button" class="btn-add-site" onclick={() => addLink(field.key)}>
+                <Plus size={14} /> Add link
               </button>
             </div>
           {:else if field.kind === 'list'}
