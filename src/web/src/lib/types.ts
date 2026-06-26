@@ -26,7 +26,8 @@ export type Widget =
   | { type: 'hackernews'; title: string; integrationId: number; max?: number }
   | { type: 'weather'; title: string; integrationId: number }
   | { type: 'calendar'; title: string; integrationId: number; max?: number }
-  | { type: 'speedtest'; title: string; integrationId: number; max?: number };
+  | { type: 'speedtest'; title: string; integrationId: number; max?: number }
+  | { type: 'bookmarks'; title: string; integrationId: number };
 
 export type Column = { size: 'small' | 'full'; widgets: Widget[] };
 export type Page = { name: string; columns: Column[] };
