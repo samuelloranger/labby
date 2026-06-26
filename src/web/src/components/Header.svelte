@@ -256,7 +256,9 @@
       <span class="chip" title="Services down"><span class="dot down"></span><b>{summary.down}</b></span>
     </div>
 
-    <Select value={theme} options={themes} onchange={quickSetTheme} pill={true} style="width: 170px;" />
+    <span class="quick-theme">
+      <Select value={theme} options={themes} onchange={quickSetTheme} pill={true} style="width: 170px;" />
+    </span>
 
     <button class="iconbtn" onclick={() => window.location.hash = '#settings'} aria-label="Manage services" title="Manage services">
       <Database size={17} />
@@ -305,3 +307,12 @@
     </div>
   </Modal>
 {/if}
+
+<style>
+  /* On phones the quick theme picker lives in the Customize modal instead. */
+  @media (max-width: 720px) {
+    .quick-theme {
+      display: none;
+    }
+  }
+</style>
