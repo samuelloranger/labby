@@ -17,6 +17,7 @@ const ALL_TYPES: IntegrationType[] = [
   'weather',
   'calendar',
   'speedtest',
+  'bookmarks',
 ];
 
 const TYPES_WITH_ACTIONS: IntegrationType[] = [
@@ -32,8 +33,8 @@ const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(
 );
 
 describe('INTEGRATIONS registry', () => {
-  it('has exactly 15 entries', () => {
-    expect(Object.keys(INTEGRATIONS).length).toBe(15);
+  it('has exactly 16 entries', () => {
+    expect(Object.keys(INTEGRATIONS).length).toBe(16);
   });
 
   it('every type has a truthy label', () => {
@@ -105,11 +106,20 @@ describe('INTEGRATIONS registry', () => {
       expect(INTEGRATIONS[type].actions).toBeUndefined();
     }
   });
+
+  it('bookmarks.fetch returns links from config', async () => {
+    const out = (await INTEGRATIONS.bookmarks.fetch({
+      links: [{ title: 'Router', url: 'http://192.168.1.1' }],
+    })) as { links: unknown[] };
+    expect(out.links.length).toBe(1);
+    const empty = (await INTEGRATIONS.bookmarks.fetch({})) as { links: unknown[] };
+    expect(empty.links).toEqual([]);
+  });
 });
 
 describe('integrationTypes()', () => {
-  it('returns an array of 15 entries', () => {
-    expect(integrationTypes().length).toBe(15);
+  it('returns an array of 16 entries', () => {
+    expect(integrationTypes().length).toBe(16);
   });
 
   it('omits fetch and actions from entries', () => {

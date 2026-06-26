@@ -134,6 +134,11 @@ export const WidgetSchema = z.discriminatedUnion('type', [
     integrationId,
     max: z.number().int().positive().optional(),
   }),
+  z.object({
+    type: z.literal('bookmarks'),
+    title: z.string(),
+    integrationId,
+  }),
 ]);
 
 export const ColumnSchema = z.object({
