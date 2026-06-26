@@ -44,7 +44,7 @@ test('POST /api/restore rejects a malformed payload with 400 and leaves the DB i
   const res = await app.request('/api/restore', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ version: 1, dashboard: { nope: true }, integrations: [] }),
+    body: JSON.stringify({ version: 1, dashboard: { title: 'x', theme: { default: 'not-a-valid-theme' } }, integrations: [] }),
   });
   expect(res.status).toBe(400);
   expect(listIntegrations().length).toBe(before);
