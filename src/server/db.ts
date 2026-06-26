@@ -256,7 +256,7 @@ export function createIntegration(input: Omit<IntegrationRow, 'id' | 'position'>
 
 export function updateIntegration(
   id: number,
-  input: Omit<IntegrationRow, 'id'>,
+  input: Omit<IntegrationRow, 'id' | 'position'>,
 ): IntegrationRow | null {
   db.query(
     'UPDATE integrations SET name=$name, type=$type, config=$config, enabled=$enabled, refresh_seconds=$rs WHERE id=$id',
