@@ -2,13 +2,17 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { getConfig, getConfigState, saveThemeSettings } from './config/loader';
-import { DensitySchema, LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
+import { z } from 'zod';
+import { getConfig, getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
+import { DashboardSchema, DensitySchema, LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
 import {
   createIntegration,
   deleteIntegration,
   getIntegration,
+  getSetting,
   listIntegrations,
+  replaceAllIntegrations,
+  setSetting,
   updateIntegration,
 } from './db';
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
@@ -247,6 +251,53 @@ app.get('/icons/*', serveStatic);
 app.get('/fonts/*', serveStatic);
 app.get('/manifest.webmanifest', serveStatic);
 app.get('/sw.js', serveStatic);
+
+// --- backup / restore ---
+app.get('/api/backup', (c) => {
+  const dashboardRaw = getSetting('dashboard');
+  const dashboard = dashboardRaw ? JSON.parse(dashboardRaw) : null;
+  const body = {
+    version: 1 as const,
+    exportedAt: new Date().toISOString(),
+    dashboard,
+    integrations: listIntegrations(),
+  };
+  c.header('Content-Type', 'application/json');
+  c.header(
+    'Content-Disposition',
+    `attachment; filename="labby-backup-${new Date().toISOString().slice(0, 10)}.json"`,
+  );
+  return c.body(JSON.stringify(body, null, 2));
+});
+
+const RestoreSchema = z.object({
+  version: z.literal(1),
+  exportedAt: z.string().optional(),
+  dashboard: DashboardSchema,
+  integrations: z.array(
+    z.object({
+      id: z.number().int(),
+      name: z.string(),
+      type: z.string(),
+      config: z.record(z.unknown()),
+      enabled: z.boolean(),
+      refreshSeconds: z.number().int().nullable(),
+    }),
+  ),
+});
+
+app.post('/api/restore', async (c) => {
+  const json = await c.req.json().catch(() => null);
+  const parsed = RestoreSchema.safeParse(json);
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid backup file' }, 400);
+  }
+  const { dashboard, integrations } = parsed.data;
+  replaceAllIntegrations(integrations);
+  setSetting('dashboard', JSON.stringify(dashboard, null, 2));
+  reloadConfig();
+  return c.json({ ok: true });
+});
 
 app.get('*', async (c) => {
   const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
