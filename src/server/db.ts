@@ -260,3 +260,23 @@ export function updateIntegration(
 export function deleteIntegration(id: number): void {
   db.query('DELETE FROM integrations WHERE id = $id').run({ $id: id });
 }
+
+export function replaceAllIntegrations(rows: IntegrationRow[]): void {
+  const tx = db.transaction((list: IntegrationRow[]) => {
+    db.query('DELETE FROM integrations').run();
+    const stmt = db.query(
+      'INSERT INTO integrations (id, name, type, config, enabled, refresh_seconds) VALUES ($id,$name,$type,$config,$enabled,$rs)',
+    );
+    for (const r of list) {
+      stmt.run({
+        $id: r.id,
+        $name: r.name,
+        $type: r.type,
+        $config: JSON.stringify(r.config),
+        $enabled: r.enabled ? 1 : 0,
+        $rs: r.refreshSeconds,
+      });
+    }
+  });
+  tx(rows);
+}
