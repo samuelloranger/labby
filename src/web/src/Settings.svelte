@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ArrowLeft, Database, Download, Eye, EyeOff, Pencil, Plus, TriangleAlert, Trash2, Upload } from 'lucide-svelte';
+  import { ArrowLeft, ChevronDown, ChevronUp, Database, Download, Eye, EyeOff, Pencil, Plus, TriangleAlert, Trash2, Upload } from 'lucide-svelte';
   import Icon from './components/Icon.svelte';
   import type { FieldDef, IntegrationRow, IntegrationTypeMeta } from '$lib/types';
 
@@ -337,6 +337,16 @@
     void persistOrder();
   }
 
+  // Touch/keyboard-friendly reorder (HTML5 drag doesn't fire on iOS Safari).
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= rows.length) return;
+    const next = [...rows];
+    [next[i], next[j]] = [next[j], next[i]];
+    rows = next;
+    void persistOrder();
+  }
+
   async function onImportFile(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -409,6 +419,12 @@
               </span>
             </div>
             <div class="row-actions">
+              <button type="button" class="btn-icon" onclick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" title="Move up">
+                <ChevronUp size={15} />
+              </button>
+              <button type="button" class="btn-icon" onclick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Move down" title="Move down">
+                <ChevronDown size={15} />
+              </button>
               <button type="button" class="btn-icon" onclick={() => openEdit(row)} aria-label="Edit" title="Edit">
                 <Pencil size={15} />
               </button>
