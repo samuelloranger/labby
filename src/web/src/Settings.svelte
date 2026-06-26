@@ -298,6 +298,40 @@
       saving = false;
     }
   }
+
+  let importing = $state(false);
+  let fileInput = $state<HTMLInputElement | null>(null);
+
+  function exportBackup() {
+    window.location.href = '/api/backup';
+  }
+
+  async function onImportFile(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!confirm('This replaces ALL services and your dashboard layout with the backup’s contents. Continue?')) return;
+    importing = true;
+    error = null;
+    try {
+      const text = await file.text();
+      const res = await fetch('/api/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: text,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to restore backup');
+      }
+      window.location.reload();
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to restore backup';
+    } finally {
+      importing = false;
+    }
+  }
 </script>
 
 <div class="page settings-page">
@@ -310,6 +344,22 @@
       <h1>Manage Services</h1>
       <p class="settings-sub">Add integrations with URLs, API keys, and per-instance settings. Everything is stored in the SQLite database — credentials never leave the server.</p>
     </div>
+    <div class="settings-actions">
+      <button type="button" class="btn-cancel" onclick={exportBackup} title="Download a full backup (includes credentials)">
+        Export backup
+      </button>
+      <button type="button" class="btn-cancel" onclick={() => fileInput?.click()} disabled={importing}>
+        {importing ? 'Importing…' : 'Import backup'}
+      </button>
+      <input
+        bind:this={fileInput}
+        type="file"
+        accept="application/json"
+        style="display:none"
+        onchange={onImportFile}
+      />
+    </div>
+    <p class="settings-sub" style="margin-top:6px">⚠️ Backups contain plaintext credentials — store them securely.</p>
   </div>
 
   {#if error}
@@ -600,6 +650,14 @@
     font-weight: 500;
     margin-top: 6px;
     max-width: 56ch;
+  }
+  .settings-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-top: 4px;
   }
 
   .services-grid {
