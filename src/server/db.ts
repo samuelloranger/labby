@@ -127,6 +127,14 @@ const migrations = [
       ON CONFLICT(key) DO UPDATE SET value = excluded.value;
     `,
   },
+  {
+    version: 5,
+    name: 'integration_position',
+    up: `
+      ALTER TABLE integrations ADD COLUMN position INTEGER;
+      UPDATE integrations SET position = id WHERE position IS NULL;
+    `,
+  },
 ];
 
 export function runMigrations() {
@@ -197,6 +205,7 @@ export type IntegrationRow = {
   config: Record<string, unknown>;
   enabled: boolean;
   refreshSeconds: number | null;
+  position: number;
 };
 
 type Raw = {
@@ -206,6 +215,7 @@ type Raw = {
   config: string;
   enabled: number;
   refresh_seconds: number | null;
+  position: number | null;
 };
 const toRow = (r: Raw): IntegrationRow => ({
   id: r.id,
@@ -214,10 +224,11 @@ const toRow = (r: Raw): IntegrationRow => ({
   config: JSON.parse(r.config),
   enabled: !!r.enabled,
   refreshSeconds: r.refresh_seconds,
+  position: r.position ?? r.id,
 });
 
 export function listIntegrations(): IntegrationRow[] {
-  return (db.query('SELECT * FROM integrations ORDER BY id').all() as Raw[]).map(toRow);
+  return (db.query('SELECT * FROM integrations ORDER BY position, id').all() as Raw[]).map(toRow);
 }
 
 export function getIntegration(id: number): IntegrationRow | null {
@@ -225,10 +236,12 @@ export function getIntegration(id: number): IntegrationRow | null {
   return r ? toRow(r) : null;
 }
 
-export function createIntegration(input: Omit<IntegrationRow, 'id'>): IntegrationRow {
+export function createIntegration(input: Omit<IntegrationRow, 'id' | 'position'>): IntegrationRow {
+  const nextPos =
+    (db.query('SELECT COALESCE(MAX(position), 0) + 1 AS p FROM integrations').get() as { p: number }).p;
   const info = db
     .query(
-      'INSERT INTO integrations (name, type, config, enabled, refresh_seconds) VALUES ($name,$type,$config,$enabled,$rs)',
+      'INSERT INTO integrations (name, type, config, enabled, refresh_seconds, position) VALUES ($name,$type,$config,$enabled,$rs,$pos)',
     )
     .run({
       $name: input.name,
@@ -236,6 +249,7 @@ export function createIntegration(input: Omit<IntegrationRow, 'id'>): Integratio
       $config: JSON.stringify(input.config),
       $enabled: input.enabled ? 1 : 0,
       $rs: input.refreshSeconds,
+      $pos: nextPos,
     });
   return getIntegration(Number(info.lastInsertRowid)) as IntegrationRow;
 }
@@ -261,11 +275,19 @@ export function deleteIntegration(id: number): void {
   db.query('DELETE FROM integrations WHERE id = $id').run({ $id: id });
 }
 
+export function reorderIntegrations(orderedIds: number[]): void {
+  const tx = db.transaction((ids: number[]) => {
+    const stmt = db.query('UPDATE integrations SET position = $pos WHERE id = $id');
+    ids.forEach((id, idx) => stmt.run({ $id: id, $pos: idx }));
+  });
+  tx(orderedIds);
+}
+
 export function replaceAllIntegrations(rows: IntegrationRow[]): void {
   const tx = db.transaction((list: IntegrationRow[]) => {
     db.query('DELETE FROM integrations').run();
     const stmt = db.query(
-      'INSERT INTO integrations (id, name, type, config, enabled, refresh_seconds) VALUES ($id,$name,$type,$config,$enabled,$rs)',
+      'INSERT INTO integrations (id, name, type, config, enabled, refresh_seconds, position) VALUES ($id,$name,$type,$config,$enabled,$rs,$pos)',
     );
     for (const r of list) {
       stmt.run({
@@ -275,6 +297,7 @@ export function replaceAllIntegrations(rows: IntegrationRow[]): void {
         $config: JSON.stringify(r.config),
         $enabled: r.enabled ? 1 : 0,
         $rs: r.refreshSeconds,
+        $pos: r.position ?? r.id,
       });
     }
   });
