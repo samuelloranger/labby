@@ -255,7 +255,14 @@ app.get('/sw.js', serveStatic);
 // --- backup / restore ---
 app.get('/api/backup', (c) => {
   const dashboardRaw = getSetting('dashboard');
-  const dashboard = dashboardRaw ? JSON.parse(dashboardRaw) : null;
+  let dashboard: unknown = null;
+  if (dashboardRaw) {
+    try {
+      dashboard = JSON.parse(dashboardRaw);
+    } catch {
+      dashboard = null; // corrupt row — export best-effort rather than 500
+    }
+  }
   const body = {
     version: 1 as const,
     exportedAt: new Date().toISOString(),
