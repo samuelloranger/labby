@@ -32,7 +32,8 @@ export type IntegrationType =
   | 'hackernews'
   | 'weather'
   | 'calendar'
-  | 'speedtest';
+  | 'speedtest'
+  | 'bookmarks';
 
 export type FieldDef = {
   key: string;
@@ -50,11 +51,18 @@ export type IntegrationDef = {
   actions?: Record<string, (config: Record<string, unknown>, ...args: any[]) => Promise<unknown>>;
 };
 
+// Shared "max items to show" field used by most list-style widgets.
+const MAX_FIELD: FieldDef = { key: 'max', label: 'Max items', kind: 'number' };
+
 export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   monitor: {
     label: 'Monitor',
     defaultRefreshSeconds: 30,
-    fields: [{ key: 'sites', label: 'Sites', kind: 'list' }],
+    fields: [
+      { key: 'sites', label: 'Sites', kind: 'list' },
+      { key: 'variant', label: 'Display', kind: 'select', options: ['rows', 'tiles'] },
+      { key: 'style', label: 'Density', kind: 'select', options: ['default', 'compact'] },
+    ],
     fetch: (c) => checkSites(c as MonitorConfig),
   },
   docker: {
@@ -81,6 +89,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
+      MAX_FIELD,
     ],
     fetch: (c) => getQBittorrentTorrents(c as QbitConfig),
     actions: {
@@ -95,6 +104,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
+      MAX_FIELD,
     ],
     fetch: (c) => getTransmissionTorrents(c as TransmissionConfig),
     actions: {
@@ -133,6 +143,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
       { key: 'token', label: 'Token', secret: true },
+      { key: 'max', label: 'Max systems', kind: 'number' },
     ],
     fetch: (c) => getBeszelSystems(c as BeszelConfig),
   },
@@ -142,6 +153,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
+      MAX_FIELD,
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'radarr'),
   },
@@ -151,6 +163,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
+      MAX_FIELD,
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'sonarr'),
   },
@@ -160,19 +173,23 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
+      MAX_FIELD,
     ],
     fetch: (c) => getReelwardSummary(c as ReelwardConfig),
   },
   reddit: {
     label: 'Reddit',
     defaultRefreshSeconds: 240,
-    fields: [{ key: 'subreddits', label: 'Subreddits', kind: 'list' }],
+    fields: [
+      { key: 'subreddits', label: 'Subreddits', kind: 'list' },
+      MAX_FIELD,
+    ],
     fetch: (c) => getRedditPosts(c as RedditConfig),
   },
   hackernews: {
     label: 'Hacker News',
     defaultRefreshSeconds: 240,
-    fields: [],
+    fields: [MAX_FIELD],
     fetch: (c) => getHackerNews(c as HNConfig),
   },
   weather: {
@@ -190,7 +207,10 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   calendar: {
     label: 'Calendar',
     defaultRefreshSeconds: 600,
-    fields: [{ key: 'icsUrls', label: 'ICS URLs', kind: 'list' }],
+    fields: [
+      { key: 'icsUrls', label: 'ICS URLs', kind: 'list' },
+      { key: 'max', label: 'Max events', kind: 'number' },
+    ],
     fetch: (c) => getCalendarEvents(c as CalendarConfig),
   },
   speedtest: {
@@ -204,6 +224,15 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     actions: {
       run: (c) => triggerSpeedtestRun(c as SpeedtestConfig),
     },
+  },
+  bookmarks: {
+    label: 'Bookmarks',
+    // ponytail: static links, no polling — large interval so the no-op re-publish is rare
+    defaultRefreshSeconds: 86_400,
+    fields: [{ key: 'links', label: 'Links', kind: 'list' }],
+    fetch: async (c) => ({
+      links: Array.isArray(c.links) ? (c.links as Array<Record<string, unknown>>) : [],
+    }),
   },
 };
 

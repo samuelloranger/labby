@@ -127,6 +127,14 @@ const migrations = [
       ON CONFLICT(key) DO UPDATE SET value = excluded.value;
     `,
   },
+  {
+    version: 5,
+    name: 'integration_position',
+    up: `
+      ALTER TABLE integrations ADD COLUMN position INTEGER;
+      UPDATE integrations SET position = id WHERE position IS NULL;
+    `,
+  },
 ];
 
 export function runMigrations() {
@@ -197,6 +205,7 @@ export type IntegrationRow = {
   config: Record<string, unknown>;
   enabled: boolean;
   refreshSeconds: number | null;
+  position: number;
 };
 
 type Raw = {
@@ -206,6 +215,7 @@ type Raw = {
   config: string;
   enabled: number;
   refresh_seconds: number | null;
+  position: number | null;
 };
 const toRow = (r: Raw): IntegrationRow => ({
   id: r.id,
@@ -214,10 +224,11 @@ const toRow = (r: Raw): IntegrationRow => ({
   config: JSON.parse(r.config),
   enabled: !!r.enabled,
   refreshSeconds: r.refresh_seconds,
+  position: r.position ?? r.id,
 });
 
 export function listIntegrations(): IntegrationRow[] {
-  return (db.query('SELECT * FROM integrations ORDER BY id').all() as Raw[]).map(toRow);
+  return (db.query('SELECT * FROM integrations ORDER BY position, id').all() as Raw[]).map(toRow);
 }
 
 export function getIntegration(id: number): IntegrationRow | null {
@@ -225,10 +236,12 @@ export function getIntegration(id: number): IntegrationRow | null {
   return r ? toRow(r) : null;
 }
 
-export function createIntegration(input: Omit<IntegrationRow, 'id'>): IntegrationRow {
+export function createIntegration(input: Omit<IntegrationRow, 'id' | 'position'>): IntegrationRow {
+  const nextPos =
+    (db.query('SELECT COALESCE(MAX(position), 0) + 1 AS p FROM integrations').get() as { p: number }).p;
   const info = db
     .query(
-      'INSERT INTO integrations (name, type, config, enabled, refresh_seconds) VALUES ($name,$type,$config,$enabled,$rs)',
+      'INSERT INTO integrations (name, type, config, enabled, refresh_seconds, position) VALUES ($name,$type,$config,$enabled,$rs,$pos)',
     )
     .run({
       $name: input.name,
@@ -236,13 +249,14 @@ export function createIntegration(input: Omit<IntegrationRow, 'id'>): Integratio
       $config: JSON.stringify(input.config),
       $enabled: input.enabled ? 1 : 0,
       $rs: input.refreshSeconds,
+      $pos: nextPos,
     });
   return getIntegration(Number(info.lastInsertRowid)) as IntegrationRow;
 }
 
 export function updateIntegration(
   id: number,
-  input: Omit<IntegrationRow, 'id'>,
+  input: Omit<IntegrationRow, 'id' | 'position'>,
 ): IntegrationRow | null {
   db.query(
     'UPDATE integrations SET name=$name, type=$type, config=$config, enabled=$enabled, refresh_seconds=$rs WHERE id=$id',
@@ -259,4 +273,46 @@ export function updateIntegration(
 
 export function deleteIntegration(id: number): void {
   db.query('DELETE FROM integrations WHERE id = $id').run({ $id: id });
+}
+
+export function reorderIntegrations(orderedIds: number[]): void {
+  const tx = db.transaction((ids: number[]) => {
+    // Reposition the whole set, not just the ids passed: any row omitted from a
+    // partial reorder would otherwise keep its old position and collide with the
+    // new 0-based values, making list order non-deterministic. Honor the given
+    // order first, then append the rest by their current order.
+    const all = (db.query('SELECT id FROM integrations ORDER BY position, id').all() as { id: number }[]).map(
+      (r) => r.id,
+    );
+    const known = new Set(all);
+    const seen = new Set<number>();
+    const full: number[] = [];
+    for (const id of ids) if (known.has(id) && !seen.has(id)) (seen.add(id), full.push(id));
+    for (const id of all) if (!seen.has(id)) full.push(id);
+    const stmt = db.query('UPDATE integrations SET position = $pos WHERE id = $id');
+    full.forEach((id, idx) => stmt.run({ $id: id, $pos: idx }));
+  });
+  tx(orderedIds);
+}
+
+export function replaceAllIntegrations(rows: Array<Omit<IntegrationRow, 'position'> & { position?: number }>): void {
+  type RowIn = Omit<IntegrationRow, 'position'> & { position?: number };
+  const tx = db.transaction((list: RowIn[]) => {
+    db.query('DELETE FROM integrations').run();
+    const stmt = db.query(
+      'INSERT INTO integrations (id, name, type, config, enabled, refresh_seconds, position) VALUES ($id,$name,$type,$config,$enabled,$rs,$pos)',
+    );
+    for (const r of list) {
+      stmt.run({
+        $id: r.id,
+        $name: r.name,
+        $type: r.type,
+        $config: JSON.stringify(r.config),
+        $enabled: r.enabled ? 1 : 0,
+        $rs: r.refreshSeconds,
+        $pos: r.position ?? r.id,
+      });
+    }
+  });
+  tx(rows);
 }

@@ -6,56 +6,28 @@
   import { onMount } from 'svelte';
 
   let { config }: { config: Dashboard } = $props();
-  let activePageIndex = $state(0);
-  let page = $derived(config.pages[activePageIndex] || config.pages[0]);
-  let integrationsById = $state<Map<number, IntegrationRow>>(new Map());
+  let integrations = $state<IntegrationRow[]>([]);
+
+  const visible = $derived(
+    [...integrations].filter((r) => r.enabled).sort((a, b) => a.position - b.position || a.id - b.id),
+  );
 
   onMount(() => {
     void fetch('/api/integrations')
       .then((res) => (res.ok ? res.json() : []))
       .then((rows: IntegrationRow[]) => {
-        integrationsById = new Map(rows.map((r) => [r.id, r]));
+        integrations = rows;
       });
     return initStream();
   });
 </script>
 
-<Header {config} />
+<Header {config} {integrations} />
 
 <main class="page">
-  {#if config.pages.length > 1}
-    <div class="page-h">
-      <div class="page-tabs" role="tablist" aria-label="Dashboard pages">
-        {#each config.pages as p, idx}
-          <button
-            class="page-tab"
-            class:active={activePageIndex === idx}
-            role="tab"
-            aria-selected={activePageIndex === idx}
-            onclick={() => (activePageIndex = idx)}
-          >{p.name}</button>
-        {/each}
-      </div>
-    </div>
-  {/if}
-
-  {#if config.theme?.layout === 'columns'}
-    <div class="grid-columns">
-      {#each page.columns as col}
-        <div class="grid-column {col.size}">
-          {#each col.widgets as widget}
-            <WidgetHost {widget} integrationType={integrationsById.get(widget.integrationId)?.type} />
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {:else}
-    <div class="grid">
-      {#each page.columns as col}
-        {#each col.widgets as widget}
-          <WidgetHost {widget} integrationType={integrationsById.get(widget.integrationId)?.type} />
-        {/each}
-      {/each}
-    </div>
-  {/if}
+  <div class="grid">
+    {#each visible as integration (integration.id)}
+      <WidgetHost {integration} />
+    {/each}
+  </div>
 </main>

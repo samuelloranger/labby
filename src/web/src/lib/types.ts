@@ -6,31 +6,6 @@ export type Site = {
   okCodes?: number[];
 };
 
-export type Widget =
-  | {
-      type: 'monitor';
-      title: string;
-      integrationId: number;
-      style?: 'compact' | 'default';
-      variant?: 'rows' | 'tiles';
-    }
-  | { type: 'docker'; title: string; integrationId: number }
-  | { type: 'downloads'; title: string; integrationId: number; max?: number }
-  | { type: 'adguard'; title: string; integrationId: number }
-  | { type: 'jellyfin'; title: string; integrationId: number }
-  | { type: 'beszel'; title: string; integrationId: number; systems?: string[]; max?: number }
-  | { type: 'radarr'; title: string; integrationId: number; max?: number }
-  | { type: 'sonarr'; title: string; integrationId: number; max?: number }
-  | { type: 'reelward'; title: string; integrationId: number; max?: number }
-  | { type: 'reddit'; title: string; integrationId: number; max?: number }
-  | { type: 'hackernews'; title: string; integrationId: number; max?: number }
-  | { type: 'weather'; title: string; integrationId: number }
-  | { type: 'calendar'; title: string; integrationId: number; max?: number }
-  | { type: 'speedtest'; title: string; integrationId: number; max?: number };
-
-export type Column = { size: 'small' | 'full'; widgets: Widget[] };
-export type Page = { name: string; columns: Column[] };
-
 export type LayoutType = 'masonry' | 'columns';
 
 export type ThemeName =
@@ -66,7 +41,6 @@ export type Dashboard = {
     density?: 'default' | 'compact';
     customCss?: string;
   };
-  pages: Page[];
 };
 
 export type IntegrationRow = {
@@ -76,6 +50,7 @@ export type IntegrationRow = {
   config: Record<string, unknown>;
   enabled: boolean;
   refreshSeconds: number | null;
+  position: number;
 };
 
 export type FieldDef = {

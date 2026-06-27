@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ArrowLeft, Database, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-svelte';
+  import { ArrowLeft, ChevronDown, ChevronUp, Database, Download, Eye, EyeOff, Pencil, Plus, TriangleAlert, Trash2, Upload } from 'lucide-svelte';
   import Icon from './components/Icon.svelte';
   import type { FieldDef, IntegrationRow, IntegrationTypeMeta } from '$lib/types';
 
@@ -35,6 +35,7 @@
     weather: '/icons/openweather.png',
     calendar: 'lucide:calendar',
     speedtest: '/icons/speedtest-tracker.svg',
+    bookmarks: 'lucide:layout-grid',
   };
 
   const selectedMeta = $derived(types.find((t) => t.type === formType));
@@ -128,6 +129,36 @@
     updateSite(key, i, { okCodes: codes.length ? codes : undefined });
   }
 
+  // --- bookmarks links editor ---
+  type LinkForm = { title?: string; url?: string; icon?: string };
+  function links(key: string): LinkForm[] {
+    const v = formConfig[key];
+    return Array.isArray(v) ? (v as LinkForm[]) : [];
+  }
+  function addLink(key: string) {
+    formConfig = { ...formConfig, [key]: [...links(key), { title: '', url: '', icon: '' }] };
+  }
+  function removeLink(key: string, i: number) {
+    formConfig = { ...formConfig, [key]: links(key).filter((_, idx) => idx !== i) };
+  }
+  function updateLink(key: string, i: number, patch: Partial<LinkForm>) {
+    formConfig = {
+      ...formConfig,
+      [key]: links(key).map((l, idx) => (idx === i ? { ...l, ...patch } : l)),
+    };
+  }
+  async function fetchFavicon(key: string, i: number) {
+    const link = links(key)[i];
+    if (!link?.url?.trim() || link.icon?.trim()) return;
+    try {
+      const res = await fetch(`/api/favicon?url=${encodeURIComponent(link.url.trim())}`);
+      const data = (await res.json()) as { icon: string | null };
+      if (data.icon) updateLink(key, i, { icon: data.icon });
+    } catch {
+      /* leave icon empty — falls back to a glyph */
+    }
+  }
+
   // --- calendar feeds: stored as "Name|URL" strings (URL only if unnamed) ---
   type CalForm = { name?: string; url?: string };
   function cals(key: string): CalForm[] {
@@ -176,6 +207,14 @@
           const pipe = s.indexOf('|');
           return (pipe > 0 ? s.slice(pipe + 1).trim() : s).length > 0;
         });
+      } else if (k === 'links' && Array.isArray(v)) {
+        out[k] = (v as LinkForm[])
+          .map((l) => ({
+            title: (l.title ?? '').trim() || (l.url ?? '').trim(),
+            url: (l.url ?? '').trim(),
+            ...(l.icon?.trim() ? { icon: l.icon.trim() } : {}),
+          }))
+          .filter((l) => l.url);
       }
     }
     return out;
@@ -259,6 +298,81 @@
       saving = false;
     }
   }
+
+  let importing = $state(false);
+  let fileInput = $state<HTMLInputElement | null>(null);
+
+  function exportBackup() {
+    window.location.href = '/api/backup';
+  }
+
+  let dragIndex = $state<number | null>(null);
+
+  async function persistOrder() {
+    try {
+      await fetch('/api/integrations/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: rows.map((r) => r.id) }),
+      });
+    } catch {
+      /* order will resync on next load */
+    }
+  }
+
+  function onDragStart(i: number) {
+    dragIndex = i;
+  }
+  function onDragOver(e: DragEvent, i: number) {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === i) return;
+    const next = [...rows];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(i, 0, moved);
+    rows = next;
+    dragIndex = i;
+  }
+  function onDrop() {
+    dragIndex = null;
+    void persistOrder();
+  }
+
+  // Touch/keyboard-friendly reorder (HTML5 drag doesn't fire on iOS Safari).
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= rows.length) return;
+    const next = [...rows];
+    [next[i], next[j]] = [next[j], next[i]];
+    rows = next;
+    void persistOrder();
+  }
+
+  async function onImportFile(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!confirm("This replaces ALL services and your dashboard layout with the backup's contents. Continue?")) return;
+    importing = true;
+    error = null;
+    try {
+      const text = await file.text();
+      const res = await fetch('/api/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: text,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to restore backup');
+      }
+      window.location.reload();
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to restore backup';
+    } finally {
+      importing = false;
+    }
+  }
 </script>
 
 <div class="page settings-page">
@@ -285,9 +399,18 @@
     </div>
   {:else}
     <div class="services-grid">
-      {#each rows as row}
-        <div class="svc-card">
+      {#each rows as row, i (row.id)}
+        <div
+          class="svc-card"
+          class:dragging={dragIndex === i}
+          draggable="true"
+          ondragstart={() => onDragStart(i)}
+          ondragover={(e) => onDragOver(e, i)}
+          ondrop={onDrop}
+          ondragend={() => (dragIndex = null)}
+        >
           <div class="svc-head">
+            <span class="drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>
             <span class="svc-mark"><Icon icon={TYPE_ICONS[row.type] ?? 'lucide:box'} fallback="box" size={20} /></span>
             <div class="svc-title">
               <h3>{row.name}</h3>
@@ -296,6 +419,12 @@
               </span>
             </div>
             <div class="row-actions">
+              <button type="button" class="btn-icon" onclick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" title="Move up">
+                <ChevronUp size={15} />
+              </button>
+              <button type="button" class="btn-icon" onclick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Move down" title="Move down">
+                <ChevronDown size={15} />
+              </button>
               <button type="button" class="btn-icon" onclick={() => openEdit(row)} aria-label="Edit" title="Edit">
                 <Pencil size={15} />
               </button>
@@ -326,6 +455,33 @@
       </div>
     </div>
   {/if}
+
+  <section class="backup" aria-labelledby="backup-title">
+    <div class="backup-head">
+      <span class="settings-eyebrow"><Database size={13} /> Backup &amp; restore</span>
+      <h2 id="backup-title">Move your setup</h2>
+      <p class="settings-sub">Download everything — services, credentials, and your dashboard layout — as one file, or restore from a previous one.</p>
+    </div>
+    <div class="backup-warn">
+      <TriangleAlert size={16} />
+      <span>The file includes your service credentials in plain text. Keep it somewhere private.</span>
+    </div>
+    <div class="backup-actions">
+      <button type="button" class="btn-save" onclick={exportBackup}>
+        <Download size={16} /> Export backup
+      </button>
+      <button type="button" class="btn-cancel" onclick={() => fileInput?.click()} disabled={importing}>
+        <Upload size={16} /> {importing ? 'Importing…' : 'Import backup'}
+      </button>
+      <input
+        bind:this={fileInput}
+        type="file"
+        accept="application/json"
+        style="display:none"
+        onchange={onImportFile}
+      />
+    </div>
+  </section>
 </div>
 
 {#if formOpen && selectedMeta}
@@ -422,6 +578,39 @@
               {/each}
               <button type="button" class="btn-add-site" onclick={() => addCal(field.key)}>
                 <Plus size={14} /> Add calendar
+              </button>
+            </div>
+          {:else if field.key === 'links'}
+            <div class="sites-editor">
+              {#each links(field.key) as l, i (i)}
+                <div class="site-row">
+                  <div class="site-row-head">
+                    <span class="site-badge">
+                      <Icon icon={l.icon?.trim() || 'lucide:globe'} fallback="globe" size={18} />
+                    </span>
+                    <span class="site-row-title">{l.title?.trim() || l.url?.trim() || `Link ${i + 1}`}</span>
+                    <button type="button" class="btn-icon danger" onclick={() => removeLink(field.key, i)} aria-label="Remove link" title="Remove link">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                  <div class="site-grid">
+                    <label class="sub-field">
+                      Name
+                      <input type="text" placeholder="Proxmox" value={l.title ?? ''} oninput={(e) => updateLink(field.key, i, { title: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field">
+                      Icon <span class="opt">auto-filled from the link</span>
+                      <input type="text" placeholder="di:proxmox" value={l.icon ?? ''} oninput={(e) => updateLink(field.key, i, { icon: e.currentTarget.value })} />
+                    </label>
+                    <label class="sub-field span2">
+                      Link URL
+                      <input type="text" placeholder="https://proxmox.lan:8006" value={l.url ?? ''} oninput={(e) => updateLink(field.key, i, { url: e.currentTarget.value })} onblur={() => fetchFavicon(field.key, i)} />
+                    </label>
+                  </div>
+                </div>
+              {/each}
+              <button type="button" class="btn-add-site" onclick={() => addLink(field.key)}>
+                <Plus size={14} /> Add link
               </button>
             </div>
           {:else if field.kind === 'list'}
@@ -528,6 +717,52 @@
     font-weight: 500;
     margin-top: 6px;
     max-width: 56ch;
+  }
+  .backup {
+    margin-top: 36px;
+    padding-top: 26px;
+    border-top: 1px solid var(--glass-brd);
+  }
+  .backup-head h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-top: 2px;
+  }
+  .backup-head .settings-sub {
+    margin-top: 6px;
+    margin-bottom: 16px;
+  }
+  .backup-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 60ch;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--warn) 13%, transparent);
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+    color: var(--ink);
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .backup-warn :global(svg) {
+    flex: none;
+    margin-top: 1px;
+    color: var(--warn);
+  }
+  .backup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .backup-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .services-grid {
@@ -969,4 +1204,16 @@
       gap: 12px;
     }
   }
+
+  .svc-card[draggable='true'] { cursor: default; }
+  .svc-card.dragging { opacity: 0.5; }
+  .drag-handle {
+    cursor: grab;
+    color: var(--ink-faint);
+    font-size: 18px;
+    line-height: 1;
+    user-select: none;
+    padding-right: 2px;
+  }
+  .drag-handle:active { cursor: grabbing; }
 </style>

@@ -775,8 +775,7 @@ header.top {
 }
 
 @media (max-width: 720px) {
-  .header-time,
-  .custom-select {
+  .header-time {
     display: none !important;
   }
   .top-in {
