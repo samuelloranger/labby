@@ -7,6 +7,13 @@
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<BookmarksData>);
   const links = $derived(state.data?.links ?? []);
+
+  // Svelte does not strip dangerous schemes from href; only allow http(s) or
+  // a same-origin path so a stored `javascript:` URL can't execute on click.
+  function safeHref(u?: string): string {
+    const s = (u ?? '').trim();
+    return /^https?:\/\//i.test(s) || s.startsWith('/') ? s : '#';
+  }
 </script>
 
 <section class="card">
@@ -27,7 +34,7 @@
   {:else}
     <div class="bm-grid">
       {#each links as l}
-        <a class="bm-tile" href={l.url} target="_blank" rel="noopener">
+        <a class="bm-tile" href={safeHref(l.url)} target="_blank" rel="noopener">
           <span class="bm-ico"><Icon icon={l.icon ?? ''} fallback="globe" size={22} /></span>
           <span class="bm-label">{l.title}</span>
         </a>

@@ -51,6 +51,9 @@ export type IntegrationDef = {
   actions?: Record<string, (config: Record<string, unknown>, ...args: any[]) => Promise<unknown>>;
 };
 
+// Shared "max items to show" field used by most list-style widgets.
+const MAX_FIELD: FieldDef = { key: 'max', label: 'Max items', kind: 'number' };
+
 export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   monitor: {
     label: 'Monitor',
@@ -86,7 +89,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
-      { key: 'max', label: 'Max items', kind: 'number' },
+      MAX_FIELD,
     ],
     fetch: (c) => getQBittorrentTorrents(c as QbitConfig),
     actions: {
@@ -101,7 +104,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'user', label: 'User' },
       { key: 'pass', label: 'Password', secret: true },
-      { key: 'max', label: 'Max items', kind: 'number' },
+      MAX_FIELD,
     ],
     fetch: (c) => getTransmissionTorrents(c as TransmissionConfig),
     actions: {
@@ -150,7 +153,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
-      { key: 'max', label: 'Max items', kind: 'number' },
+      MAX_FIELD,
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'radarr'),
   },
@@ -160,7 +163,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
-      { key: 'max', label: 'Max items', kind: 'number' },
+      MAX_FIELD,
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'sonarr'),
   },
@@ -170,7 +173,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
-      { key: 'max', label: 'Max items', kind: 'number' },
+      MAX_FIELD,
     ],
     fetch: (c) => getReelwardSummary(c as ReelwardConfig),
   },
@@ -179,14 +182,14 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     defaultRefreshSeconds: 240,
     fields: [
       { key: 'subreddits', label: 'Subreddits', kind: 'list' },
-      { key: 'max', label: 'Max items', kind: 'number' },
+      MAX_FIELD,
     ],
     fetch: (c) => getRedditPosts(c as RedditConfig),
   },
   hackernews: {
     label: 'Hacker News',
     defaultRefreshSeconds: 240,
-    fields: [{ key: 'max', label: 'Max items', kind: 'number' }],
+    fields: [MAX_FIELD],
     fetch: (c) => getHackerNews(c as HNConfig),
   },
   weather: {
