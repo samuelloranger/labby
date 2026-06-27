@@ -191,6 +191,9 @@ export type FeedData = {
   subreddit?: string;
 };
 
+export type BookmarkLink = { title: string; url: string; icon?: string };
+export type BookmarksData = { links: BookmarkLink[] };
+
 export type WidgetState<T> = {
   loading: boolean;
   error: string | null;

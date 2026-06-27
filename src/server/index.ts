@@ -1,4 +1,5 @@
 import { app } from './app';
+import { migrateLayoutToIntegrations } from './config/migrate-layout';
 import { loadConfig } from './config/loader';
 import { initScheduler } from './sse/scheduler';
 
@@ -7,6 +8,7 @@ const PORT = Number(process.env.LABBY_PORT ?? 8080);
 async function main() {
   console.log('Loading config from SQLite database');
 
+  migrateLayoutToIntegrations();
   const state = await loadConfig();
   if (!state.ok) {
     // Invalid config is a degraded (not fatal) state by design: the dashboard

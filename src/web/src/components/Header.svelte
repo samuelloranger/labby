@@ -5,7 +5,7 @@
   import Select from './Select.svelte';
   import { get } from 'svelte/store';
   import { getStore, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
-  import type { Dashboard } from '$lib/types';
+  import type { Dashboard, IntegrationRow } from '$lib/types';
 
   const themes = [
     ['system', 'System Default'],
@@ -33,11 +33,10 @@
     ['dark-peach', 'Peach (Dark)'],
   ] as const;
 
-  let { config }: { config: Dashboard } = $props();
+  let { config, integrations = [] }: { config: Dashboard; integrations?: IntegrationRow[] } = $props();
   const title = $derived(config.title ?? 'Labby');
 
   let theme = $state(config.theme?.default ?? 'system');
-  let layout = $state(config.theme?.layout ?? 'masonry');
   let density = $state<'default' | 'compact'>('compact');
   let customCss = $state(config.theme?.customCss ?? '');
   let settingsOpen = $state(false);
@@ -45,17 +44,9 @@
 
   let currentTime = $state('');
 
-  const monitorIds = $derived.by(() => {
-    const ids = new Set<number>();
-    for (const page of config.pages) {
-      for (const col of page.columns) {
-        for (const w of col.widgets) {
-          if (w.type === 'monitor') ids.add(w.integrationId);
-        }
-      }
-    }
-    return [...ids];
-  });
+  const monitorIds = $derived(
+    integrations.filter((r) => r.type === 'monitor' && r.enabled).map((r) => r.id),
+  );
 
   let summary = $state({ up: 0, warn: 0, down: 0 });
 
@@ -139,11 +130,6 @@
     }
   }
 
-  function previewLayout(next: 'masonry' | 'columns') {
-    layout = next;
-    config.theme.layout = next;
-  }
-
   function previewDensity(next: 'default' | 'compact') {
     density = next;
     config.theme.density = next;
@@ -180,7 +166,6 @@
 
   function openSettings() {
     theme = config.theme?.default ?? 'system';
-    layout = config.theme?.layout ?? 'masonry';
     density = config.theme?.density ?? 'default';
     customCss = config.theme?.customCss ?? '';
     settingsOpen = true;
@@ -196,10 +181,8 @@
       document.documentElement.dataset.theme = originalTheme;
     }
     theme = originalTheme;
-    config.theme.layout = config.theme?.layout ?? 'masonry';
     config.theme.density = config.theme?.density ?? 'default';
     config.theme.customCss = config.theme?.customCss ?? '';
-    layout = config.theme?.layout ?? 'masonry';
     density = config.theme?.density ?? 'default';
     document.documentElement.dataset.density = density;
     customCss = config.theme?.customCss ?? '';
@@ -213,14 +196,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           theme: theme,
-          layout: layout,
           density: density,
           customCss: customCss,
         }),
       });
       if (res.ok) {
         config.theme.default = theme;
-        config.theme.layout = layout;
         config.theme.density = density;
         config.theme.customCss = customCss;
         try {
@@ -275,7 +256,9 @@
       <span class="chip" title="Services down"><span class="dot down"></span><b>{summary.down}</b></span>
     </div>
 
-    <Select value={theme} options={themes} onchange={quickSetTheme} pill={true} style="width: 170px;" />
+    <span class="quick-theme">
+      <Select value={theme} options={themes} onchange={quickSetTheme} pill={true} style="width: 170px;" />
+    </span>
 
     <button class="iconbtn" onclick={() => window.location.hash = '#settings'} aria-label="Manage services" title="Manage services">
       <Database size={17} />
@@ -293,21 +276,6 @@
       <div class="settings-group">
         <label for="settings-theme">Theme</label>
         <Select id="settings-theme" value={theme} options={themes} onchange={previewTheme} pill={false} style="width: 100%;" />
-      </div>
-
-      <div class="settings-group">
-        <span class="settings-label">Layout</span>
-        <div class="settings-radio-group">
-          <label class="radio-label">
-            <input type="radio" name="layout" value="masonry" checked={layout === 'masonry'} onchange={() => previewLayout('masonry')} />
-            <span>Masonry</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="layout" value="columns" checked={layout === 'columns'} onchange={() => previewLayout('columns')} />
-            <span>Columns</span>
-          </label>
-        </div>
-        <p class="settings-help">Masonry packs widgets to fill vertical gaps. Columns keeps them exactly where you arranged them.</p>
       </div>
 
       <div class="settings-group">
@@ -339,3 +307,12 @@
     </div>
   </Modal>
 {/if}
+
+<style>
+  /* On phones the quick theme picker lives in the Customize modal instead. */
+  @media (max-width: 720px) {
+    .quick-theme {
+      display: none;
+    }
+  }
+</style>
