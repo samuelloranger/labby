@@ -277,8 +277,20 @@ export function deleteIntegration(id: number): void {
 
 export function reorderIntegrations(orderedIds: number[]): void {
   const tx = db.transaction((ids: number[]) => {
+    // Reposition the whole set, not just the ids passed: any row omitted from a
+    // partial reorder would otherwise keep its old position and collide with the
+    // new 0-based values, making list order non-deterministic. Honor the given
+    // order first, then append the rest by their current order.
+    const all = (db.query('SELECT id FROM integrations ORDER BY position, id').all() as { id: number }[]).map(
+      (r) => r.id,
+    );
+    const known = new Set(all);
+    const seen = new Set<number>();
+    const full: number[] = [];
+    for (const id of ids) if (known.has(id) && !seen.has(id)) (seen.add(id), full.push(id));
+    for (const id of all) if (!seen.has(id)) full.push(id);
     const stmt = db.query('UPDATE integrations SET position = $pos WHERE id = $id');
-    ids.forEach((id, idx) => stmt.run({ $id: id, $pos: idx }));
+    full.forEach((id, idx) => stmt.run({ $id: id, $pos: idx }));
   });
   tx(orderedIds);
 }

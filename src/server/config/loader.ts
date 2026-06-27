@@ -75,6 +75,6 @@ export async function saveThemeSettings(settings: {
   setState({ ok: true, config });
 }
 
-export function reloadConfig(): void {
-  void loadConfig();
+export function reloadConfig(): Promise<ConfigState> {
+  return loadConfig();
 }

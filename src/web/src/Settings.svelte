@@ -407,7 +407,7 @@
           ondragstart={() => onDragStart(i)}
           ondragover={(e) => onDragOver(e, i)}
           ondrop={onDrop}
-          ondragend={onDrop}
+          ondragend={() => (dragIndex = null)}
         >
           <div class="svc-head">
             <span class="drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>

@@ -7,6 +7,7 @@ import { getConfig, getConfigState, reloadConfig, saveThemeSettings } from './co
 import { DashboardSchema, DensitySchema, LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
 import {
   createIntegration,
+  db,
   deleteIntegration,
   getIntegration,
   getSetting,
@@ -272,29 +273,35 @@ app.get('/api/backup', (c) => {
       dashboard = null; // corrupt row — export best-effort rather than 500
     }
   }
+  const exportedAt = new Date().toISOString();
   const body = {
     version: 1 as const,
-    exportedAt: new Date().toISOString(),
+    exportedAt,
     dashboard,
     integrations: listIntegrations(),
   };
   c.header('Content-Type', 'application/json');
   c.header(
     'Content-Disposition',
-    `attachment; filename="labby-backup-${new Date().toISOString().slice(0, 10)}.json"`,
+    `attachment; filename="labby-backup-${exportedAt.slice(0, 10)}.json"`,
   );
   return c.body(JSON.stringify(body, null, 2));
 });
 
+const INTEGRATION_TYPES = Object.keys(INTEGRATIONS) as [IntegrationType, ...IntegrationType[]];
+
 const RestoreSchema = z.object({
   version: z.literal(1),
   exportedAt: z.string().optional(),
-  dashboard: DashboardSchema,
+  // Export emits null when the dashboard row is missing/corrupt; accept it back.
+  dashboard: DashboardSchema.nullable(),
   integrations: z.array(
     z.object({
       id: z.number().int(),
       name: z.string(),
-      type: z.string(),
+      // Reject unknown types so a corrupt/hand-edited backup can't write rows
+      // the scheduler and UI will silently drop.
+      type: z.enum(INTEGRATION_TYPES),
       config: z.record(z.unknown()),
       enabled: z.boolean(),
       refreshSeconds: z.number().int().nullable(),
@@ -310,9 +317,13 @@ app.post('/api/restore', async (c) => {
     return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid backup file' }, 400);
   }
   const { dashboard, integrations } = parsed.data;
-  replaceAllIntegrations(integrations);
-  setSetting('dashboard', JSON.stringify(dashboard, null, 2));
-  reloadConfig();
+  // Atomic: integrations + dashboard land together or not at all, so a crash
+  // mid-restore can't leave a half-applied (split-brain) state.
+  db.transaction(() => {
+    replaceAllIntegrations(integrations);
+    if (dashboard) setSetting('dashboard', JSON.stringify(dashboard, null, 2));
+  })();
+  await reloadConfig();
   startScheduler();
   return c.json({ ok: true });
 });
