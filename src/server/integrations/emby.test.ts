@@ -9,6 +9,9 @@ describe('Emby client', () => {
       error: 'EMBY_API_KEY not configured',
     });
     expect(await getEmbyImage({}, 'item-1')).toEqual({ error: 'EMBY_URL not configured' });
+    expect(await getEmbyImage({ url: 'http://emby.test' }, 'item-1')).toEqual({
+      error: 'EMBY_API_KEY not configured',
+    });
   });
 
   test('maps active sessions', async () => {
