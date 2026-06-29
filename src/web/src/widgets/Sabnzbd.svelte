@@ -8,7 +8,9 @@
 
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<SabnzbdData>);
-  const slots = $derived((state.data?.slots ?? []).slice(0, max && max > 0 ? max : undefined));
+  // ponytail: fall back to a small cap when Max items is blank — usenet queues
+  // can be hundreds of rows and this card refreshes every 5s.
+  const slots = $derived((state.data?.slots ?? []).slice(0, max && max > 0 ? max : 8));
 
   let pending = $state<Record<string, boolean>>({});
   let optimistic = $state<Record<string, boolean>>({});
