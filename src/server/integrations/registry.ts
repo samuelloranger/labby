@@ -1,4 +1,5 @@
 import { type AdGuardConfig, getAdGuardStats, setAdGuardProtection } from './adguard';
+import { getSabnzbdQueue, type SabnzbdConfig, sabnzbdAction } from './sabnzbd';
 import { type ArrConfig, getArrSummary } from './arr';
 import { type BeszelConfig, getBeszelSystems } from './beszel';
 import { type CalendarConfig, getCalendarEvents } from './calendar';
@@ -23,6 +24,7 @@ export type IntegrationType =
   | 'docker'
   | 'qbittorrent'
   | 'transmission'
+  | 'sabnzbd'
   | 'adguard'
   | 'jellyfin'
   | 'emby'
@@ -112,6 +114,20 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     actions: {
       pause: (c, hash) => transmissionAction(c as TransmissionConfig, hash as string, 'pause'),
       resume: (c, hash) => transmissionAction(c as TransmissionConfig, hash as string, 'resume'),
+    },
+  },
+  sabnzbd: {
+    label: 'SABnzbd',
+    defaultRefreshSeconds: 5,
+    fields: [
+      { key: 'url', label: 'URL' },
+      { key: 'apiKey', label: 'API Key', secret: true },
+      MAX_FIELD,
+    ],
+    fetch: (c) => getSabnzbdQueue(c as SabnzbdConfig),
+    actions: {
+      pause: (c, id) => sabnzbdAction(c as SabnzbdConfig, id as string, 'pause'),
+      resume: (c, id) => sabnzbdAction(c as SabnzbdConfig, id as string, 'resume'),
     },
   },
   adguard: {
