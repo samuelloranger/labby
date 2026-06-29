@@ -9,6 +9,7 @@ const SLUGS = [
   'qbittorrent',
   'transmission',
   'jellyfin',
+  'emby',
   'immich',
   'gitea',
   'arcane',
