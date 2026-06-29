@@ -62,6 +62,49 @@ export type JellyfinData = {
   playing: number;
 };
 
+export type SabnzbdData = {
+  paused: boolean;
+  speedBps: number;
+  sizeLeftMb: number;
+  timeLeft: string;
+  slots: Array<{
+    id: string;
+    name: string;
+    progress: number;
+    sizeLeftMb: number;
+    timeLeft: string;
+    status: string;
+  }>;
+};
+
+export type EmbyData = {
+  sessions: Array<{
+    id: string;
+    title: string;
+    subtitle: string;
+    user: string;
+    device: string;
+    progress: number;
+    posterUrl?: string;
+    isTranscoding: boolean;
+  }>;
+  playing: number;
+};
+
+export type PlexData = {
+  sessions: Array<{
+    id: string;
+    title: string;
+    subtitle: string;
+    user: string;
+    device: string;
+    progress: number;
+    posterUrl?: string;
+    isTranscoding: boolean;
+  }>;
+  playing: number;
+};
+
 export type BeszelData = {
   systems: Array<{
     id: string;

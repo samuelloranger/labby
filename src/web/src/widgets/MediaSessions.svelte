@@ -1,23 +1,40 @@
 <script lang="ts">
   import { Play } from 'lucide-svelte';
   import Icon from '../components/Icon.svelte';
-  import { getStore, type JellyfinData, type WidgetState } from '$lib/stores';
+  import { getStore, type WidgetState } from '$lib/stores';
   import { clampPercent } from '$lib/utils';
 
-  let { title, integrationId }: { title: string; integrationId: number } = $props();
+  type MediaType = 'jellyfin' | 'emby' | 'plex';
+  type MediaSession = {
+    id: string;
+    title: string;
+    subtitle: string;
+    user: string;
+    device: string;
+    progress: number;
+    posterUrl?: string;
+    isTranscoding: boolean;
+  };
+  type MediaData = { sessions: MediaSession[]; playing: number };
+
+  let { title, integrationId, type }: { title: string; integrationId: number; type: MediaType } =
+    $props();
+
   const store = $derived(getStore(integrationId));
-  const state = $derived($store as WidgetState<JellyfinData>);
+  const state = $derived($store as WidgetState<MediaData>);
+  const icon = $derived(`di:${type}`);
 
   function posterSrc(url: string | undefined): string | undefined {
     if (!url) return undefined;
-    return url.replace('/api/jellyfin/image/', `/api/integrations/${integrationId}/jellyfin-image/`);
+    // Server emits `/api/<type>/image...`; rewrite to the per-integration proxy route.
+    return url.replace(`/api/${type}/image`, `/api/integrations/${integrationId}/${type}-image`);
   }
 </script>
 
 <section class="card">
   <div class="chead">
     <span class="ti">
-      <span class="ibox"><Icon icon="di:jellyfin" fallback="film" size={20} /></span>
+      <span class="ibox"><Icon {icon} fallback="film" size={20} /></span>
       {title}
     </span>
     {#if state.data}

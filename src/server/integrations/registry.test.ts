@@ -6,8 +6,11 @@ const ALL_TYPES: IntegrationType[] = [
   'docker',
   'qbittorrent',
   'transmission',
+  'sabnzbd',
   'adguard',
   'jellyfin',
+  'emby',
+  'plex',
   'beszel',
   'radarr',
   'sonarr',
@@ -24,6 +27,7 @@ const TYPES_WITH_ACTIONS: IntegrationType[] = [
   'docker',
   'qbittorrent',
   'transmission',
+  'sabnzbd',
   'adguard',
   'speedtest',
 ];
@@ -33,8 +37,8 @@ const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(
 );
 
 describe('INTEGRATIONS registry', () => {
-  it('has exactly 16 entries', () => {
-    expect(Object.keys(INTEGRATIONS).length).toBe(16);
+  it('has exactly 19 entries', () => {
+    expect(Object.keys(INTEGRATIONS).length).toBe(19);
   });
 
   it('every type has a truthy label', () => {
@@ -87,6 +91,14 @@ describe('INTEGRATIONS registry', () => {
     expect(typeof actions!.resume).toBe('function');
   });
 
+  it('sabnzbd has actions: pause, resume', () => {
+    const actions = INTEGRATIONS.sabnzbd.actions;
+    expect(typeof actions).toBe('object');
+    expect(actions).not.toBeNull();
+    expect(typeof actions!.pause).toBe('function');
+    expect(typeof actions!.resume).toBe('function');
+  });
+
   it('adguard has actions: protection', () => {
     const actions = INTEGRATIONS.adguard.actions;
     expect(typeof actions).toBe('object');
@@ -125,15 +137,15 @@ describe('display-option fields', () => {
   });
 
   it('feed/arr/calendar/download/beszel types expose a max field', () => {
-    for (const t of ['qbittorrent', 'transmission', 'beszel', 'radarr', 'sonarr', 'reelward', 'reddit', 'hackernews', 'calendar'] as const) {
+    for (const t of ['qbittorrent', 'transmission', 'sabnzbd', 'beszel', 'radarr', 'sonarr', 'reelward', 'reddit', 'hackernews', 'calendar'] as const) {
       expect(INTEGRATIONS[t].fields.map((f) => f.key)).toContain('max');
     }
   });
 });
 
 describe('integrationTypes()', () => {
-  it('returns an array of 16 entries', () => {
-    expect(integrationTypes().length).toBe(16);
+  it('returns an array of 19 entries', () => {
+    expect(integrationTypes().length).toBe(19);
   });
 
   it('omits fetch and actions from entries', () => {
