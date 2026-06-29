@@ -45,7 +45,12 @@ export async function getPlexSessions(
 
       const user = (m.User as Record<string, unknown>) ?? {};
       const player = (m.Player as Record<string, unknown>) ?? {};
-      const thumb = (m.thumb ?? m.grandparentThumb) as string | undefined;
+      const thumb =
+      typeof m.thumb === 'string'
+        ? m.thumb
+        : typeof m.grandparentThumb === 'string'
+          ? m.grandparentThumb
+          : undefined;
 
       sessions.push({
         id: String(m.sessionKey ?? m.ratingKey ?? crypto.randomUUID()),
