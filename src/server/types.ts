@@ -68,6 +68,38 @@ export type JellyfinPayload = {
   playing: number;
 };
 
+export type EmbySession = {
+  id: string;
+  title: string;
+  subtitle: string;
+  user: string;
+  device: string;
+  progress: number;
+  posterUrl?: string;
+  isTranscoding: boolean;
+};
+
+export type EmbyPayload = {
+  sessions: EmbySession[];
+  playing: number;
+};
+
+export type PlexSession = {
+  id: string;
+  title: string;
+  subtitle: string;
+  user: string;
+  device: string;
+  progress: number;
+  posterUrl?: string;
+  isTranscoding: boolean;
+};
+
+export type PlexPayload = {
+  sessions: PlexSession[];
+  playing: number;
+};
+
 export type BeszelSystem = {
   id: string;
   name: string;
@@ -193,6 +225,23 @@ export type SpeedtestPayload = {
   history: SpeedtestResult[];
 };
 
+export type SabnzbdSlot = {
+  id: string;
+  name: string;
+  progress: number;
+  sizeLeftMb: number;
+  timeLeft: string;
+  status: string;
+};
+
+export type SabnzbdPayload = {
+  paused: boolean;
+  speedBps: number;
+  sizeLeftMb: number;
+  timeLeft: string;
+  slots: SabnzbdSlot[];
+};
+
 export type Channel = string;
 
 export type IntegrationConfig = Record<string, unknown>;
@@ -201,8 +250,11 @@ export type ChannelPayload =
   | MonitorPayload
   | DockerPayload
   | DownloadsPayload
+  | SabnzbdPayload
   | AdGuardPayload
   | JellyfinPayload
+  | EmbyPayload
+  | PlexPayload
   | BeszelPayload
   | ArrPayload
   | ReelwardPayload

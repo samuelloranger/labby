@@ -1,9 +1,12 @@
 import { type AdGuardConfig, getAdGuardStats, setAdGuardProtection } from './adguard';
+import { getSabnzbdQueue, type SabnzbdConfig, sabnzbdAction } from './sabnzbd';
 import { type ArrConfig, getArrSummary } from './arr';
 import { type BeszelConfig, getBeszelSystems } from './beszel';
 import { type CalendarConfig, getCalendarEvents } from './calendar';
 import { containerAction, containerLogs, type DockerConfig, listContainers } from './docker-client';
 import { getHackerNews, type HNConfig } from './hackernews';
+import { getEmbySessions, type EmbyConfig } from './emby';
+import { getPlexSessions, type PlexConfig } from './plex';
 import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
 import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
@@ -22,8 +25,11 @@ export type IntegrationType =
   | 'docker'
   | 'qbittorrent'
   | 'transmission'
+  | 'sabnzbd'
   | 'adguard'
   | 'jellyfin'
+  | 'emby'
+  | 'plex'
   | 'beszel'
   | 'radarr'
   | 'sonarr'
@@ -112,6 +118,20 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       resume: (c, hash) => transmissionAction(c as TransmissionConfig, hash as string, 'resume'),
     },
   },
+  sabnzbd: {
+    label: 'SABnzbd',
+    defaultRefreshSeconds: 5,
+    fields: [
+      { key: 'url', label: 'URL' },
+      { key: 'apiKey', label: 'API Key', secret: true },
+      MAX_FIELD,
+    ],
+    fetch: (c) => getSabnzbdQueue(c as SabnzbdConfig),
+    actions: {
+      pause: (c, id) => sabnzbdAction(c as SabnzbdConfig, id as string, 'pause'),
+      resume: (c, id) => sabnzbdAction(c as SabnzbdConfig, id as string, 'resume'),
+    },
+  },
   adguard: {
     label: 'AdGuard',
     defaultRefreshSeconds: 60,
@@ -134,6 +154,24 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
     fetch: (c) => getJellyfinSessions(c as JellyfinConfig),
+  },
+  emby: {
+    label: 'Emby',
+    defaultRefreshSeconds: 15,
+    fields: [
+      { key: 'url', label: 'URL' },
+      { key: 'apiKey', label: 'API Key', secret: true },
+    ],
+    fetch: (c) => getEmbySessions(c as EmbyConfig),
+  },
+  plex: {
+    label: 'Plex',
+    defaultRefreshSeconds: 15,
+    fields: [
+      { key: 'url', label: 'URL' },
+      { key: 'token', label: 'Token', secret: true },
+    ],
+    fetch: (c) => getPlexSessions(c as PlexConfig),
   },
   beszel: {
     label: 'Beszel',
