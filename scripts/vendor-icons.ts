@@ -8,6 +8,7 @@ const SLUGS = [
   'adguard-home',
   'qbittorrent',
   'transmission',
+  'sabnzbd',
   'jellyfin',
   'emby',
   'immich',
