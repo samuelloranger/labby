@@ -3,8 +3,7 @@
   import Docker from '../widgets/Docker.svelte';
   import Downloads from '../widgets/Downloads.svelte';
   import AdGuard from '../widgets/AdGuard.svelte';
-  import Jellyfin from '../widgets/Jellyfin.svelte';
-  import Emby from '../widgets/Emby.svelte';
+  import MediaSessions from '../widgets/MediaSessions.svelte';
   import Beszel from '../widgets/Beszel.svelte';
   import Arr from '../widgets/Arr.svelte';
   import Reelward from '../widgets/Reelward.svelte';
@@ -30,10 +29,8 @@
   <Downloads {title} integrationId={id} client={integration.type} max={c.max} />
 {:else if integration.type === 'adguard'}
   <AdGuard {title} integrationId={id} />
-{:else if integration.type === 'jellyfin'}
-  <Jellyfin {title} integrationId={id} />
-{:else if integration.type === 'emby'}
-  <Emby {title} integrationId={id} />
+{:else if integration.type === 'jellyfin' || integration.type === 'emby' || integration.type === 'plex'}
+  <MediaSessions {title} integrationId={id} type={integration.type} />
 {:else if integration.type === 'sabnzbd'}
   <Sabnzbd {title} integrationId={id} max={c.max} />
 {:else if integration.type === 'beszel'}

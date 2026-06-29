@@ -11,6 +11,7 @@ const SLUGS = [
   'sabnzbd',
   'jellyfin',
   'emby',
+  'plex',
   'immich',
   'gitea',
   'arcane',
