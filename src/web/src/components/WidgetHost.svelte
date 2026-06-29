@@ -13,6 +13,7 @@
   import Calendar from '../widgets/Calendar.svelte';
   import Speedtest from '../widgets/Speedtest.svelte';
   import Bookmarks from '../widgets/Bookmarks.svelte';
+  import Sabnzbd from '../widgets/Sabnzbd.svelte';
   import type { IntegrationRow } from '$lib/types';
 
   let { integration }: { integration: IntegrationRow } = $props();
@@ -33,6 +34,8 @@
   <Jellyfin {title} integrationId={id} />
 {:else if integration.type === 'emby'}
   <Emby {title} integrationId={id} />
+{:else if integration.type === 'sabnzbd'}
+  <Sabnzbd {title} integrationId={id} max={c.max} />
 {:else if integration.type === 'beszel'}
   <Beszel {title} integrationId={id} systems={c.systems} max={c.max} />
 {:else if integration.type === 'radarr' || integration.type === 'sonarr'}
