@@ -84,6 +84,22 @@ export type EmbyPayload = {
   playing: number;
 };
 
+export type PlexSession = {
+  id: string;
+  title: string;
+  subtitle: string;
+  user: string;
+  device: string;
+  progress: number;
+  posterUrl?: string;
+  isTranscoding: boolean;
+};
+
+export type PlexPayload = {
+  sessions: PlexSession[];
+  playing: number;
+};
+
 export type BeszelSystem = {
   id: string;
   name: string;
@@ -238,6 +254,7 @@ export type ChannelPayload =
   | AdGuardPayload
   | JellyfinPayload
   | EmbyPayload
+  | PlexPayload
   | BeszelPayload
   | ArrPayload
   | ReelwardPayload

@@ -20,6 +20,7 @@ import {
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
 import { resolveFavicon } from './integrations/favicon';
 import { getEmbyImage, type EmbyConfig } from './integrations/emby';
+import { getPlexImage, type PlexConfig } from './integrations/plex';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
 import { hub } from './sse/hub';
@@ -159,6 +160,19 @@ app.get('/api/integrations/:id/emby-image/:itemId', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
   if (!row || row.type !== 'emby') return c.json({ error: 'Not found' }, 404);
   const result = await getEmbyImage(row.config as EmbyConfig, c.req.param('itemId'));
+  if ('error' in result) return c.json(result, 502);
+  return new Response(result.body, {
+    headers: {
+      'Content-Type': result.headers.get('Content-Type') ?? 'image/jpeg',
+      'Cache-Control': 'private, max-age=300',
+    },
+  });
+});
+app.get('/api/integrations/:id/plex-image', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (!row || row.type !== 'plex') return c.json({ error: 'Not found' }, 404);
+  const path = c.req.query('path') ?? '';
+  const result = await getPlexImage(row.config as PlexConfig, path);
   if ('error' in result) return c.json(result, 502);
   return new Response(result.body, {
     headers: {

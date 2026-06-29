@@ -9,6 +9,8 @@ const ALL_TYPES: IntegrationType[] = [
   'sabnzbd',
   'adguard',
   'jellyfin',
+  'emby',
+  'plex',
   'beszel',
   'radarr',
   'sonarr',
@@ -35,8 +37,8 @@ const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(
 );
 
 describe('INTEGRATIONS registry', () => {
-  it('has exactly 18 entries', () => {
-    expect(Object.keys(INTEGRATIONS).length).toBe(18);
+  it('has exactly 19 entries', () => {
+    expect(Object.keys(INTEGRATIONS).length).toBe(19);
   });
 
   it('every type has a truthy label', () => {
@@ -142,8 +144,8 @@ describe('display-option fields', () => {
 });
 
 describe('integrationTypes()', () => {
-  it('returns an array of 18 entries', () => {
-    expect(integrationTypes().length).toBe(18);
+  it('returns an array of 19 entries', () => {
+    expect(integrationTypes().length).toBe(19);
   });
 
   it('omits fetch and actions from entries', () => {
