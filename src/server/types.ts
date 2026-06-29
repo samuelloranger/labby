@@ -209,6 +209,23 @@ export type SpeedtestPayload = {
   history: SpeedtestResult[];
 };
 
+export type SabnzbdSlot = {
+  id: string;
+  name: string;
+  progress: number;
+  sizeLeftMb: number;
+  timeLeft: string;
+  status: string;
+};
+
+export type SabnzbdPayload = {
+  paused: boolean;
+  speedBps: number;
+  sizeLeftMb: number;
+  timeLeft: string;
+  slots: SabnzbdSlot[];
+};
+
 export type Channel = string;
 
 export type IntegrationConfig = Record<string, unknown>;
@@ -217,6 +234,7 @@ export type ChannelPayload =
   | MonitorPayload
   | DockerPayload
   | DownloadsPayload
+  | SabnzbdPayload
   | AdGuardPayload
   | JellyfinPayload
   | EmbyPayload
