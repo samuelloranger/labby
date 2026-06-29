@@ -4,6 +4,7 @@ import { type BeszelConfig, getBeszelSystems } from './beszel';
 import { type CalendarConfig, getCalendarEvents } from './calendar';
 import { containerAction, containerLogs, type DockerConfig, listContainers } from './docker-client';
 import { getHackerNews, type HNConfig } from './hackernews';
+import { getEmbySessions, type EmbyConfig } from './emby';
 import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
 import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
@@ -24,6 +25,7 @@ export type IntegrationType =
   | 'transmission'
   | 'adguard'
   | 'jellyfin'
+  | 'emby'
   | 'beszel'
   | 'radarr'
   | 'sonarr'
@@ -134,6 +136,15 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
     fetch: (c) => getJellyfinSessions(c as JellyfinConfig),
+  },
+  emby: {
+    label: 'Emby',
+    defaultRefreshSeconds: 15,
+    fields: [
+      { key: 'url', label: 'URL' },
+      { key: 'apiKey', label: 'API Key', secret: true },
+    ],
+    fetch: (c) => getEmbySessions(c as EmbyConfig),
   },
   beszel: {
     label: 'Beszel',

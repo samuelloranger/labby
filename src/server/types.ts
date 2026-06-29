@@ -68,6 +68,22 @@ export type JellyfinPayload = {
   playing: number;
 };
 
+export type EmbySession = {
+  id: string;
+  title: string;
+  subtitle: string;
+  user: string;
+  device: string;
+  progress: number;
+  posterUrl?: string;
+  isTranscoding: boolean;
+};
+
+export type EmbyPayload = {
+  sessions: EmbySession[];
+  playing: number;
+};
+
 export type BeszelSystem = {
   id: string;
   name: string;
@@ -203,6 +219,7 @@ export type ChannelPayload =
   | DownloadsPayload
   | AdGuardPayload
   | JellyfinPayload
+  | EmbyPayload
   | BeszelPayload
   | ArrPayload
   | ReelwardPayload

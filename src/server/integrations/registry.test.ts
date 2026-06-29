@@ -33,8 +33,8 @@ const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(
 );
 
 describe('INTEGRATIONS registry', () => {
-  it('has exactly 16 entries', () => {
-    expect(Object.keys(INTEGRATIONS).length).toBe(16);
+  it('has exactly 17 entries', () => {
+    expect(Object.keys(INTEGRATIONS).length).toBe(17);
   });
 
   it('every type has a truthy label', () => {
@@ -132,8 +132,8 @@ describe('display-option fields', () => {
 });
 
 describe('integrationTypes()', () => {
-  it('returns an array of 16 entries', () => {
-    expect(integrationTypes().length).toBe(16);
+  it('returns an array of 17 entries', () => {
+    expect(integrationTypes().length).toBe(17);
   });
 
   it('omits fetch and actions from entries', () => {

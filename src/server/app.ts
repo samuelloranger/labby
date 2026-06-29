@@ -19,6 +19,7 @@ import {
 } from './db';
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
 import { resolveFavicon } from './integrations/favicon';
+import { getEmbyImage, type EmbyConfig } from './integrations/emby';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
 import { hub } from './sse/hub';
@@ -145,6 +146,19 @@ app.get('/api/integrations/:id/jellyfin-image/:itemId', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
   if (!row || row.type !== 'jellyfin') return c.json({ error: 'Not found' }, 404);
   const result = await getJellyfinImage(row.config as JellyfinConfig, c.req.param('itemId'));
+  if ('error' in result) return c.json(result, 502);
+  return new Response(result.body, {
+    headers: {
+      'Content-Type': result.headers.get('Content-Type') ?? 'image/jpeg',
+      'Cache-Control': 'private, max-age=300',
+    },
+  });
+});
+
+app.get('/api/integrations/:id/emby-image/:itemId', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (!row || row.type !== 'emby') return c.json({ error: 'Not found' }, 404);
+  const result = await getEmbyImage(row.config as EmbyConfig, c.req.param('itemId'));
   if ('error' in result) return c.json(result, 502);
   return new Response(result.body, {
     headers: {
