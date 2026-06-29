@@ -171,8 +171,8 @@ app.get('/api/integrations/:id/emby-image/:itemId', async (c) => {
 app.get('/api/integrations/:id/plex-image', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
   if (!row || row.type !== 'plex') return c.json({ error: 'Not found' }, 404);
-  const path = c.req.query('path') ?? '';
-  const result = await getPlexImage(row.config as PlexConfig, path);
+  const imagePath = c.req.query('path') ?? '';
+  const result = await getPlexImage(row.config as PlexConfig, imagePath);
   if ('error' in result) return c.json(result, 502);
   return new Response(result.body, {
     headers: {
