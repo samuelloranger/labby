@@ -91,6 +91,20 @@ export type EmbyData = {
   playing: number;
 };
 
+export type PlexData = {
+  sessions: Array<{
+    id: string;
+    title: string;
+    subtitle: string;
+    user: string;
+    device: string;
+    progress: number;
+    posterUrl?: string;
+    isTranscoding: boolean;
+  }>;
+  playing: number;
+};
+
 export type BeszelData = {
   systems: Array<{
     id: string;
