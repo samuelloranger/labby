@@ -422,10 +422,10 @@
               </span>
             </div>
             <div class="row-actions">
-              <button type="button" class="btn-icon" onclick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" title="Move up">
+              <button type="button" class="btn-icon move-btn" onclick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" title="Move up">
                 <ChevronUp size={15} />
               </button>
-              <button type="button" class="btn-icon" onclick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Move down" title="Move down">
+              <button type="button" class="btn-icon move-btn" onclick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Move down" title="Move down">
                 <ChevronDown size={15} />
               </button>
               <button type="button" class="btn-icon" onclick={() => openEdit(row)} aria-label="Edit" title="Edit">
@@ -1219,4 +1219,14 @@
     padding-right: 2px;
   }
   .drag-handle:active { cursor: grabbing; }
+
+  /* Desktop (mouse): drag to reorder, hide arrow buttons. */
+  @media (hover: hover) and (pointer: fine) {
+    .row-actions .move-btn { display: none; }
+  }
+  /* Touch: arrow buttons reorder (HTML5 drag doesn't fire on iOS), hide drag handle. */
+  @media (pointer: coarse) {
+    .drag-handle { display: none; }
+    .svc-card[draggable='true'] { cursor: default; }
+  }
 </style>
