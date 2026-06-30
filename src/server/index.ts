@@ -1,6 +1,6 @@
 import { app } from './app';
-import { migrateLayoutToIntegrations } from './config/migrate-layout';
 import { loadConfig } from './config/loader';
+import { migrateLayoutToIntegrations } from './config/migrate-layout';
 import { initScheduler } from './sse/scheduler';
 
 const PORT = Number(process.env.LABBY_PORT ?? 8080);

@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: bun install && cd src/web && bun install
 
+      - name: Typecheck
+        run: bun run typecheck
+
       - name: Test
         run: bun test
 
@@ -36,9 +39,6 @@ jobs:
   lint:
     name: Lint (biome)
     runs-on: ubuntu-latest
-    # ponytail: informational only — the existing tree has 21 biome errors.
-    # Flip to required (drop continue-on-error) once they're cleaned up.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2

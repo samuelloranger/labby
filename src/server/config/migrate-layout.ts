@@ -1,4 +1,11 @@
-import { db, getSetting, listIntegrations, reorderIntegrations, setSetting, updateIntegration } from '../db';
+import {
+  db,
+  getSetting,
+  listIntegrations,
+  reorderIntegrations,
+  setSetting,
+  updateIntegration,
+} from '../db';
 
 const DISPLAY_KEYS = ['max', 'variant', 'style', 'systems'] as const;
 
@@ -14,6 +21,7 @@ export function migrateLayoutToIntegrations(): void {
     return;
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: loose traversal of untrusted legacy dashboard JSON
   let parsed: any;
   try {
     parsed = JSON.parse(raw);
@@ -50,10 +58,17 @@ export function migrateLayoutToIntegrations(): void {
       reorderIntegrations([...ordered]);
     }
 
-    setSetting('dashboard', JSON.stringify({
-      title: parsed?.title ?? 'Labby',
-      theme: parsed?.theme ?? { default: 'system' },
-    }, null, 2));
+    setSetting(
+      'dashboard',
+      JSON.stringify(
+        {
+          title: parsed?.title ?? 'Labby',
+          theme: parsed?.theme ?? { default: 'system' },
+        },
+        null,
+        2,
+      ),
+    );
     setSetting('layout_migrated', '1');
   })();
 }

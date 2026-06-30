@@ -1,18 +1,18 @@
 import { type AdGuardConfig, getAdGuardStats, setAdGuardProtection } from './adguard';
-import { getSabnzbdQueue, type SabnzbdConfig, sabnzbdAction } from './sabnzbd';
 import { type ArrConfig, getArrSummary } from './arr';
 import { type BeszelConfig, getBeszelSystems } from './beszel';
 import { type CalendarConfig, getCalendarEvents } from './calendar';
 import { containerAction, containerLogs, type DockerConfig, listContainers } from './docker-client';
+import { type EmbyConfig, getEmbySessions } from './emby';
 import { getHackerNews, type HNConfig } from './hackernews';
-import { getEmbySessions, type EmbyConfig } from './emby';
-import { getPlexSessions, type PlexConfig } from './plex';
 import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
 import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
+import { getPlexSessions, type PlexConfig } from './plex';
 import { getQBittorrentTorrents, type QbitConfig, qbittorrentAction } from './qbittorrent';
 import { getRedditPosts, type RedditConfig } from './reddit';
 import { getReelwardSummary, type ReelwardConfig } from './reelward';
+import { getSabnzbdQueue, type SabnzbdConfig, sabnzbdAction } from './sabnzbd';
 import { getSpeedtestSummary, type SpeedtestConfig, triggerSpeedtestRun } from './speedtest';
 import {
   getTransmissionTorrents,
@@ -54,7 +54,10 @@ export type IntegrationDef = {
   defaultRefreshSeconds: number;
   fields: FieldDef[];
   fetch: (config: Record<string, unknown>) => Promise<unknown>;
-  actions?: Record<string, (config: Record<string, unknown>, ...args: any[]) => Promise<unknown>>;
+  actions?: Record<
+    string,
+    (config: Record<string, unknown>, ...args: unknown[]) => Promise<unknown>
+  >;
 };
 
 // Shared "max items to show" field used by most list-style widgets.
@@ -218,10 +221,7 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
   reddit: {
     label: 'Reddit',
     defaultRefreshSeconds: 240,
-    fields: [
-      { key: 'subreddits', label: 'Subreddits', kind: 'list' },
-      MAX_FIELD,
-    ],
+    fields: [{ key: 'subreddits', label: 'Subreddits', kind: 'list' }, MAX_FIELD],
     fetch: (c) => getRedditPosts(c as RedditConfig),
   },
   hackernews: {
