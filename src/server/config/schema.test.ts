@@ -32,7 +32,11 @@ describe('DashboardSchema', () => {
   });
 
   test('DashboardSchema ignores a legacy pages field', () => {
-    const parsed = DashboardSchema.parse({ title: 'X', theme: { default: 'system' }, pages: [{ junk: true }] });
+    const parsed = DashboardSchema.parse({
+      title: 'X',
+      theme: { default: 'system' },
+      pages: [{ junk: true }],
+    });
     expect((parsed as any).pages).toBeUndefined();
   });
 });

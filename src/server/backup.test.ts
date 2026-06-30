@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { createIntegration, deleteIntegration, listIntegrations, replaceAllIntegrations } from './db';
 import { app } from './app';
+import { deleteIntegration, listIntegrations, replaceAllIntegrations } from './db';
 
 const TAG = '__test_backup__';
 
@@ -14,8 +14,22 @@ test('replaceAllIntegrations wipes then restores rows preserving ids', () => {
   const original = listIntegrations();
   try {
     const restored = [
-      { id: 9001, name: `${TAG}a`, type: 'radarr', config: { url: 'http://a' }, enabled: true, refreshSeconds: 60 },
-      { id: 9002, name: `${TAG}b`, type: 'sonarr', config: {}, enabled: false, refreshSeconds: null },
+      {
+        id: 9001,
+        name: `${TAG}a`,
+        type: 'radarr',
+        config: { url: 'http://a' },
+        enabled: true,
+        refreshSeconds: 60,
+      },
+      {
+        id: 9002,
+        name: `${TAG}b`,
+        type: 'sonarr',
+        config: {},
+        enabled: false,
+        refreshSeconds: null,
+      },
     ];
     replaceAllIntegrations(restored);
     const after = listIntegrations();
@@ -44,7 +58,11 @@ test('POST /api/restore rejects a malformed payload with 400 and leaves the DB i
   const res = await app.request('/api/restore', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ version: 1, dashboard: { title: 'x', theme: { default: 'not-a-valid-theme' } }, integrations: [] }),
+    body: JSON.stringify({
+      version: 1,
+      dashboard: { title: 'x', theme: { default: 'not-a-valid-theme' } },
+      integrations: [],
+    }),
   });
   expect(res.status).toBe(400);
   expect(listIntegrations().length).toBe(before);

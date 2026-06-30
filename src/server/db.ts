@@ -237,8 +237,9 @@ export function getIntegration(id: number): IntegrationRow | null {
 }
 
 export function createIntegration(input: Omit<IntegrationRow, 'id' | 'position'>): IntegrationRow {
-  const nextPos =
-    (db.query('SELECT COALESCE(MAX(position), 0) + 1 AS p FROM integrations').get() as { p: number }).p;
+  const nextPos = (
+    db.query('SELECT COALESCE(MAX(position), 0) + 1 AS p FROM integrations').get() as { p: number }
+  ).p;
   const info = db
     .query(
       'INSERT INTO integrations (name, type, config, enabled, refresh_seconds, position) VALUES ($name,$type,$config,$enabled,$rs,$pos)',
@@ -281,21 +282,29 @@ export function reorderIntegrations(orderedIds: number[]): void {
     // partial reorder would otherwise keep its old position and collide with the
     // new 0-based values, making list order non-deterministic. Honor the given
     // order first, then append the rest by their current order.
-    const all = (db.query('SELECT id FROM integrations ORDER BY position, id').all() as { id: number }[]).map(
-      (r) => r.id,
-    );
+    const all = (
+      db.query('SELECT id FROM integrations ORDER BY position, id').all() as { id: number }[]
+    ).map((r) => r.id);
     const known = new Set(all);
     const seen = new Set<number>();
     const full: number[] = [];
-    for (const id of ids) if (known.has(id) && !seen.has(id)) (seen.add(id), full.push(id));
+    for (const id of ids)
+      if (known.has(id) && !seen.has(id)) {
+        seen.add(id);
+        full.push(id);
+      }
     for (const id of all) if (!seen.has(id)) full.push(id);
     const stmt = db.query('UPDATE integrations SET position = $pos WHERE id = $id');
-    full.forEach((id, idx) => stmt.run({ $id: id, $pos: idx }));
+    full.forEach((id, idx) => {
+      stmt.run({ $id: id, $pos: idx });
+    });
   });
   tx(orderedIds);
 }
 
-export function replaceAllIntegrations(rows: Array<Omit<IntegrationRow, 'position'> & { position?: number }>): void {
+export function replaceAllIntegrations(
+  rows: Array<Omit<IntegrationRow, 'position'> & { position?: number }>,
+): void {
   type RowIn = Omit<IntegrationRow, 'position'> & { position?: number };
   const tx = db.transaction((list: RowIn[]) => {
     db.query('DELETE FROM integrations').run();

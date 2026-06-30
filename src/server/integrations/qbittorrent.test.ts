@@ -139,7 +139,10 @@ describe('qBittorrent client', () => {
   // send hashes in the body, never the URL.
   test('pause sends hashes in the request body, not the query string', async () => {
     const config: QbitConfig = { url: 'http://qb.test', user: 'admin', pass: 'admin' };
-    let captured: { url: string; body: string; contentType: string | null } | null = null;
+    // Array holder, not `let … | null`: a variable assigned only inside the mock
+    // closure collapses to `null` under TS flow analysis, turning `captured?.url`
+    // into a `never` access. Array element reads keep the element type.
+    const captured: { url: string; body: string; contentType: string | null }[] = [];
 
     const originalFetch = globalThis.fetch;
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -147,11 +150,11 @@ describe('qBittorrent client', () => {
       if (url.endsWith('/api/v2/auth/login')) {
         return new Response('Ok.', { status: 200, headers: { 'set-cookie': 'SID=x; path=/' } });
       }
-      captured = {
+      captured.push({
         url,
         body: init?.body ? String(init.body) : '',
         contentType: new Headers(init?.headers).get('Content-Type'),
-      };
+      });
       return new Response('', { status: 200 });
     }) as unknown as typeof fetch;
 
@@ -159,9 +162,9 @@ describe('qBittorrent client', () => {
     globalThis.fetch = originalFetch;
 
     expect(result).toEqual({ ok: true });
-    expect(captured).not.toBeNull();
-    expect(captured?.url).not.toContain('hashes=');
-    expect(captured?.body).toContain('hashes=HASH123');
-    expect(captured?.contentType).toContain('application/x-www-form-urlencoded');
+    expect(captured).toHaveLength(1);
+    expect(captured[0].url).not.toContain('hashes=');
+    expect(captured[0].body).toContain('hashes=HASH123');
+    expect(captured[0].contentType).toContain('application/x-www-form-urlencoded');
   });
 });

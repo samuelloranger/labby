@@ -19,7 +19,7 @@ describe('Plex client', () => {
       if (url.includes('/status/sessions')) {
         const headers = init?.headers as Record<string, string>;
         expect(headers['X-Plex-Token']).toBe('plex-tok');
-        expect(headers['Accept']).toBe('application/json');
+        expect(headers.Accept).toBe('application/json');
         return Response.json({
           MediaContainer: {
             size: 2,
@@ -112,7 +112,9 @@ describe('Plex client', () => {
 
   test('image proxy rejects non-relative paths (SSRF guard)', async () => {
     const config: PlexConfig = { url: 'http://plex.test', token: 't' };
-    expect(await getPlexImage(config, 'http://evil.com/x')).toEqual({ error: 'Invalid image path' });
+    expect(await getPlexImage(config, 'http://evil.com/x')).toEqual({
+      error: 'Invalid image path',
+    });
     expect(await getPlexImage(config, '//evil.com/x')).toEqual({ error: 'Invalid image path' });
     expect(await getPlexImage(config, 'library/x')).toEqual({ error: 'Invalid image path' });
   });
