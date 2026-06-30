@@ -4,7 +4,13 @@ import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { getConfig, getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
-import { DashboardSchema, DensitySchema, LayoutSchema, sanitizeDashboard, ThemeSchema } from './config/schema';
+import {
+  DashboardSchema,
+  DensitySchema,
+  LayoutSchema,
+  sanitizeDashboard,
+  ThemeSchema,
+} from './config/schema';
 import {
   createIntegration,
   db,
@@ -12,16 +18,16 @@ import {
   getIntegration,
   getSetting,
   listIntegrations,
-  replaceAllIntegrations,
   reorderIntegrations,
+  replaceAllIntegrations,
   setSetting,
   updateIntegration,
 } from './db';
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
+import { type EmbyConfig, getEmbyImage } from './integrations/emby';
 import { resolveFavicon } from './integrations/favicon';
-import { getEmbyImage, type EmbyConfig } from './integrations/emby';
-import { getPlexImage, type PlexConfig } from './integrations/plex';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
+import { getPlexImage, type PlexConfig } from './integrations/plex';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
 import { hub } from './sse/hub';
 import { refreshIntegration, startScheduler } from './sse/scheduler';
@@ -145,7 +151,7 @@ app.post('/api/integrations/:id/action/:action', async (c) => {
 
 app.get('/api/integrations/:id/jellyfin-image/:itemId', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
-  if (!row || row.type !== 'jellyfin') return c.json({ error: 'Not found' }, 404);
+  if (row?.type !== 'jellyfin') return c.json({ error: 'Not found' }, 404);
   const result = await getJellyfinImage(row.config as JellyfinConfig, c.req.param('itemId'));
   if ('error' in result) return c.json(result, 502);
   return new Response(result.body, {
@@ -158,7 +164,7 @@ app.get('/api/integrations/:id/jellyfin-image/:itemId', async (c) => {
 
 app.get('/api/integrations/:id/emby-image/:itemId', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
-  if (!row || row.type !== 'emby') return c.json({ error: 'Not found' }, 404);
+  if (row?.type !== 'emby') return c.json({ error: 'Not found' }, 404);
   const result = await getEmbyImage(row.config as EmbyConfig, c.req.param('itemId'));
   if ('error' in result) return c.json(result, 502);
   return new Response(result.body, {
@@ -170,7 +176,7 @@ app.get('/api/integrations/:id/emby-image/:itemId', async (c) => {
 });
 app.get('/api/integrations/:id/plex-image', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
-  if (!row || row.type !== 'plex') return c.json({ error: 'Not found' }, 404);
+  if (row?.type !== 'plex') return c.json({ error: 'Not found' }, 404);
   const imagePath = c.req.query('path') ?? '';
   const result = await getPlexImage(row.config as PlexConfig, imagePath);
   if ('error' in result) return c.json(result, 502);
@@ -184,7 +190,7 @@ app.get('/api/integrations/:id/plex-image', async (c) => {
 
 app.get('/api/integrations/:id/logs/:containerId', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
-  if (!row || row.type !== 'docker') return c.json({ error: 'Not found' }, 404);
+  if (row?.type !== 'docker') return c.json({ error: 'Not found' }, 404);
   const tail = Number(c.req.query('tail') ?? 200);
   const result = await containerLogs(row.config as DockerConfig, c.req.param('containerId'), tail);
   if ('error' in result) return c.json(result, 502);

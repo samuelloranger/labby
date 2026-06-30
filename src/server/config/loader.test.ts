@@ -35,7 +35,10 @@ describe('config loader', () => {
   });
 
   test('loadConfig returns error for schema violation', async () => {
-    setSetting('dashboard', JSON.stringify({ title: 'x', theme: { default: 'not-a-valid-theme' } }));
+    setSetting(
+      'dashboard',
+      JSON.stringify({ title: 'x', theme: { default: 'not-a-valid-theme' } }),
+    );
     const result = await loadConfig();
     expect(result.ok).toBe(false);
   });

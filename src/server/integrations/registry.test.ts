@@ -137,7 +137,18 @@ describe('display-option fields', () => {
   });
 
   it('feed/arr/calendar/download/beszel types expose a max field', () => {
-    for (const t of ['qbittorrent', 'transmission', 'sabnzbd', 'beszel', 'radarr', 'sonarr', 'reelward', 'reddit', 'hackernews', 'calendar'] as const) {
+    for (const t of [
+      'qbittorrent',
+      'transmission',
+      'sabnzbd',
+      'beszel',
+      'radarr',
+      'sonarr',
+      'reelward',
+      'reddit',
+      'hackernews',
+      'calendar',
+    ] as const) {
       expect(INTEGRATIONS[t].fields.map((f) => f.key)).toContain('max');
     }
   });
