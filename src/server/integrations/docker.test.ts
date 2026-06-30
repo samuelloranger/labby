@@ -8,7 +8,33 @@ import {
 
 describe('docker helpers', () => {
   test('dockerHost strips tcp prefix', () => {
-    expect(dockerHost('tcp://docker-proxy-ro:2375')).toBe('http://docker-proxy-ro:2375');
+    expect(dockerHost('tcp://docker-proxy-ro:2375')).toEqual({
+      base: 'http://docker-proxy-ro:2375',
+    });
+  });
+
+  test('dockerHost passes http through', () => {
+    expect(dockerHost('http://docker-proxy-ro:2375/')).toEqual({
+      base: 'http://docker-proxy-ro:2375',
+    });
+  });
+
+  test('dockerHost treats a filesystem path as a unix socket', () => {
+    expect(dockerHost('/var/run/docker.sock')).toEqual({
+      base: 'http://localhost',
+      unix: '/var/run/docker.sock',
+    });
+  });
+
+  test('dockerHost accepts unix:// scheme', () => {
+    expect(dockerHost('unix:///var/run/docker.sock')).toEqual({
+      base: 'http://localhost',
+      unix: '/var/run/docker.sock',
+    });
+  });
+
+  test('dockerHost returns null for empty input', () => {
+    expect(dockerHost(undefined)).toBeNull();
   });
 
   test('normalizeContainerName strips leading slash', () => {

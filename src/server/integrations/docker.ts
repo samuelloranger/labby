@@ -2,18 +2,32 @@ import { TIMEOUT_MS } from './http';
 
 export type DockerConfig = { roHost?: string; rwHost?: string; show?: 'all' | 'running' };
 
-export function dockerHost(host: string | undefined): string | null {
+// A read or write target. `unix` is set when talking to a Docker socket file
+// directly (Bun's fetch dials it); otherwise it's a normal http(s) base URL.
+export type DockerTarget = { base: string; unix?: string };
+
+export function dockerHost(host: string | undefined): DockerTarget | null {
   if (!host) return null;
-  return host.replace(/^tcp:\/\//, 'http://').replace(/\/$/, '');
+  // A unix:// scheme or a bare filesystem path means the Docker socket itself —
+  // no TCP proxy needed. The URL host is ignored by Bun when `unix` is set.
+  if (host.startsWith('unix://') || host.startsWith('/')) {
+    return { base: 'http://localhost', unix: host.replace(/^unix:\/\//, '') };
+  }
+  return { base: host.replace(/^tcp:\/\//, 'http://').replace(/\/$/, '') };
 }
 
 export async function dockerFetch(
-  base: string,
+  target: DockerTarget,
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const url = `${base}${path}`;
-  return fetch(url, { ...init, signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS) });
+  const url = `${target.base}${path}`;
+  // `unix` is a Bun extension to fetch options, absent from the DOM RequestInit type.
+  return fetch(url, {
+    ...init,
+    unix: target.unix,
+    signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS),
+  } as RequestInit & { unix?: string });
 }
 
 export function demuxDockerLogs(buffer: ArrayBuffer): string {
