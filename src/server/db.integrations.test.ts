@@ -36,8 +36,20 @@ test('integration CRUD round-trips config as JSON', () => {
 test('position is assigned on create and returned in order', () => {
   const tag = '__pos_test__';
   for (const r of listIntegrations().filter((r) => r.name.startsWith(tag))) deleteIntegration(r.id);
-  const a = createIntegration({ name: `${tag}a`, type: 'radarr', config: {}, enabled: true, refreshSeconds: null });
-  const b = createIntegration({ name: `${tag}b`, type: 'sonarr', config: {}, enabled: true, refreshSeconds: null });
+  const a = createIntegration({
+    name: `${tag}a`,
+    type: 'radarr',
+    config: {},
+    enabled: true,
+    refreshSeconds: null,
+  });
+  const b = createIntegration({
+    name: `${tag}b`,
+    type: 'sonarr',
+    config: {},
+    enabled: true,
+    refreshSeconds: null,
+  });
   try {
     expect(typeof a.position).toBe('number');
     expect(b.position).toBeGreaterThan(a.position);

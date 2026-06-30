@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from 'bun:test';
+import type { ReelwardPayload } from '../types';
 import type { ReelwardConfig } from './reelward';
 import { getReelwardSummary } from './reelward';
 
@@ -12,7 +13,9 @@ describe('Reelward client', () => {
 
   test('maps summary payload', async () => {
     const config: ReelwardConfig = { url: 'http://reelward.test/', apiKey: 'key123' };
-    const payload = { pending: 2, watched: 10, total: 12 };
+    // getReelwardSummary passes the upstream JSON through unchanged; the exact
+    // shape doesn't matter here, only that it round-trips.
+    const payload = { pending: 2, watched: 10, total: 12 } as unknown as ReelwardPayload;
 
     const originalFetch = globalThis.fetch;
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {

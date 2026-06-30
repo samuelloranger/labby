@@ -12,6 +12,7 @@
     "build:server": "bun build src/server/index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
     "test": "bun test",
+    "typecheck": "tsc --noEmit",
     "lint": "biome check",
     "format": "biome check --write",
     "vendor-icons": "bun run scripts/vendor-icons.ts"

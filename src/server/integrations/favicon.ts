@@ -1,8 +1,7 @@
 import { TIMEOUT_MS } from './http';
 
 // ponytail: regex parse, not a full HTML parser — swap in a parser if it misses real-world sites
-const LINK_ICON_RE =
-  /<link[^>]+rel=["'][^"']*\bicon\b[^"']*["'][^>]*>/i;
+const LINK_ICON_RE = /<link[^>]+rel=["'][^"']*\bicon\b[^"']*["'][^>]*>/i;
 const HREF_RE = /href=["']([^"']+)["']/i;
 
 const MAX_HTML_BYTES = 512 * 1024;

@@ -1,5 +1,13 @@
 import { expect, test } from 'bun:test';
-import { createIntegration, deleteIntegration, getIntegration, getSetting, listIntegrations, setSetting, deleteSetting } from '../db';
+import {
+  createIntegration,
+  deleteIntegration,
+  deleteSetting,
+  getIntegration,
+  getSetting,
+  listIntegrations,
+  setSetting,
+} from '../db';
 import { migrateLayoutToIntegrations } from './migrate-layout';
 
 test('migration folds widget options + order into integrations and rewrites dashboard', () => {
@@ -9,18 +17,43 @@ test('migration folds widget options + order into integrations and rewrites dash
   const savedFlag = getSetting('layout_migrated');
   deleteSetting('layout_migrated');
 
-  const m = createIntegration({ name: `${tag}mon`, type: 'monitor', config: { sites: [] }, enabled: true, refreshSeconds: null });
-  const f = createIntegration({ name: `${tag}feed`, type: 'reddit', config: { subreddits: ['x'] }, enabled: true, refreshSeconds: null });
+  const m = createIntegration({
+    name: `${tag}mon`,
+    type: 'monitor',
+    config: { sites: [] },
+    enabled: true,
+    refreshSeconds: null,
+  });
+  const f = createIntegration({
+    name: `${tag}feed`,
+    type: 'reddit',
+    config: { subreddits: ['x'] },
+    enabled: true,
+    refreshSeconds: null,
+  });
 
   // legacy dashboard: feed first, monitor second; options on widgets
-  setSetting('dashboard', JSON.stringify({
-    title: 'My Board',
-    theme: { default: 'dark' },
-    pages: [{ name: 'Home', columns: [{ size: 'full', widgets: [
-      { type: 'reddit', integrationId: f.id, max: 9 },
-      { type: 'monitor', integrationId: m.id, variant: 'tiles', style: 'compact' },
-    ] }] }],
-  }));
+  setSetting(
+    'dashboard',
+    JSON.stringify({
+      title: 'My Board',
+      theme: { default: 'dark' },
+      pages: [
+        {
+          name: 'Home',
+          columns: [
+            {
+              size: 'full',
+              widgets: [
+                { type: 'reddit', integrationId: f.id, max: 9 },
+                { type: 'monitor', integrationId: m.id, variant: 'tiles', style: 'compact' },
+              ],
+            },
+          ],
+        },
+      ],
+    }),
+  );
 
   try {
     migrateLayoutToIntegrations();
@@ -41,6 +74,7 @@ test('migration folds widget options + order into integrations and rewrites dash
     deleteIntegration(m.id);
     deleteIntegration(f.id);
     if (savedDash !== null) setSetting('dashboard', savedDash);
-    if (savedFlag !== null) setSetting('layout_migrated', savedFlag); else deleteSetting('layout_migrated');
+    if (savedFlag !== null) setSetting('layout_migrated', savedFlag);
+    else deleteSetting('layout_migrated');
   }
 });

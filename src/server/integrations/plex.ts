@@ -31,7 +31,11 @@ export async function getPlexSessions(
       const transcode = m.TranscodeSession != null;
       const media = ((m.Media as Record<string, unknown>[]) ?? [])[0];
       const resolution = media?.videoResolution ? String(media.videoResolution) : '';
-      const quality = resolution ? (/^\d+$/.test(resolution) ? `${resolution}p` : resolution) : 'unknown';
+      const quality = resolution
+        ? /^\d+$/.test(resolution)
+          ? `${resolution}p`
+          : resolution
+        : 'unknown';
 
       const year = m.year ? String(m.year) : '';
       const series = m.grandparentTitle ? String(m.grandparentTitle) : '';
@@ -46,11 +50,11 @@ export async function getPlexSessions(
       const user = (m.User as Record<string, unknown>) ?? {};
       const player = (m.Player as Record<string, unknown>) ?? {};
       const thumb =
-      typeof m.thumb === 'string'
-        ? m.thumb
-        : typeof m.grandparentThumb === 'string'
-          ? m.grandparentThumb
-          : undefined;
+        typeof m.thumb === 'string'
+          ? m.thumb
+          : typeof m.grandparentThumb === 'string'
+            ? m.grandparentThumb
+            : undefined;
 
       sessions.push({
         id: String(m.sessionKey ?? m.ratingKey ?? crypto.randomUUID()),
