@@ -75,7 +75,7 @@ Configure everything from the **Manage Services** page — no `.env` file or fla
 | Type | What to configure |
 | --- | --- |
 | `monitor` | HTTP sites to check (title, URL, icon per site) |
-| `docker` | Read/write Docker hosts, container filter (`running` / `all`) |
+| `docker` | Read/write Docker hosts, container filter (`running` / `all`) — see [Docker host](#docker-host) |
 | `qbittorrent` | URL, username, password |
 | `transmission` | URL, username, password |
 | `sabnzbd` | URL, API key |
@@ -94,6 +94,15 @@ Configure everything from the **Manage Services** page — no `.env` file or fla
 | `hackernews` | No config (Algolia front page) |
 
 You can add multiple integrations of the same type (e.g. two Radarr instances) — each gets its own row, poll interval, and SSE channel (`int:<id>`).
+
+#### Docker host
+
+The **Read host** / **Write host** fields accept either:
+
+- A **TCP endpoint** — `tcp://host:2375` or `http://host:2375`. Docker does **not** expose this by default; point it at a [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) (recommended — lets you allow reads but deny writes) or at a daemon with the TCP API enabled.
+- A **unix socket** — `/var/run/docker.sock` or `unix:///var/run/docker.sock`, mounted into the Labby container. No proxy needed; point both **Read host** and **Write host** at the socket.
+
+> **The socket grants full, root-equivalent control of the Docker daemon** ([docs](https://docs.docker.com/engine/security/protect-access/)). A `:ro` bind mount only makes the socket *file* read-only on the host — it does **not** restrict the Docker API, so anything that can reach the socket can still start/stop/delete containers. It is **not** a read-only connection. If you want true read/write separation (allow status, deny control), use the [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) TCP option above instead and point **Write host** at a proxy that denies POST. The container must also be able to reach the socket — run Labby as a uid in the `docker` group, or matching the socket's owner.
 
 ### Icons
 
