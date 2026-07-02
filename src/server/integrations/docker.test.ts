@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import {
   calcCpuPercent,
   demuxDockerLogs,
+  dockerFetch,
   dockerHost,
   normalizeContainerName,
 } from '../integrations/docker';
@@ -35,6 +36,40 @@ describe('docker helpers', () => {
 
   test('dockerHost returns null for empty input', () => {
     expect(dockerHost(undefined)).toBeNull();
+    expect(dockerHost('   ')).toBeNull();
+  });
+
+  test('dockerHost trims whitespace and trailing slash on socket paths', () => {
+    expect(dockerHost(' /var/run/docker.sock/ ')).toEqual({
+      base: 'http://localhost',
+      unix: '/var/run/docker.sock',
+    });
+  });
+
+  test('dockerHost drops a unix:// authority component', () => {
+    expect(dockerHost('unix://localhost/var/run/docker.sock')).toEqual({
+      base: 'http://localhost',
+      unix: '/var/run/docker.sock',
+    });
+  });
+
+  test('dockerFetch forwards the unix socket path to fetch', async () => {
+    const calls: Array<[string, string | undefined]> = [];
+    const orig = globalThis.fetch;
+    globalThis.fetch = ((url: string, init?: RequestInit & { unix?: string }) => {
+      calls.push([url, init?.unix]);
+      return Promise.resolve(new Response('[]'));
+    }) as typeof fetch;
+    try {
+      await dockerFetch({ base: 'http://localhost', unix: '/var/run/docker.sock' }, '/info');
+      await dockerFetch({ base: 'http://docker-proxy-ro:2375' }, '/info');
+    } finally {
+      globalThis.fetch = orig;
+    }
+    expect(calls).toEqual([
+      ['http://localhost/info', '/var/run/docker.sock'],
+      ['http://docker-proxy-ro:2375/info', undefined],
+    ]);
   });
 
   test('normalizeContainerName strips leading slash', () => {
