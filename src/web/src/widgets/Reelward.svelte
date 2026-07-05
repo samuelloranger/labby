@@ -7,7 +7,6 @@
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<ReelwardData>);
   const upcoming = $derived((state.data?.upcoming ?? []).slice(0, max));
-  const online = $derived((state.data?.trackers ?? []).filter((tracker) => tracker.connected).length);
 </script>
 
 <section class="card">
@@ -16,9 +15,6 @@
       <span class="ibox"><Icon icon="/icons/reelward.png" fallback="clapperboard" size={20} /></span>
       {title}
     </span>
-    {#if state.data}
-      <span class="meta">{online}/{state.data.trackers.length} trackers</span>
-    {/if}
   </div>
 
   {#if state.loading && !state.data}
@@ -31,19 +27,8 @@
       <div class="gauge"><div class="v">{state.data.rss.releasesGrabbed ?? '—'}</div><div class="k">RSS grabs</div></div>
     </div>
 
-    <div class="list-head">Trackers · ratio</div>
-    <div class="mini-list">
-      {#each state.data.trackers as tracker (tracker.name)}
-        <div class="mini-row">
-          <span class="dot {tracker.connected ? 'ok' : 'warn'}"></span>
-          <span>{tracker.name}</span>
-          <b>{tracker.ratio == null ? '—' : tracker.ratio.toFixed(2)}</b>
-        </div>
-      {/each}
-    </div>
-
     {#if upcoming.length}
-      <div class="list-head top-gap">Upcoming releases</div>
+      <div class="list-head">Upcoming releases</div>
       <div class="mini-list">
         {#each upcoming as item (item.id)}
           <div class="mini-row">
@@ -67,8 +52,5 @@
     text-transform: uppercase;
     color: var(--ink-dim);
     margin-bottom: 6px;
-  }
-  .list-head.top-gap {
-    margin-top: 14px;
   }
 </style>
