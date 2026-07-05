@@ -191,12 +191,6 @@ export type ArrData = {
 
 export type ReelwardData = {
   upcoming: ArrData['upcoming'];
-  trackers: Array<{
-    name: string;
-    connected: boolean;
-    ratio: number | null;
-    error?: string;
-  }>;
   rss: {
     status: 'ok' | 'error' | 'unknown';
     releasesFound: number | null;
