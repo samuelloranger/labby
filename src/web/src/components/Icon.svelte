@@ -1,35 +1,7 @@
 <script lang="ts">
-  import {
-    Activity, Box, Calendar, Clapperboard, CloudSun, Download, Film, Flame, Folder, Gauge, Globe,
-    LayoutGrid, MessageSquare, Moon, Pause, Play, Radio, Search, Shield, Sun, Tv, Wallet, LayoutDashboard,
-  } from 'lucide-svelte';
+  import { Box } from 'lucide-svelte';
+  import { LUCIDE_ICONS as ICONS } from '$lib/lucide-set';
   import { resolveIconSrc } from '$lib/utils';
-
-  const ICONS: Record<string, typeof Box> = {
-    activity: Activity,
-    box: Box,
-    calendar: Calendar,
-    clapperboard: Clapperboard,
-    'cloud-sun': CloudSun,
-    download: Download,
-    film: Film,
-    flame: Flame,
-    folder: Folder,
-    gauge: Gauge,
-    globe: Globe,
-    'layout-grid': LayoutGrid,
-    'layout-dashboard': LayoutDashboard,
-    'message-square': MessageSquare,
-    moon: Moon,
-    pause: Pause,
-    play: Play,
-    radio: Radio,
-    search: Search,
-    shield: Shield,
-    sun: Sun,
-    tv: Tv,
-    wallet: Wallet,
-  };
 
   let {
     icon = undefined,
@@ -44,25 +16,37 @@
   } = $props();
 
   let imgFailed = $state(false);
+  let currentSrc = $state<string | undefined>(undefined);
+  let triedFallback = $state(false);
   const resolved = $derived(resolveIconSrc(icon, fallback));
   const Lucide = $derived(ICONS[resolved.lucide] ?? ICONS[fallback] ?? Box);
 
+  // Reset the load chain whenever the resolved image changes.
   $effect(() => {
-    if (resolved.src) {
-      imgFailed = false;
-    }
+    currentSrc = resolved.src;
+    triedFallback = false;
+    imgFailed = false;
   });
+
+  function onImgError() {
+    if (resolved.srcFallback && !triedFallback && currentSrc !== resolved.srcFallback) {
+      triedFallback = true;
+      currentSrc = resolved.srcFallback;
+    } else {
+      imgFailed = true;
+    }
+  }
 </script>
 
 {#if resolved.type === 'img' && !imgFailed}
   <img
     class="logo {className}"
-    src={resolved.src}
+    src={currentSrc}
     alt=""
     loading="lazy"
     style:width="{size}px"
     style:height="{size}px"
-    onerror={() => (imgFailed = true)}
+    onerror={onImgError}
   />
 {:else}
   <Lucide class="ic {className}" {size} strokeWidth={2} />

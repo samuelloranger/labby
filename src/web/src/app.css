@@ -1121,6 +1121,38 @@ header.top {
   border-color: var(--accent);
 }
 
+/* Pill action buttons shared by the integration form and the backup panel. */
+.btn-cancel,
+.btn-save {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 11px 24px;
+  border-radius: var(--pill);
+  cursor: pointer;
+}
+.btn-cancel {
+  background: var(--glass-2);
+  border: 1px solid var(--glass-brd);
+  color: var(--ink-dim);
+}
+.btn-save {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+@media (max-width: 640px) {
+  .btn-cancel,
+  .btn-save {
+    flex: 1;
+    padding: 13px 16px;
+  }
+}
+
 .dl {
   display: flex;
   flex-direction: column;

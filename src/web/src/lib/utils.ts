@@ -8,6 +8,7 @@ export function resolveIconSrc(
 ): {
   type: 'img' | 'lucide';
   src?: string;
+  srcFallback?: string;
   lucide: string;
 } {
   if (!icon) return { type: 'lucide', lucide: fallbackLucide };
@@ -18,12 +19,23 @@ export function resolveIconSrc(
 
   if (icon.startsWith('di:')) {
     const slug = icon.slice(3);
-    return { type: 'img', src: `/icons/di/${slug}.svg`, lucide: fallbackLucide };
+    // Local-first (vendored, offline-friendly) with a CDN fallback for the
+    // ~3000 slugs that aren't vendored — see Icon.svelte's onerror handler.
+    return {
+      type: 'img',
+      src: `/icons/di/${slug}.svg`,
+      srcFallback: diCdnFallback(slug),
+      lucide: fallbackLucide,
+    };
   }
 
   if (icon.startsWith('sh:')) {
     const slug = icon.slice(3);
-    return { type: 'img', src: `https://cdn.selfh.st/icons/${slug}.svg`, lucide: fallbackLucide };
+    return {
+      type: 'img',
+      src: `https://cdn.jsdelivr.net/gh/selfhst/icons/svg/${slug}.svg`,
+      lucide: fallbackLucide,
+    };
   }
 
   if (icon.startsWith('http://') || icon.startsWith('https://') || icon.startsWith('/')) {
