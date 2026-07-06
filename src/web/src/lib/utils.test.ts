@@ -1,5 +1,28 @@
 import { describe, expect, test } from 'bun:test';
-import { formatEta, prepareDownloads } from './utils';
+import { formatEta, prepareDownloads, resolveIconSrc } from './utils';
+
+describe('resolveIconSrc', () => {
+  test('di: resolves local-first with a CDN fallback', () => {
+    const r = resolveIconSrc('di:jellyfin');
+    expect(r).toEqual({
+      type: 'img',
+      src: '/icons/di/jellyfin.svg',
+      srcFallback: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg',
+      lucide: 'box',
+    });
+  });
+
+  test('lucide:, sh:, url, path, empty, and unknown each map correctly', () => {
+    expect(resolveIconSrc('lucide:server')).toEqual({ type: 'lucide', lucide: 'server' });
+    expect(resolveIconSrc('sh:plex').src).toBe(
+      'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/plex.svg',
+    );
+    expect(resolveIconSrc('https://x/y.png').src).toBe('https://x/y.png');
+    expect(resolveIconSrc('/local.svg').src).toBe('/local.svg');
+    expect(resolveIconSrc(undefined, 'globe')).toEqual({ type: 'lucide', lucide: 'globe' });
+    expect(resolveIconSrc('garbage', 'globe')).toEqual({ type: 'lucide', lucide: 'globe' });
+  });
+});
 
 describe('formatEta', () => {
   test('returns em-dash for missing, negative, sentinel, and NaN', () => {
