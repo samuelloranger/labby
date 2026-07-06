@@ -87,9 +87,9 @@
   function place() {
     if (!swatchEl) return;
     const r = swatchEl.getBoundingClientRect();
-    const W = 340;
     const gap = 6;
     const pad = 8;
+    const W = Math.min(340, window.innerWidth - pad * 2);
     // Size to available space on the roomier side so the footer is never clipped.
     const below = window.innerHeight - r.bottom - gap - pad;
     const above = r.top - gap - pad;
