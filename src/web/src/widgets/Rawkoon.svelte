@@ -1,18 +1,18 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
-  import { getStore, type ReelwardData, type WidgetState } from '$lib/stores';
+  import { getStore, type RawkoonData, type WidgetState } from '$lib/stores';
 
   let { title, integrationId, max = 5 }: { title: string; integrationId: number; max?: number } = $props();
 
   const store = $derived(getStore(integrationId));
-  const state = $derived($store as WidgetState<ReelwardData>);
+  const state = $derived($store as WidgetState<RawkoonData>);
   const upcoming = $derived((state.data?.upcoming ?? []).slice(0, max));
 </script>
 
 <section class="card">
   <div class="chead">
     <span class="ti">
-      <span class="ibox"><Icon icon="/icons/reelward.png" fallback="clapperboard" size={20} /></span>
+      <span class="ibox"><Icon icon="/icons/rawkoon.png" fallback="clapperboard" size={20} /></span>
       {title}
     </span>
   </div>
