@@ -10,8 +10,8 @@ import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
 import { getPlexSessions, type PlexConfig } from './plex';
 import { getQBittorrentTorrents, type QbitConfig, qbittorrentAction } from './qbittorrent';
+import { getRawkoonSummary, type RawkoonConfig } from './rawkoon';
 import { getRedditPosts, type RedditConfig } from './reddit';
-import { getReelwardSummary, type ReelwardConfig } from './reelward';
 import { getSabnzbdQueue, type SabnzbdConfig, sabnzbdAction } from './sabnzbd';
 import { getSpeedtestSummary, type SpeedtestConfig, triggerSpeedtestRun } from './speedtest';
 import {
@@ -33,7 +33,7 @@ export type IntegrationType =
   | 'beszel'
   | 'radarr'
   | 'sonarr'
-  | 'reelward'
+  | 'rawkoon'
   | 'reddit'
   | 'hackernews'
   | 'weather'
@@ -208,15 +208,15 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
     ],
     fetch: (c) => getArrSummary(c as ArrConfig, 'sonarr'),
   },
-  reelward: {
-    label: 'Reelward',
+  rawkoon: {
+    label: 'Rawkoon',
     defaultRefreshSeconds: 60,
     fields: [
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
       MAX_FIELD,
     ],
-    fetch: (c) => getReelwardSummary(c as ReelwardConfig),
+    fetch: (c) => getRawkoonSummary(c as RawkoonConfig),
   },
   reddit: {
     label: 'Reddit',

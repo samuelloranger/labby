@@ -196,7 +196,7 @@ export type ArrPayload = {
   upcoming: ArrItem[];
 };
 
-export type ReelwardPayload = {
+export type RawkoonPayload = {
   upcoming: ArrItem[];
   rss: {
     status: 'ok' | 'error' | 'unknown';
@@ -251,7 +251,7 @@ export type ChannelPayload =
   | PlexPayload
   | BeszelPayload
   | ArrPayload
-  | ReelwardPayload
+  | RawkoonPayload
   | WeatherPayload
   | CalendarPayload
   | SpeedtestPayload;

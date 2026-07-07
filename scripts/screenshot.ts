@@ -20,7 +20,7 @@ const INTEGRATIONS = [
   { id: 10, type: 'transmission', name: 'Transmission' },
   { id: 11, type: 'radarr', name: 'Radarr' },
   { id: 12, type: 'sonarr', name: 'Sonarr' },
-  { id: 13, type: 'reelward', name: 'Reelward' },
+  { id: 13, type: 'rawkoon', name: 'Rawkoon' },
   { id: 14, type: 'reddit', name: 'r/homelab' },
   { id: 15, type: 'hackernews', name: 'Hacker News' },
 ];
@@ -691,7 +691,7 @@ async function main() {
                   { type: 'downloads', title: 'Transmission', integrationId: 10, max: 5 },
                   { type: 'radarr', title: 'Radarr', integrationId: 11, max: 5 },
                   { type: 'sonarr', title: 'Sonarr', integrationId: 12, max: 5 },
-                  { type: 'reelward', title: 'Reelward', integrationId: 13, max: 5 },
+                  { type: 'rawkoon', title: 'Rawkoon', integrationId: 13, max: 5 },
                 ],
               },
               {
