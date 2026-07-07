@@ -22,15 +22,10 @@ export default defineConfig({
       { text: 'GitHub', link: 'https://github.com/samuelloranger/labby' },
     ],
     sidebar: [
-      {
-        text: 'Guide',
-        items: [
-          { text: 'Getting Started', link: '/guide/getting-started' },
-          { text: 'Integrations', link: '/guide/integrations' },
-          { text: 'Security', link: '/guide/security' },
-          { text: 'Development', link: '/guide/development' },
-        ],
-      },
+      { text: 'Getting Started', link: '/guide/getting-started' },
+      { text: 'Integrations', link: '/guide/integrations' },
+      { text: 'Security', link: '/guide/security' },
+      { text: 'Development', link: '/guide/development' },
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/samuelloranger/labby' },
