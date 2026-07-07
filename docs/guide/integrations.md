@@ -4,6 +4,85 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
 
 ## Built-In Integrations
 
+<div class="integration-grid">
+  <a class="integration-tile" href="#built-in-integrations">
+    <img src="/icons/labby.svg" alt="Monitor" />
+    <span>Monitor</span>
+  </a>
+  <a class="integration-tile" href="https://www.docker.com/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/docker.svg" alt="Docker" />
+    <span>Docker</span>
+  </a>
+  <a class="integration-tile" href="https://www.qbittorrent.org/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/qbittorrent.svg" alt="qBittorrent" />
+    <span>qBittorrent</span>
+  </a>
+  <a class="integration-tile" href="https://transmissionbt.com/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/transmission.svg" alt="Transmission" />
+    <span>Transmission</span>
+  </a>
+  <a class="integration-tile" href="https://sabnzbd.org/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/sabnzbd.svg" alt="SABnzbd" />
+    <span>SABnzbd</span>
+  </a>
+  <a class="integration-tile" href="https://adguard.com/en/adguard-home/overview.html" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/adguard-home.svg" alt="AdGuard Home" />
+    <span>AdGuard Home</span>
+  </a>
+  <a class="integration-tile" href="https://jellyfin.org/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/jellyfin.svg" alt="Jellyfin" />
+    <span>Jellyfin</span>
+  </a>
+  <a class="integration-tile" href="https://emby.media/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/emby.svg" alt="Emby" />
+    <span>Emby</span>
+  </a>
+  <a class="integration-tile" href="https://www.plex.tv/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/plex.svg" alt="Plex" />
+    <span>Plex</span>
+  </a>
+  <a class="integration-tile" href="https://beszel.dev/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/beszel.svg" alt="Beszel" />
+    <span>Beszel</span>
+  </a>
+  <a class="integration-tile" href="https://radarr.video/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/radarr.svg" alt="Radarr" />
+    <span>Radarr</span>
+  </a>
+  <a class="integration-tile" href="https://sonarr.tv/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/sonarr.svg" alt="Sonarr" />
+    <span>Sonarr</span>
+  </a>
+  <a class="integration-tile" href="https://github.com/samuelloranger/reelward" target="_blank" rel="noreferrer noopener">
+    <img src="https://api.iconify.design/lucide/clapperboard.svg?color=%23f97316" alt="Rawkoon" />
+    <span>Rawkoon</span>
+  </a>
+  <a class="integration-tile" href="https://openweathermap.org/" target="_blank" rel="noreferrer noopener">
+    <img src="https://api.iconify.design/lucide/cloud-sun.svg?color=%23f97316" alt="OpenWeather" />
+    <span>OpenWeather</span>
+  </a>
+  <a class="integration-tile" href="https://icalendar.org/" target="_blank" rel="noreferrer noopener">
+    <img src="https://api.iconify.design/lucide/calendar-days.svg?color=%23f97316" alt="iCalendar" />
+    <span>iCalendar</span>
+  </a>
+  <a class="integration-tile" href="https://docs.speedtest-tracker.dev/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/speedtest-tracker.svg" alt="Speedtest Tracker" />
+    <span>Speedtest Tracker</span>
+  </a>
+  <a class="integration-tile" href="#built-in-integrations">
+    <img src="https://api.iconify.design/lucide/bookmark.svg?color=%23f97316" alt="Bookmarks" />
+    <span>Bookmarks</span>
+  </a>
+  <a class="integration-tile" href="https://www.reddit.com/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/reddit.svg" alt="Reddit" />
+    <span>Reddit</span>
+  </a>
+  <a class="integration-tile" href="https://news.ycombinator.com/" target="_blank" rel="noreferrer noopener">
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/hacker-news.svg" alt="Hacker News" />
+    <span>Hacker News</span>
+  </a>
+</div>
+
 | Project | Type | What to configure |
 | --- | --- | --- |
 | [Monitor](#built-in-integrations) | `monitor` | HTTP sites to check, including title, URL, and optional icon per site |
