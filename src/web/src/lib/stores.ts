@@ -189,7 +189,7 @@ export type ArrData = {
   }>;
 };
 
-export type ReelwardData = {
+export type RawkoonData = {
   upcoming: ArrData['upcoming'];
   rss: {
     status: 'ok' | 'error' | 'unknown';

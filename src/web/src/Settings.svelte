@@ -29,7 +29,7 @@
     beszel: 'di:beszel',
     radarr: 'di:radarr',
     sonarr: 'di:sonarr',
-    reelward: '/icons/reelward.png',
+    rawkoon: '/icons/rawkoon.png',
     reddit: 'di:reddit',
     hackernews: 'di:hacker-news',
     weather: '/icons/openweather.png',
