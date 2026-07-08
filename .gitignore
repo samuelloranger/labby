@@ -45,6 +45,7 @@ playwright/.cache/
 
 # Local tooling
 .codegraph/
+docs/superpowers/
 
 # Local settings database (holds service credentials — never commit)
 config/*.db
