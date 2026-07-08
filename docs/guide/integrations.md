@@ -54,7 +54,7 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
     <span>Sonarr</span>
   </a>
   <a class="integration-tile" href="https://github.com/samuelloranger/rawkoon" target="_blank" rel="noreferrer noopener">
-    <img src="https://api.iconify.design/lucide/clapperboard.svg?color=%23f97316" alt="Rawkoon" />
+    <img :src="'/labby/icons/rawkoon.png'" alt="Rawkoon" />
     <span>Rawkoon</span>
   </a>
   <a class="integration-tile" href="https://openweathermap.org/" target="_blank" rel="noreferrer noopener">
