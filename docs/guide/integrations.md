@@ -53,7 +53,7 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
     <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@master/svg/sonarr.svg" alt="Sonarr" />
     <span>Sonarr</span>
   </a>
-  <a class="integration-tile" href="https://github.com/samuelloranger/reelward" target="_blank" rel="noreferrer noopener">
+  <a class="integration-tile" href="https://github.com/samuelloranger/rawkoon" target="_blank" rel="noreferrer noopener">
     <img src="https://api.iconify.design/lucide/clapperboard.svg?color=%23f97316" alt="Rawkoon" />
     <span>Rawkoon</span>
   </a>
@@ -97,7 +97,7 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
 | [Beszel](https://beszel.dev/) | `beszel` | URL, username, password, token |
 | [Radarr](https://radarr.video/) | `radarr` | URL, API key |
 | [Sonarr](https://sonarr.tv/) | `sonarr` | URL, API key |
-| [Rawkoon](https://github.com/samuelloranger/reelward) | `rawkoon` | URL, API key |
+| [Rawkoon](https://github.com/samuelloranger/rawkoon) | `rawkoon` | URL, API key |
 | [OpenWeather](https://openweathermap.org/) | `weather` | OpenWeather API key, city or latitude/longitude, units |
 | [iCalendar](https://icalendar.org/) | `calendar` | ICS feed URLs |
 | [Speedtest Tracker](https://docs.speedtest-tracker.dev/) | `speedtest` | Speedtest Tracker URL, API token |
