@@ -167,7 +167,7 @@ Labby ships with a growing collection of integrations for the apps and services 
 </tr>
 <tr>
 <td align="center">
-<a href="https://github.com/samuelloranger/reelward" target="_blank" rel="noreferrer noopener">
+<a href="https://github.com/samuelloranger/rawkoon" target="_blank" rel="noreferrer noopener">
   <img src="https://api.iconify.design/lucide/clapperboard.svg" alt="Rawkoon" width="90" height="90" />
   <br/>
   <p align="center">Rawkoon</p>
