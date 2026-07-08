@@ -5,6 +5,9 @@ src/web/node_modules/
 # Build output
 dist/
 src/web/dist/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
 
 # Environment and secrets
 .env

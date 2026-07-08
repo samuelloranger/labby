@@ -17,7 +17,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Features
 
-- **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, weather, calendar, speedtest, Reddit, Hacker News
+- **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, weather, calendar, speedtest, bookmarks, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config & credentials** — stored in SQLite (`config/labby.db`), Zod-validated; edit service URLs/keys from the in-app Manage Services page
@@ -72,26 +72,157 @@ Configure everything from the **Manage Services** page — no `.env` file or fla
 
 ### Built-in integrations
 
-| Type | What to configure |
-| --- | --- |
-| `monitor` | HTTP sites to check (title, URL, icon per site) |
-| `docker` | Read/write Docker hosts, container filter (`running` / `all`) — see [Docker host](#docker-host) |
-| `qbittorrent` | URL, username, password |
-| `transmission` | URL, username, password |
-| `sabnzbd` | URL, API key |
-| `adguard` | URL, username, password |
-| `jellyfin` | URL, API key |
-| `emby` | URL, API key |
-| `plex` | URL, token |
-| `beszel` | URL, username, password, token |
-| `radarr` | URL, API key |
-| `sonarr` | URL, API key |
-| `rawkoon` | URL, API key |
-| `weather` | OpenWeather API key, city or lat/lon, units |
-| `calendar` | ICS feed URLs (one per line) |
-| `speedtest` | Speedtest Tracker URL, API token |
-| `reddit` | Subreddits to merge into one feed |
-| `hackernews` | No config (Algolia front page) |
+Labby ships with a growing collection of integrations for the apps and services that usually live in a homelab:
+
+<div align="center">
+<table>
+<tbody>
+<tr>
+<td align="center">
+<a href="#built-in-integrations">
+  <img src="src/web/public/icons/labby.svg" alt="Monitor" width="90" height="90" />
+  <br/>
+  <p align="center">Monitor</p>
+</a>
+</td>
+<td align="center">
+<a href="https://www.docker.com/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/docker.svg" alt="Docker" width="90" height="90" />
+  <br/>
+  <p align="center">Docker</p>
+</a>
+</td>
+<td align="center">
+<a href="https://www.qbittorrent.org/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/qbittorrent.svg" alt="qBittorrent" width="90" height="90" />
+  <br/>
+  <p align="center">qBittorrent</p>
+</a>
+</td>
+<td align="center">
+<a href="https://transmissionbt.com/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/transmission.svg" alt="Transmission" width="90" height="90" />
+  <br/>
+  <p align="center">Transmission</p>
+</a>
+</td>
+<td align="center">
+<a href="https://sabnzbd.org/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/sabnzbd.svg" alt="SABnzbd" width="90" height="90" />
+  <br/>
+  <p align="center">SABnzbd</p>
+</a>
+</td>
+<td align="center">
+<a href="https://adguard.com/en/adguard-home/overview.html" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/adguard-home.svg" alt="AdGuard Home" width="90" height="90" />
+  <br/>
+  <p align="center">AdGuard<br/>Home</p>
+</a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="https://jellyfin.org/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/jellyfin.svg" alt="Jellyfin" width="90" height="90" />
+  <br/>
+  <p align="center">Jellyfin</p>
+</a>
+</td>
+<td align="center">
+<a href="https://emby.media/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/emby.svg" alt="Emby" width="90" height="90" />
+  <br/>
+  <p align="center">Emby</p>
+</a>
+</td>
+<td align="center">
+<a href="https://www.plex.tv/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/plex.svg" alt="Plex" width="90" height="90" />
+  <br/>
+  <p align="center">Plex</p>
+</a>
+</td>
+<td align="center">
+<a href="https://beszel.dev/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/beszel.svg" alt="Beszel" width="90" height="90" />
+  <br/>
+  <p align="center">Beszel</p>
+</a>
+</td>
+<td align="center">
+<a href="https://radarr.video/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/radarr.svg" alt="Radarr" width="90" height="90" />
+  <br/>
+  <p align="center">Radarr</p>
+</a>
+</td>
+<td align="center">
+<a href="https://sonarr.tv/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/sonarr.svg" alt="Sonarr" width="90" height="90" />
+  <br/>
+  <p align="center">Sonarr</p>
+</a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="https://github.com/samuelloranger/reelward" target="_blank" rel="noreferrer noopener">
+  <img src="https://api.iconify.design/lucide/clapperboard.svg" alt="Rawkoon" width="90" height="90" />
+  <br/>
+  <p align="center">Rawkoon</p>
+</a>
+</td>
+<td align="center">
+<a href="https://openweathermap.org/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/openweather.png" alt="Weather" width="90" height="90" />
+  <br/>
+  <p align="center">Weather</p>
+</a>
+</td>
+<td align="center">
+<a href="https://icalendar.org/" target="_blank" rel="noreferrer noopener">
+  <img src="https://api.iconify.design/lucide/calendar-days.svg" alt="Calendar" width="90" height="90" />
+  <br/>
+  <p align="center">Calendar</p>
+</a>
+</td>
+<td align="center">
+<a href="https://docs.speedtest-tracker.dev/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/speedtest-tracker.svg" alt="Speedtest Tracker" width="90" height="90" />
+  <br/>
+  <p align="center">Speedtest<br/>Tracker</p>
+</a>
+</td>
+<td align="center">
+<a href="#built-in-integrations">
+  <img src="https://api.iconify.design/lucide/bookmark.svg" alt="Bookmarks" width="90" height="90" />
+  <br/>
+  <p align="center">Bookmarks</p>
+</a>
+</td>
+<td align="center">
+<a href="https://www.reddit.com/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/reddit.svg" alt="Reddit" width="90" height="90" />
+  <br/>
+  <p align="center">Reddit</p>
+</a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="https://news.ycombinator.com/" target="_blank" rel="noreferrer noopener">
+  <img src="src/web/public/icons/di/hacker-news.svg" alt="Hacker News" width="90" height="90" />
+  <br/>
+  <p align="center">Hacker<br/>News</p>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+Most integrations ask for a base URL and either an API key, token, or username/password. Monitor and bookmarks rows accept lists of sites/links with optional per-item icons; Weather accepts an OpenWeather key plus city or coordinates; Hacker News has no required config.
 
 You can add multiple integrations of the same type (e.g. two Radarr instances) — each gets its own row, poll interval, and SSE channel (`int:<id>`).
 
