@@ -16,7 +16,8 @@
   const icon = $derived(client === 'qbittorrent' ? 'di:qbittorrent' : 'di:transmission');
   const allTorrents = $derived(state.data?.torrents ?? []);
   const counts = $derived(prepareDownloads(allTorrents, 0));
-  const list = $derived(prepareDownloads(allTorrents, allTorrents.length).visible);
+  const capped = $derived(prepareDownloads(allTorrents, max && max > 0 ? max : 8));
+  const list = $derived(capped.visible);
 
   let listOpen = $state(false);
   let pending = $state<Record<string, boolean>>({});
@@ -122,6 +123,9 @@
         </div>
       {/each}
     </div>
+    {#if capped.hidden > 0}
+      <p class="state-msg">+{capped.hidden} more not shown — raise Max items to see them</p>
+    {/if}
   </Modal>
 {/if}
 
