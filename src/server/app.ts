@@ -351,7 +351,7 @@ app.post('/api/backup', async (c) => {
   const tempPath = `${finalPath}.tmp`;
   try {
     await mkdir(backupDir, { recursive: true });
-    await writeFile(tempPath, JSON.stringify(body, null, 2), 'utf8');
+    await writeFile(tempPath, JSON.stringify(body, null, 2), { encoding: 'utf8', mode: 0o600 });
     await rename(tempPath, finalPath);
     return c.json({ path: path.relative(process.cwd(), finalPath) });
   } catch {
