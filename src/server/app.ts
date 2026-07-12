@@ -234,6 +234,7 @@ app.post('/api/theme', async (c) => {
     layout?: string;
     density?: string;
     customCss?: string;
+    motion?: boolean;
   }>();
   const updates: Parameters<typeof saveThemeSettings>[0] = {};
 
@@ -260,6 +261,12 @@ app.post('/api/theme', async (c) => {
   }
   if (body.customCss !== undefined) {
     updates.customCss = body.customCss;
+  }
+  if (body.motion !== undefined) {
+    if (typeof body.motion !== 'boolean') {
+      return c.json({ error: 'Invalid motion' }, 400);
+    }
+    updates.motion = body.motion;
   }
 
   await saveThemeSettings(updates);
