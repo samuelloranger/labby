@@ -202,3 +202,27 @@ e2e('integration data endpoints stay 200 and serve a stable payload on repeat hi
 
   expect(b).toBe(a);
 }, 30_000);
+
+e2e('backup export stays in the server filesystem', async () => {
+  const page = await browser.newPage();
+  let method = '';
+  await page.route('**/api/backup', async (route) => {
+    method = route.request().method();
+    if (method === 'POST') {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ path: 'config/backups/labby-backup-test.json' }),
+      });
+    } else {
+      await route.fulfill({ status: 405 });
+    }
+  });
+
+  await page.goto(`${BASE}/#settings`, { waitUntil: 'load' });
+  await page.getByRole('button', { name: 'Export backup' }).click();
+  await page.waitForTimeout(100);
+  expect(method).toBe('POST');
+  await page.getByText('Saved to config/backups/labby-backup-test.json').waitFor({ state: 'visible', timeout: 5_000 });
+  expect(page.url()).toBe(`${BASE}/#settings`);
+  await page.close();
+}, 30_000);

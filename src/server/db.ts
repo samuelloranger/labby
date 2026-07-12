@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite';
 import path from 'node:path';
 
-const DB_PATH = process.env.LABBY_DB_PATH ?? path.join(process.cwd(), 'config', 'labby.db');
+export const DB_PATH = process.env.LABBY_DB_PATH ?? path.join(process.cwd(), 'config', 'labby.db');
 
 export const db = new Database(DB_PATH, { create: true });
 
