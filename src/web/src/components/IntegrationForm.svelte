@@ -26,6 +26,22 @@
     oncancel: () => void;
   } = $props();
 
+  let dialogEl = $state<HTMLDialogElement | undefined>();
+
+  $effect(() => {
+    dialogEl?.showModal();
+  });
+
+  // Route every close path through the dialog's own close() so the browser
+  // restores focus to whatever triggered the form before we unmount it.
+  function requestClose() {
+    dialogEl?.close();
+  }
+
+  function onBackdropClick(e: MouseEvent) {
+    if (e.target === dialogEl) requestClose();
+  }
+
   function defaultConfig(fields: FieldDef[]): Record<string, unknown> {
     const cfg: Record<string, unknown> = {};
     for (const f of fields) {
@@ -201,11 +217,16 @@
   }
 </script>
 
-<div class="modal-backdrop" role="presentation" onclick={oncancel}></div>
-<div class="form-panel" role="dialog" aria-labelledby="form-title">
+<dialog
+  bind:this={dialogEl}
+  class="form-panel"
+  aria-labelledby="form-title"
+  onclick={onBackdropClick}
+  onclose={oncancel}
+>
   <div class="form-head">
     <h2 id="form-title">{row ? 'Edit' : 'Add'} {meta.label}</h2>
-    <button type="button" class="iconbtn" onclick={oncancel} aria-label="Close">×</button>
+    <button type="button" class="iconbtn" onclick={requestClose} aria-label="Close">×</button>
   </div>
 
   <div class="svc-fields">
@@ -385,26 +406,18 @@
   </div>
 
   <div class="settings-footer">
-    <button class="btn-cancel" onclick={oncancel}>Cancel</button>
+    <button class="btn-cancel" onclick={requestClose}>Cancel</button>
     <button class="btn-save" onclick={submit} disabled={saving || !formName.trim()}>
       {saving ? 'Saving…' : 'Save'}
     </button>
   </div>
-</div>
+</dialog>
 
 <style>
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 100;
-  }
   .form-panel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 101;
+    margin: auto;
+    padding: 0;
+    color: inherit;
     width: min(560px, calc(100vw - 24px));
     max-height: calc(100dvh - 32px);
     display: flex;
@@ -414,6 +427,9 @@
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
+  }
+  .form-panel::backdrop {
+    background: rgba(0, 0, 0, 0.45);
   }
   .form-head {
     flex: 0 0 auto;

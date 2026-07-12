@@ -432,10 +432,6 @@
   }
   .drag-handle:active { cursor: grabbing; }
 
-  /* Desktop (mouse): drag to reorder, hide arrow buttons. */
-  @media (hover: hover) and (pointer: fine) {
-    .row-actions .move-btn { display: none; }
-  }
   /* Touch: arrow buttons reorder (HTML5 drag doesn't fire on iOS), hide drag handle. */
   @media (pointer: coarse) {
     .drag-handle { display: none; }
