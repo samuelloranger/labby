@@ -29,6 +29,8 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 Do not expose Labby to the public internet without network-level access control.
 
+Backups (plaintext, including credentials) are written to `config/backups/` on the server, never returned in an API response.
+
 ## Quick start
 
 Labby runs as a single container. Copy [`docker-compose.yml`](docker-compose.yml) and start it:

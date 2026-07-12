@@ -5,10 +5,24 @@
   let { error = $bindable() }: { error?: string | null } = $props();
 
   let importing = $state(false);
+  let exporting = $state(false);
+  let exportedPath = $state<string | null>(null);
   let fileInput = $state<HTMLInputElement | null>(null);
 
-  function exportBackup() {
-    window.location.href = '/api/backup';
+  async function exportBackup() {
+    exporting = true;
+    exportedPath = null;
+    error = null;
+    try {
+      const res = await fetch('/api/backup', { method: 'POST' });
+      const body = (await res.json().catch(() => ({}))) as { path?: string; error?: string };
+      if (!res.ok || !body.path) throw new Error(body.error ?? 'Failed to write backup');
+      exportedPath = body.path;
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to write backup';
+    } finally {
+      exporting = false;
+    }
   }
 
   async function onImportFile(e: Event) {
@@ -43,15 +57,15 @@
   <div class="backup-head">
     <span class="settings-eyebrow"><Database size={13} /> Backup &amp; restore</span>
     <h2 id="backup-title">Move your setup</h2>
-    <p class="settings-sub">Download everything — services, credentials, and your dashboard layout — as one file, or restore from a previous one.</p>
+    <p class="settings-sub">Save everything — services, credentials, and your dashboard layout — to a backup file on this server, or restore from a previous one.</p>
   </div>
   <div class="backup-warn">
     <TriangleAlert size={16} />
-    <span>The file includes your service credentials in plain text. Keep it somewhere private.</span>
+    <span>Backups include your service credentials in plain text and are written to <code>config/backups/</code> on this server — they never leave it.</span>
   </div>
   <div class="backup-actions">
-    <button type="button" class="btn-save" onclick={exportBackup}>
-      <Download size={16} /> Export backup
+    <button type="button" class="btn-save" onclick={exportBackup} disabled={exporting}>
+      <Download size={16} /> {exporting ? 'Saving…' : 'Export backup'}
     </button>
     <button type="button" class="btn-cancel" onclick={() => fileInput?.click()} disabled={importing}>
       <Upload size={16} /> {importing ? 'Importing…' : 'Import backup'}
@@ -64,6 +78,9 @@
       onchange={onImportFile}
     />
   </div>
+  {#if exportedPath}
+    <p class="settings-sub">Saved to {exportedPath}</p>
+  {/if}
 </section>
 
 <style>
