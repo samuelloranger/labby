@@ -1,43 +1,28 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Settings, Database } from 'lucide-svelte';
+  import { Monitor, Moon, Settings, Database, Sun } from 'lucide-svelte';
   import Modal from './Modal.svelte';
   import Select from './Select.svelte';
   import { get } from 'svelte/store';
   import { getStore, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
   import type { Dashboard, IntegrationRow } from '$lib/types';
-
-  const themes = [
-    ['system', 'System Default'],
-    ['light', 'Light (Amber)'],
-    ['light-slate', 'Slate (Light)'],
-    ['light-mint', 'Mint (Light)'],
-    ['light-rose', 'Rose (Light)'],
-    ['light-nord', 'Nord (Light)'],
-    ['light-peach', 'Peach (Light)'],
-    ['light-graphite', 'Graphite (Light)'],
-    ['light-ocean', 'Ocean (Light)'],
-    ['light-forest', 'Forest (Light)'],
-    ['light-dracula', 'Dracula (Light)'],
-    ['light-cyberpunk', 'Cyberpunk (Light)'],
-    ['dark', 'Dark (Amber)'],
-    ['dark-graphite', 'Graphite (Dark)'],
-    ['dark-ocean', 'Ocean (Dark)'],
-    ['dark-forest', 'Forest (Dark)'],
-    ['dark-dracula', 'Dracula (Dark)'],
-    ['dark-nord', 'Nord (Dark)'],
-    ['dark-cyberpunk', 'Cyberpunk (Dark)'],
-    ['dark-slate', 'Slate (Dark)'],
-    ['dark-mint', 'Mint (Dark)'],
-    ['dark-rose', 'Rose (Dark)'],
-    ['dark-peach', 'Peach (Dark)'],
-  ] as const;
+  import {
+    composeTheme,
+    decomposeTheme,
+    PALETTES,
+    resolveConcreteTheme,
+    type Mode,
+    type Palette,
+  } from '$lib/theme';
 
   let { config, integrations = [] }: { config: Dashboard; integrations?: IntegrationRow[] } = $props();
   const title = $derived(config.title ?? 'Labby');
 
-  let theme = $state(config.theme?.default ?? 'system');
+  const initial = decomposeTheme(config.theme?.default ?? 'system');
+  let mode = $state<Mode>(initial.mode);
+  let palette = $state<Palette>(initial.palette);
   let density = $state<'default' | 'compact'>('compact');
+  let motion = $state(config.theme?.motion ?? false);
   let customCss = $state(config.theme?.customCss ?? '');
   let settingsOpen = $state(false);
   let saving = $state(false);
@@ -73,6 +58,10 @@
 
   const connectedVal = $derived($streamConnected);
 
+  function systemIsDark(): boolean {
+    return matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
   onMount(() => {
     // Remove server-injected custom css tag since Svelte will handle it
     const serverStyle = document.getElementById('labby-custom-css');
@@ -82,11 +71,9 @@
 
     try {
       const stored = localStorage.getItem('labby-theme');
-      if (stored) {
-        theme = stored as any;
-      } else {
-        theme = config.theme?.default ?? 'system';
-      }
+      const decomposed = decomposeTheme(stored ?? config.theme?.default ?? 'system');
+      mode = decomposed.mode;
+      palette = decomposed.palette;
     } catch {}
 
     try {
@@ -98,6 +85,8 @@
       }
       document.documentElement.dataset.density = density;
     } catch {}
+
+    document.documentElement.dataset.motion = motion ? 'on' : 'off';
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const mon = [
@@ -120,14 +109,20 @@
     }
   }
 
-  function previewTheme(next: string) {
-    theme = next as any;
-    if (next === 'system') {
-      const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.dataset.theme = sys;
-    } else {
-      document.documentElement.dataset.theme = next;
-    }
+  const themeId = $derived(composeTheme(mode, palette));
+
+  function applyThemePreview() {
+    document.documentElement.dataset.theme = resolveConcreteTheme(mode, palette, systemIsDark());
+  }
+
+  function previewMode(next: Mode) {
+    mode = next;
+    applyThemePreview();
+  }
+
+  function previewPalette(next: Palette) {
+    palette = next;
+    applyThemePreview();
   }
 
   function previewDensity(next: 'default' | 'compact') {
@@ -135,12 +130,17 @@
     document.documentElement.dataset.density = next;
   }
 
+  function previewMotion(next: boolean) {
+    motion = next;
+    document.documentElement.dataset.motion = next ? 'on' : 'off';
+  }
+
   function previewCss(next: string) {
     customCss = next;
   }
 
-  async function quickSetTheme(next: string) {
-    previewTheme(next);
+  async function persistTheme() {
+    const next = themeId;
     try {
       const res = await fetch('/api/theme', {
         method: 'POST',
@@ -162,49 +162,63 @@
     }
   }
 
+  async function quickSetMode(next: Mode) {
+    previewMode(next);
+    await persistTheme();
+  }
+
+  async function quickSetPalette(next: Palette) {
+    previewPalette(next);
+    await persistTheme();
+  }
+
   function openSettings() {
-    theme = config.theme?.default ?? 'system';
+    const decomposed = decomposeTheme(config.theme?.default ?? 'system');
+    mode = decomposed.mode;
+    palette = decomposed.palette;
     density = config.theme?.density ?? 'default';
+    motion = config.theme?.motion ?? false;
     customCss = config.theme?.customCss ?? '';
     settingsOpen = true;
   }
 
   function closeSettings() {
     settingsOpen = false;
-    const originalTheme = config.theme?.default ?? 'system';
-    if (originalTheme === 'system') {
-      const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.dataset.theme = sys;
-    } else {
-      document.documentElement.dataset.theme = originalTheme;
-    }
-    theme = originalTheme;
+    const original = decomposeTheme(config.theme?.default ?? 'system');
+    mode = original.mode;
+    palette = original.palette;
+    document.documentElement.dataset.theme = resolveConcreteTheme(mode, palette, systemIsDark());
     density = config.theme?.density ?? 'default';
     document.documentElement.dataset.density = density;
+    motion = config.theme?.motion ?? false;
+    document.documentElement.dataset.motion = motion ? 'on' : 'off';
     customCss = config.theme?.customCss ?? '';
   }
 
   async function saveSettings() {
     saving = true;
     try {
+      const next = themeId;
       const res = await fetch('/api/theme', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          theme: theme,
+          theme: next,
           density: density,
+          motion: motion,
           customCss: customCss,
         }),
       });
       if (res.ok) {
-        config.theme.default = theme;
+        config.theme.default = next as any;
         config.theme.density = density;
+        config.theme.motion = motion;
         config.theme.customCss = customCss;
         try {
-          if (theme === 'system') {
+          if (next === 'system') {
             localStorage.removeItem('labby-theme');
           } else {
-            localStorage.setItem('labby-theme', theme);
+            localStorage.setItem('labby-theme', next);
           }
           localStorage.setItem('labby-density', density);
         } catch {}
@@ -255,7 +269,24 @@
     {/if}
 
     <span class="quick-theme">
-      <Select value={theme} options={themes} onchange={quickSetTheme} pill={true} style="width: 170px;" />
+      <span class="mode-toggle" role="group" aria-label="Theme mode">
+        <button type="button" class="mode-btn" class:active={mode === 'light'} onclick={() => quickSetMode('light')} aria-label="Light" aria-pressed={mode === 'light'} title="Light">
+          <Sun size={15} />
+        </button>
+        <button type="button" class="mode-btn" class:active={mode === 'dark'} onclick={() => quickSetMode('dark')} aria-label="Dark" aria-pressed={mode === 'dark'} title="Dark">
+          <Moon size={15} />
+        </button>
+        <button type="button" class="mode-btn" class:active={mode === 'system'} onclick={() => quickSetMode('system')} aria-label="System" aria-pressed={mode === 'system'} title="System">
+          <Monitor size={15} />
+        </button>
+      </span>
+      <Select
+        value={palette}
+        options={PALETTES}
+        onchange={(v) => quickSetPalette(v as Palette)}
+        pill={true}
+        style="width: 130px;"
+      />
     </span>
 
     <button class="iconbtn" onclick={() => window.location.hash = '#settings'} aria-label="Manage services" title="Manage services">
@@ -272,8 +303,26 @@
   <Modal title="Customize Dashboard" onClose={closeSettings}>
     <div class="settings-form">
       <div class="settings-group">
-        <label for="settings-theme">Theme</label>
-        <Select id="settings-theme" value={theme} options={themes} onchange={previewTheme} pill={false} style="width: 100%;" />
+        <span class="settings-label">Theme mode</span>
+        <div class="settings-radio-group" role="radiogroup" aria-label="Theme mode">
+          <label class="radio-label">
+            <input type="radio" name="theme-mode" value="light" checked={mode === 'light'} onchange={() => previewMode('light')} />
+            <span>Light</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="theme-mode" value="dark" checked={mode === 'dark'} onchange={() => previewMode('dark')} />
+            <span>Dark</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="theme-mode" value="system" checked={mode === 'system'} onchange={() => previewMode('system')} />
+            <span>System</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <label for="settings-palette">Palette</label>
+        <Select id="settings-palette" value={palette} options={PALETTES} onchange={(v) => previewPalette(v as Palette)} pill={false} style="width: 100%;" />
       </div>
 
       <div class="settings-group">
@@ -289,6 +338,14 @@
           </label>
         </div>
         <p class="settings-help">Compact reduces padding, card margins, and list item spacing so more content fits on screen.</p>
+      </div>
+
+      <div class="settings-group">
+        <label class="radio-label">
+          <input type="checkbox" checked={motion} onchange={(e) => previewMotion(e.currentTarget.checked)} />
+          <span>Decorative motion</span>
+        </label>
+        <p class="settings-help">Adds an idle bob to the header logo and a slow pulse to empty/loading state messages. Off by default.</p>
       </div>
 
       <div class="settings-group">
@@ -312,5 +369,40 @@
     .quick-theme {
       display: none;
     }
+  }
+
+  .quick-theme {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mode-toggle {
+    display: flex;
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--pill);
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: all 0.15s var(--ease);
+  }
+
+  .mode-btn:hover {
+    color: var(--ink);
+  }
+
+  .mode-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 </style>
