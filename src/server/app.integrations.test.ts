@@ -47,6 +47,46 @@ test('POST /api/integrations creates a row; GET /api/integrations includes it', 
   }
 });
 
+test('integration responses redact secrets and blank updates preserve them', async () => {
+  cleanup();
+  let id: number | undefined;
+  try {
+    const createRes = await app.request('/api/integrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: TEST_NAME,
+        type: 'qbittorrent',
+        config: { url: 'http://qbit', user: 'sam', pass: 'stored-secret' },
+        enabled: true,
+      }),
+    });
+    expect(createRes.status).toBe(200);
+    const created = (await createRes.json()) as any;
+    id = created.id;
+    expect(created.config).not.toHaveProperty('pass');
+
+    const list = (await (await app.request('/api/integrations')).json()) as any[];
+    expect(list.find((row) => row.id === id)?.config).not.toHaveProperty('pass');
+
+    const updateRes = await app.request(`/api/integrations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: TEST_NAME,
+        type: 'qbittorrent',
+        config: { url: 'http://qbit', user: 'sam', pass: '' },
+        enabled: true,
+      }),
+    });
+    expect(updateRes.status).toBe(200);
+    expect((await updateRes.json()).config).not.toHaveProperty('pass');
+    expect(listIntegrations().find((row) => row.id === id)?.config.pass).toBe('stored-secret');
+  } finally {
+    if (id !== undefined) deleteIntegration(id);
+  }
+});
+
 test('GET /api/integrations/:id/data for radarr with empty config returns error (no network)', async () => {
   cleanup();
   let id: number | undefined;

@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { type Context, Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
@@ -13,10 +13,12 @@ import {
 } from './config/schema';
 import {
   createIntegration,
+  DB_PATH,
   db,
   deleteIntegration,
   getIntegration,
   getSetting,
+  type IntegrationRow,
   listIntegrations,
   reorderIntegrations,
   replaceAllIntegrations,
@@ -47,6 +49,33 @@ function themeFromConfig(): string {
 function customCssFromConfig(): string {
   const config = getConfig();
   return config?.theme.customCss ?? '';
+}
+
+function secretKeys(type: string): string[] {
+  return (INTEGRATIONS[type as IntegrationType]?.fields ?? [])
+    .filter((field) => field.secret)
+    .map((field) => field.key);
+}
+
+function publicIntegration(row: IntegrationRow): IntegrationRow {
+  const config = { ...row.config };
+  for (const key of secretKeys(row.type)) delete config[key];
+  return { ...row, config };
+}
+
+function preserveSecrets(
+  existing: IntegrationRow,
+  requestedType: string,
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  if (existing.type !== requestedType) return config;
+  const merged = { ...config };
+  for (const key of secretKeys(existing.type)) {
+    if ((typeof merged[key] !== 'string' || !merged[key].trim()) && key in existing.config) {
+      merged[key] = existing.config[key];
+    }
+  }
+  return merged;
 }
 
 app.use('*', async (c, next) => {
@@ -83,7 +112,7 @@ app.get('/api/favicon', async (c) => {
 
 app.get('/api/integrations/types', (c) => c.json(integrationTypes()));
 
-app.get('/api/integrations', (c) => c.json(listIntegrations()));
+app.get('/api/integrations', (c) => c.json(listIntegrations().map(publicIntegration)));
 
 app.post('/api/integrations', async (c) => {
   const b = await c.req.json();
@@ -96,22 +125,24 @@ app.post('/api/integrations', async (c) => {
     refreshSeconds: b.refreshSeconds ?? null,
   });
   startScheduler();
-  return c.json(row);
+  return c.json(publicIntegration(row));
 });
 
 app.put('/api/integrations/:id', async (c) => {
   const b = await c.req.json();
   if (!b.name || !b.type) return c.json({ error: 'name and type required' }, 400);
-  const row = updateIntegration(Number(c.req.param('id')), {
+  const id = Number(c.req.param('id'));
+  const existing = getIntegration(id);
+  if (!existing) return c.json({ error: 'Not found' }, 404);
+  const row = updateIntegration(id, {
     name: b.name,
     type: b.type,
-    config: b.config ?? {},
+    config: preserveSecrets(existing, b.type, b.config ?? {}),
     enabled: b.enabled ?? true,
     refreshSeconds: b.refreshSeconds ?? null,
   });
-  if (!row) return c.json({ error: 'Not found' }, 404);
   startScheduler();
-  return c.json(row);
+  return c.json(publicIntegration(row as IntegrationRow));
 });
 
 app.delete('/api/integrations/:id', (c) => {
@@ -297,7 +328,7 @@ app.get('/manifest.webmanifest', serveStatic);
 app.get('/sw.js', serveStatic);
 
 // --- backup / restore ---
-app.get('/api/backup', (c) => {
+app.post('/api/backup', async (c) => {
   const dashboardRaw = getSetting('dashboard');
   let dashboard: unknown = null;
   if (dashboardRaw) {
@@ -314,12 +345,19 @@ app.get('/api/backup', (c) => {
     dashboard,
     integrations: listIntegrations(),
   };
-  c.header('Content-Type', 'application/json');
-  c.header(
-    'Content-Disposition',
-    `attachment; filename="labby-backup-${exportedAt.slice(0, 10)}.json"`,
-  );
-  return c.body(JSON.stringify(body, null, 2));
+  const backupDir = path.join(path.dirname(DB_PATH), 'backups');
+  const filename = `labby-backup-${exportedAt.replace(/[:.]/g, '-')}.json`;
+  const finalPath = path.join(backupDir, filename);
+  const tempPath = `${finalPath}.tmp`;
+  try {
+    await mkdir(backupDir, { recursive: true });
+    await writeFile(tempPath, JSON.stringify(body, null, 2), 'utf8');
+    await rename(tempPath, finalPath);
+    return c.json({ path: path.relative(process.cwd(), finalPath) });
+  } catch {
+    await unlink(tempPath).catch(() => {});
+    return c.json({ error: 'Failed to write backup' }, 500);
+  }
 });
 
 const INTEGRATION_TYPES = Object.keys(INTEGRATIONS) as [IntegrationType, ...IntegrationType[]];
