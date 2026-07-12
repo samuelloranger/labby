@@ -132,13 +132,11 @@
 
   function previewDensity(next: 'default' | 'compact') {
     density = next;
-    config.theme.density = next;
     document.documentElement.dataset.density = next;
   }
 
   function previewCss(next: string) {
     customCss = next;
-    config.theme.customCss = next;
   }
 
   async function quickSetTheme(next: string) {
@@ -181,8 +179,6 @@
       document.documentElement.dataset.theme = originalTheme;
     }
     theme = originalTheme;
-    config.theme.density = config.theme?.density ?? 'default';
-    config.theme.customCss = config.theme?.customCss ?? '';
     density = config.theme?.density ?? 'default';
     document.documentElement.dataset.density = density;
     customCss = config.theme?.customCss ?? '';
@@ -250,11 +246,13 @@
       <span class="header-time">{currentTime}</span>
     {/if}
 
-    <div class="summary">
-      <span class="chip" title="Services up"><span class="dot ok"></span><b>{summary.up}</b></span>
-      <span class="chip" title="Warnings"><span class="dot warn"></span><b>{summary.warn}</b></span>
-      <span class="chip" title="Services down"><span class="dot down"></span><b>{summary.down}</b></span>
-    </div>
+    {#if monitorIds.length > 0}
+      <div class="summary">
+        <span class="chip" title="Monitored sites up"><span class="dot ok"></span><b>{summary.up}</b></span>
+        <span class="chip" title="Monitored sites warning"><span class="dot warn"></span><b>{summary.warn}</b></span>
+        <span class="chip" title="Monitored sites down"><span class="dot down"></span><b>{summary.down}</b></span>
+      </div>
+    {/if}
 
     <span class="quick-theme">
       <Select value={theme} options={themes} onchange={quickSetTheme} pill={true} style="width: 170px;" />

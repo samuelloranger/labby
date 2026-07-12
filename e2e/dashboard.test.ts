@@ -293,3 +293,130 @@ e2e('Service reordering is keyboard-reachable on a desktop (fine pointer) viewpo
 
   await page.close();
 }, 30_000);
+
+e2e('Docker widget counts only running containers as "Running"', async () => {
+  const createRes = await fetch(`${BASE}/api/integrations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Docker E2E',
+      type: 'docker',
+      enabled: true,
+      refreshSeconds: 300,
+      config: { show: 'all' },
+    }),
+  });
+  const { id } = (await createRes.json()) as { id: number };
+
+  const page = await browser.newPage();
+  try {
+    const containers = [
+      { id: 'a', name: 'up-1', image: 'x', state: 'running', status: 'Up', cpuPercent: 1 },
+      { id: 'b', name: 'up-2', image: 'x', state: 'running', status: 'Up', cpuPercent: 1 },
+      { id: 'c', name: 'down-1', image: 'x', state: 'exited', status: 'Exited', cpuPercent: null },
+    ];
+    await page.route(`**/api/integrations/${id}/data`, async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ containers }),
+      });
+    });
+
+    await page.goto(BASE, { waitUntil: 'load' });
+    const card = page.getByRole('button', { name: /Docker E2E/ });
+    await card.waitFor({ state: 'visible', timeout: 10_000 });
+    const gaugeValue = await card.locator('.gauge .v').first().textContent();
+    expect(gaugeValue?.trim()).toBe('2');
+
+    await card.click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+    const meta = await dialog.locator('.mm').textContent();
+    expect(meta?.trim()).toBe('2/3 running');
+  } finally {
+    await page.close();
+    await fetch(`${BASE}/api/integrations/${id}`, { method: 'DELETE' });
+  }
+}, 30_000);
+
+e2e('Canceling the Customize dialog discards the unsaved custom CSS preview', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const draftCss = 'body { background: rgb(1, 2, 3) !important; }';
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  await page.locator('dialog[open]').waitFor({ state: 'visible', timeout: 5_000 });
+  await page.locator('#settings-css').fill(draftCss);
+
+  const liveWhileOpen = await page.evaluate(
+    () => document.getElementById('labby-custom-css-dynamic')?.textContent ?? '',
+  );
+  expect(liveWhileOpen).toContain('rgb(1, 2, 3)');
+
+  await page.keyboard.press('Escape');
+  await page.locator('dialog[open]').waitFor({ state: 'detached', timeout: 5_000 });
+
+  const liveAfterCancel = await page.evaluate(
+    () => document.getElementById('labby-custom-css-dynamic')?.textContent ?? '',
+  );
+  expect(liveAfterCancel).not.toContain('rgb(1, 2, 3)');
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  await page.locator('dialog[open]').waitFor({ state: 'visible', timeout: 5_000 });
+  expect(await page.locator('#settings-css').inputValue()).not.toContain('rgb(1, 2, 3)');
+
+  await page.close();
+}, 30_000);
+
+e2e('Downloads modal caps the list at the configured max and reports what is hidden', async () => {
+  const createRes = await fetch(`${BASE}/api/integrations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Downloads E2E',
+      type: 'qbittorrent',
+      enabled: true,
+      refreshSeconds: 300,
+      config: { max: 2 },
+    }),
+  });
+  const { id } = (await createRes.json()) as { id: number };
+
+  const page = await browser.newPage();
+  try {
+    const torrents = Array.from({ length: 5 }, (_, i) => ({
+      name: `torrent-${i}`,
+      progress: 50,
+      dlSpeed: 0,
+      upSpeed: 0,
+      state: 'downloading',
+      hash: `hash-${i}`,
+    }));
+    await page.route(`**/api/integrations/${id}/data`, async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ torrents, aggregateDlSpeed: 0, aggregateUpSpeed: 0 }),
+      });
+    });
+
+    await page.goto(BASE, { waitUntil: 'load' });
+    const card = page.getByRole('button', { name: /Downloads E2E/ });
+    await card.waitFor({ state: 'visible', timeout: 10_000 });
+    await card.click();
+
+    const dialog = page.locator('dialog[open]');
+    await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+
+    const rows = dialog.locator('.tor');
+    await rows.first().waitFor({ state: 'visible', timeout: 5_000 });
+    expect(await rows.count()).toBe(2);
+    await dialog
+      .getByText('+3 more not shown')
+      .waitFor({ state: 'visible', timeout: 5_000 });
+  } finally {
+    await page.close();
+    await fetch(`${BASE}/api/integrations/${id}`, { method: 'DELETE' });
+  }
+}, 30_000);
