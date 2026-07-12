@@ -434,3 +434,85 @@ e2e('first-paint resolver applies a stored system-<palette> preference before an
   expect(dataTheme).toBe('dark-nord');
   await page.close();
 }, 30_000);
+
+e2e('Customize dialog mode + palette controls compose correctly and persist', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+
+  // Scope the palette control to the dialog — the header pill renders its own
+  // "Palette selector" combobox too, and both are visible at the same time.
+  await dialog.getByRole('radio', { name: 'Dark' }).check();
+  await dialog.getByLabel('Palette selector').click();
+  await page.getByRole('option', { name: 'Nord' }).click();
+
+  const dataTheme = await page.evaluate(() => document.documentElement.dataset.theme);
+  expect(dataTheme).toBe('dark-nord');
+
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await page.waitForTimeout(200);
+
+  const res = await fetch(`${BASE}/api/config`);
+  const config = (await res.json()) as { theme: { default: string } };
+  expect(config.theme.default).toBe('dark-nord');
+
+  // reset to system/amber so later tests see the default state
+  await fetch(`${BASE}/api/theme`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ theme: 'system' }),
+  });
+  await page.close();
+}, 30_000);
+
+e2e('System mode composes with the selected palette', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+
+  await dialog.getByRole('radio', { name: 'System' }).check();
+  await dialog.getByLabel('Palette selector').click();
+  await page.getByRole('option', { name: 'Forest' }).click();
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await page.waitForTimeout(200);
+
+  const res = await fetch(`${BASE}/api/config`);
+  const config = (await res.json()) as { theme: { default: string } };
+  expect(config.theme.default).toBe('system-forest');
+
+  await fetch(`${BASE}/api/theme`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ theme: 'system' }),
+  });
+  await page.close();
+}, 30_000);
+
+e2e('Canceling the Customize dialog discards an unsaved mode/palette change', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+  await dialog.getByRole('radio', { name: 'Dark' }).check();
+  await dialog.getByLabel('Palette selector').click();
+  await page.getByRole('option', { name: 'Ocean' }).click();
+
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'detached', timeout: 5_000 });
+
+  const res = await fetch(`${BASE}/api/config`);
+  const config = (await res.json()) as { theme: { default: string } };
+  expect(config.theme.default).toBe('system');
+  await page.close();
+}, 30_000);

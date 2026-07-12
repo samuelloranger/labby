@@ -34,31 +34,20 @@
 
   const currentLabel = $derived(items.find((i) => i.value === value)?.label ?? value);
 
-  // Curated gradient previews for themes to visual feedback before selecting
+  // Curated color previews, one per palette (mode-agnostic — a palette has the
+  // same accent hue in light and dark).
   const themeColors: Record<string, string> = {
-    'system': 'linear-gradient(135deg, #94a3b8 50%, #475569 50%)',
-    'light': '#d97706',
-    'light-slate': '#64748b',
-    'light-mint': '#10b981',
-    'light-rose': '#f43f5e',
-    'light-nord': '#88c0d0',
-    'light-peach': '#f97316',
-    'dark': '#f59e0b',
-    'dark-graphite': '#334155',
-    'dark-ocean': '#0284c7',
-    'dark-forest': '#059669',
-    'dark-dracula': '#bd93f9',
-    'dark-nord': '#4c566a',
-    'dark-cyberpunk': 'linear-gradient(135deg, #ff007f 0%, #ffd60a 100%)',
-    'dark-slate': '#60a5fa',
-    'dark-mint': '#34d399',
-    'dark-rose': '#fb7185',
-    'dark-peach': '#fb923c',
-    'light-graphite': '#65a30d',
-    'light-ocean': '#0891b2',
-    'light-forest': '#16a34a',
-    'light-dracula': '#7c3aed',
-    'light-cyberpunk': 'linear-gradient(135deg, #d6006e 0%, #0891b2 100%)',
+    amber: '#d97706',
+    slate: '#64748b',
+    mint: '#10b981',
+    rose: '#f43f5e',
+    nord: '#88c0d0',
+    peach: '#f97316',
+    graphite: '#65a30d',
+    ocean: '#0891b2',
+    forest: '#16a34a',
+    dracula: '#7c3aed',
+    cyberpunk: 'linear-gradient(135deg, #d6006e 0%, #0891b2 100%)',
   };
 
   function toggle(e: MouseEvent) {
@@ -140,7 +129,7 @@
   role="combobox"
   aria-expanded={open}
   aria-haspopup="listbox"
-  aria-label="Theme selector"
+  aria-label="Palette selector"
 >
   <div class="select-trigger">
     <span class="theme-dot" style="background: {themeColors[value] || '#888'}"></span>
