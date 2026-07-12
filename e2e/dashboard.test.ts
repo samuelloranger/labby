@@ -32,6 +32,9 @@ try {
   hasBrowser = false;
 }
 const e2e = hasBrowser ? test : test.skip;
+// Tests that create/delete integrations must never run against a live target
+// (LABBY_E2E_URL) — that would mutate its config and restart its scheduler.
+const e2eLocalOnly = hasBrowser && !EXTERNAL ? test : test.skip;
 
 let server: ReturnType<typeof Bun.spawn> | null = null;
 let browser: Browser;
@@ -294,7 +297,7 @@ e2e('Service reordering is keyboard-reachable on a desktop (fine pointer) viewpo
   await page.close();
 }, 30_000);
 
-e2e('Docker widget counts only running containers as "Running"', async () => {
+e2eLocalOnly('Docker widget counts only running containers as "Running"', async () => {
   const createRes = await fetch(`${BASE}/api/integrations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -370,7 +373,7 @@ e2e('Canceling the Customize dialog discards the unsaved custom CSS preview', as
   await page.close();
 }, 30_000);
 
-e2e('Downloads modal caps the list at the configured max and reports what is hidden', async () => {
+e2eLocalOnly('Downloads modal caps the list at the configured max and reports what is hidden', async () => {
   const createRes = await fetch(`${BASE}/api/integrations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
