@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { fade, fly } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
 
   let {
     title,
@@ -9,28 +9,36 @@
     children,
   }: { title: string; meta?: string; onClose: () => void; children: Snippet } = $props();
 
-  function portal(node: HTMLElement) {
-    document.body.appendChild(node);
-    return {
-      destroy() {
-        if (node.parentNode) {
-          node.parentNode.removeChild(node);
-        }
-      }
-    };
+  let dialogEl = $state<HTMLDialogElement | undefined>();
+
+  $effect(() => {
+    dialogEl?.showModal();
+  });
+
+  // Route every close path through the dialog's own close() so the browser
+  // restores focus to whatever triggered the modal before we unmount it.
+  function requestClose() {
+    dialogEl?.close();
+  }
+
+  function onBackdropClick(e: MouseEvent) {
+    if (e.target === dialogEl) requestClose();
   }
 </script>
 
-<svelte:window onkeydown={(e) => { if (e.key === 'Escape') onClose(); }} />
-
-<div use:portal class="modal-bg" role="presentation" transition:fade={{ duration: 160 }} onclick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-  <div class="modal-panel" role="dialog" aria-modal="true" aria-label={title} tabindex="-1" transition:fly={{ y: 18, duration: 220 }}>
-    <div class="modal-head">
-      <span class="mt">{title}{#if meta}<span class="mm">{meta}</span>{/if}</span>
-      <button class="iconbtn" onclick={onClose} aria-label="Close">×</button>
-    </div>
-    <div class="modal-body">
-      {@render children()}
-    </div>
+<dialog
+  bind:this={dialogEl}
+  class="modal-panel"
+  aria-label={title}
+  onclick={onBackdropClick}
+  onclose={onClose}
+  transition:fly={{ y: 18, duration: 220 }}
+>
+  <div class="modal-head">
+    <span class="mt">{title}{#if meta}<span class="mm">{meta}</span>{/if}</span>
+    <button class="iconbtn" onclick={requestClose} aria-label="Close">×</button>
   </div>
-</div>
+  <div class="modal-body">
+    {@render children()}
+  </div>
+</dialog>
