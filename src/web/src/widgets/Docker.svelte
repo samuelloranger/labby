@@ -9,7 +9,7 @@
   const store = $derived(getStore(integrationId));
   const state = $derived($store as WidgetState<DockerData>);
   const all = $derived(state.data?.containers ?? []);
-  const total = $derived(all.length);
+  const running = $derived(all.filter((c) => c.state === 'running').length);
   const avgCpu = $derived.by(() => {
     const v = all.map((c) => c.cpuPercent).filter((c): c is number => c != null);
     return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0;
@@ -72,7 +72,7 @@
     <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
   {:else}
     <div class="gauges">
-      <div class="gauge"><div class="v">{total}</div><div class="k">Running</div></div>
+      <div class="gauge"><div class="v">{running}</div><div class="k">Running</div></div>
       <div class="gauge"><div class="v accent">{avgCpu}%</div><div class="k">Avg CPU</div></div>
     </div>
     <div class="card-cta">View containers →</div>
@@ -80,7 +80,7 @@
 </button>
 
 {#if listOpen}
-  <Modal title="Containers" meta={`${total} running`} onClose={() => (listOpen = false)}>
+  <Modal title="Containers" meta={`${running}/${all.length} running`} onClose={() => (listOpen = false)}>
     {#if containers.length === 0}
       <p class="state-msg">No containers</p>
     {/if}
