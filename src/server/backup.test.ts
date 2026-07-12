@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { readFile, unlink } from 'node:fs/promises';
+import { readFile, stat, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { app } from './app';
 import {
@@ -76,6 +76,7 @@ test('POST /api/backup writes complete JSON beside the database', async () => {
     expect(saved.integrations.find((row) => row.id === integration.id)?.config.pass).toBe(
       'stored-secret',
     );
+    expect((await stat(filePath)).mode & 0o777).toBe(0o600);
   } finally {
     if (filePath) await unlink(filePath).catch(() => {});
     deleteIntegration(integration.id);
