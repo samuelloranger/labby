@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { app } from './app';
-import { loadConfig } from './config/loader';
+import { getConfig, loadConfig } from './config/loader';
 import { createIntegration, deleteIntegration, listIntegrations } from './db';
 
 const TEST_NAME = '__test_app_routes__';
@@ -35,6 +35,26 @@ test('POST /api/theme validates and saves theme settings', async () => {
   });
   expect(ok.status).toBe(200);
   expect(await ok.json()).toEqual({ ok: true });
+});
+
+test('POST /api/theme persists motion alongside the other fields', async () => {
+  await loadConfig();
+  const res = await app.request('/api/theme', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ theme: 'system-nord', motion: true }),
+  });
+  expect(res.status).toBe(200);
+  expect(getConfig()?.theme.default).toBe('system-nord');
+  expect(getConfig()?.theme.motion).toBe(true);
+
+  const reset = await app.request('/api/theme', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ theme: 'system', motion: false }),
+  });
+  expect(reset.status).toBe(200);
+  expect(getConfig()?.theme.motion).toBe(false);
 });
 
 test('GET /api/integrations/:id/data returns 404 for missing row', async () => {
