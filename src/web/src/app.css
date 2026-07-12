@@ -2167,12 +2167,14 @@ header.top {
   transform: scale(0.93);
 }
 
-/* header logo: idle float, spin on hover */
+/* header logo: idle float (opt-in via data-motion), spin on hover */
 .brand .logo {
-  animation: float 4s ease-in-out infinite;
   transition:
     transform 0.4s var(--ease),
     filter 0.3s var(--ease);
+}
+:root[data-motion="on"] .brand .logo {
+  animation: float 4s ease-in-out infinite;
 }
 .brand:hover .logo {
   transform: rotate(360deg) scale(1.12);
@@ -2209,8 +2211,8 @@ header.top {
   }
 }
 
-/* state messages breathe so empty/loading feels alive */
-.state-msg {
+/* state messages breathe so empty/loading feels alive (opt-in via data-motion) */
+:root[data-motion="on"] .state-msg {
   animation: breathe 2.4s var(--ease) infinite;
 }
 

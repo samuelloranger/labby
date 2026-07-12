@@ -516,3 +516,32 @@ e2e('Canceling the Customize dialog discards an unsaved mode/palette change', as
   expect(config.theme.default).toBe('system');
   await page.close();
 }, 30_000);
+
+e2e('Decorative motion is off by default and toggling it updates data-motion and persists', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const initialMotion = await page.evaluate(() => document.documentElement.dataset.motion);
+  expect(initialMotion).not.toBe('on');
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+  await dialog.getByRole('checkbox', { name: 'Decorative motion' }).check();
+  expect(await page.evaluate(() => document.documentElement.dataset.motion)).toBe('on');
+
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await page.waitForTimeout(200);
+
+  const res = await fetch(`${BASE}/api/config`);
+  const config = (await res.json()) as { theme: { motion: boolean } };
+  expect(config.theme.motion).toBe(true);
+
+  await fetch(`${BASE}/api/theme`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ motion: false }),
+  });
+  await page.close();
+}, 30_000);
