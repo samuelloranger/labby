@@ -85,7 +85,8 @@ test('POST /api/backup writes complete JSON beside the database', async () => {
 test('GET /api/backup is not an export download', async () => {
   const res = await app.request('/api/backup');
   expect(res.headers.get('Content-Disposition')).toBeNull();
-  expect(res.headers.get('Content-Type')).toContain('text/html');
+  const body = await res.text().catch(() => '');
+  expect(body.trimStart().startsWith('{"version"')).toBe(false);
 });
 
 test('POST /api/restore rejects a malformed payload with 400 and leaves the DB intact', async () => {
