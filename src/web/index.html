@@ -3,7 +3,8 @@
 <head>
 <script>(()=> {var a=["light","light-slate","light-mint","light-rose","light-nord","light-peach","dark","dark-graphite","dark-ocean","dark-forest","dark-dracula","dark-nord","dark-cyberpunk","dark-slate","dark-mint","dark-rose","dark-peach","light-graphite","light-ocean","light-forest","light-dracula","light-cyberpunk"],s="__LABBY_THEME__",t;try{t=localStorage.getItem("labby-theme")}catch(_e){}
 var sys=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
-document.documentElement.dataset.theme=a.includes(s)?s:(a.includes(t)?t:sys);
+function r(v){var c;if(a.indexOf(v)>-1)return v;if(v==="system")return sys;if(typeof v==="string"&&v.indexOf("system-")===0){c=sys+v.slice(6);if(a.indexOf(c)>-1)return c}return null}
+document.documentElement.dataset.theme=r(s)||r(t)||sys;
 var d;try{d=localStorage.getItem("labby-density")}catch(_e){}
 document.documentElement.dataset.density=d==="compact"?"compact":"default";
 })();</script>

@@ -423,3 +423,14 @@ e2eLocalOnly('Downloads modal caps the list at the configured max and reports wh
     await fetch(`${BASE}/api/integrations/${id}`, { method: 'DELETE' });
   }
 }, 30_000);
+
+e2e('first-paint resolver applies a stored system-<palette> preference before any JS module runs', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.evaluate(() => localStorage.setItem('labby-theme', 'system-nord'));
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.reload({ waitUntil: 'commit' });
+  const dataTheme = await page.evaluate(() => document.documentElement.dataset.theme);
+  expect(dataTheme).toBe('dark-nord');
+  await page.close();
+}, 30_000);
