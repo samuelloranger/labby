@@ -24,6 +24,16 @@ export const ThemeSchema = z.enum([
   'light-forest',
   'light-dracula',
   'light-cyberpunk',
+  'system-slate',
+  'system-mint',
+  'system-rose',
+  'system-nord',
+  'system-peach',
+  'system-graphite',
+  'system-ocean',
+  'system-forest',
+  'system-dracula',
+  'system-cyberpunk',
 ]);
 export type ThemeName = z.infer<typeof ThemeSchema>;
 
@@ -38,6 +48,7 @@ export const ThemeConfigSchema = z.object({
   layout: LayoutSchema.default('masonry'),
   density: DensitySchema.default('compact'),
   customCss: z.string().optional(),
+  motion: z.boolean().default(false),
 });
 export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
 

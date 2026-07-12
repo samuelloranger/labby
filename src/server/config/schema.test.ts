@@ -39,4 +39,37 @@ describe('DashboardSchema', () => {
     });
     expect((parsed as any).pages).toBeUndefined();
   });
+
+  test('parses every system-<palette> theme value', () => {
+    const palettes = [
+      'slate',
+      'mint',
+      'rose',
+      'nord',
+      'peach',
+      'graphite',
+      'ocean',
+      'forest',
+      'dracula',
+      'cyberpunk',
+    ];
+    for (const p of palettes) {
+      const config = DashboardSchema.parse({
+        title: 'Labby',
+        theme: { default: `system-${p}` as any },
+      });
+      expect(config.theme.default).toBe(`system-${p}` as any);
+    }
+  });
+
+  test('theme.motion defaults to false and accepts true', () => {
+    const defaulted = DashboardSchema.parse({ title: 'Labby' });
+    expect(defaulted.theme.motion).toBe(false);
+
+    const enabled = DashboardSchema.parse({
+      title: 'Labby',
+      theme: { default: 'system', motion: true },
+    });
+    expect(enabled.theme.motion).toBe(true);
+  });
 });
