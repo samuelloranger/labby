@@ -226,3 +226,70 @@ e2e('backup export stays in the server filesystem', async () => {
   expect(page.url()).toBe(`${BASE}/#settings`);
   await page.close();
 }, 30_000);
+
+e2e('Customize dialog traps focus, closes on Escape, and returns focus to its trigger', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const trigger = page.getByRole('button', { name: 'Customize interface' });
+  await trigger.click();
+
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+
+  for (let i = 0; i < 10; i++) await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true);
+
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'detached', timeout: 5_000 });
+  expect(await page.evaluate(() => document.activeElement?.getAttribute('aria-label'))).toBe(
+    'Customize interface',
+  );
+
+  await page.close();
+}, 30_000);
+
+e2e('Integration dialog traps focus, closes on backdrop click, and returns focus to its trigger', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${BASE}/#settings`, { waitUntil: 'load' });
+  await page.locator('.svc-card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const trigger = page.locator('.type-pick').first();
+  const triggerLabel = await trigger.textContent();
+  await trigger.click();
+
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+
+  for (let i = 0; i < 10; i++) await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true);
+
+  await page.mouse.click(2, 2); // far corner, outside the dialog panel
+  await dialog.waitFor({ state: 'detached', timeout: 5_000 });
+  expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe(
+    triggerLabel?.trim(),
+  );
+
+  await page.close();
+}, 30_000);
+
+e2e('Service reordering is keyboard-reachable on a desktop (fine pointer) viewport', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${BASE}/#settings`, { waitUntil: 'load' });
+  await page.locator('.svc-card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const moveDown = page.locator('.svc-card').first().locator('button[aria-label="Move down"]');
+  expect(await moveDown.isVisible()).toBe(true);
+
+  const namesBefore = await page.locator('.svc-title h3').allTextContents();
+  await moveDown.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(200);
+  const namesAfter = await page.locator('.svc-title h3').allTextContents();
+
+  expect(namesAfter[0]).toBe(namesBefore[1]);
+  expect(namesAfter[1]).toBe(namesBefore[0]);
+
+  await page.close();
+}, 30_000);
