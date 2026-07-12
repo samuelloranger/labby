@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { type Context, Hono } from 'hono';
+import { compress } from 'hono/compress';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { getConfig, getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
@@ -35,6 +36,7 @@ import { hub } from './sse/hub';
 import { refreshIntegration, startScheduler } from './sse/scheduler';
 
 const app = new Hono();
+app.use(compress());
 
 const WEB_DIST = path.join(process.cwd(), 'src', 'web', 'dist');
 const INDEX_PATH = path.join(WEB_DIST, 'index.html');
