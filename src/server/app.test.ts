@@ -57,6 +57,26 @@ test('POST /api/theme persists motion alongside the other fields', async () => {
   expect(getConfig()?.theme.motion).toBe(false);
 });
 
+test('GET /api/integrations/types is gzip-compressed when requested', async () => {
+  // Chosen over /api/config: /api/config's default-seed response is ~85 bytes,
+  // well under compress()'s 1024-byte default threshold, so it would never
+  // compress regardless of whether the middleware works. /api/integrations/types
+  // is a stable ~3.8KB response independent of DB seed state.
+  const res = await app.request('/api/integrations/types', {
+    headers: { 'Accept-Encoding': 'gzip' },
+  });
+  expect(res.status).toBe(200);
+  expect(res.headers.get('Content-Encoding')).toBe('gzip');
+});
+
+test('GET /api/stream is never compressed, even when requested', async () => {
+  const res = await app.request('/api/stream', {
+    headers: { 'Accept-Encoding': 'gzip' },
+  });
+  expect(res.headers.get('Content-Encoding')).toBeNull();
+  res.body?.cancel();
+});
+
 test('GET /api/integrations/:id/data returns 404 for missing row', async () => {
   const res = await app.request('/api/integrations/999999/data');
   expect(res.status).toBe(404);
