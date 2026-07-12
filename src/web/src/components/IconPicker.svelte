@@ -131,13 +131,6 @@
     if (e.key === 'Escape') close();
   }
 
-  // The form modal uses a CSS transform, which would make our position:fixed
-  // popover resolve against the modal instead of the viewport. Portal to <body>.
-  function portal(node: HTMLElement) {
-    document.body.appendChild(node);
-    return { destroy: () => node.remove() };
-  }
-
   // Wire global listeners only while open.
   $effect(() => {
     if (!open) return;
@@ -176,7 +169,7 @@
 </div>
 
 {#if open}
-  <div class="ip-pop" use:portal bind:this={popEl} role="dialog" aria-label="Pick an icon" style={popStyle}>
+  <div class="ip-pop" bind:this={popEl} role="dialog" aria-label="Pick an icon" style={popStyle}>
     <div class="ip-tabs" role="tablist">
       {#each TABS as t}
         <button
