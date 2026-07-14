@@ -80,6 +80,20 @@ Labby ships with a growing collection of integrations for the apps and services 
 <table>
 <tbody>
 <tr>
+
+<td align="center">
+<a href="https://icalendar.org/" target="_blank" rel="noreferrer noopener">
+  <img src="https://api.iconify.design/lucide/calendar-days.svg" alt="Calendar" width="90" height="90" />
+  <br/>
+  <p align="center">Calendar</p>
+</a>
+<td align="center">
+<a href="#built-in-integrations">
+  <img src="https://api.iconify.design/lucide/bookmark.svg" alt="Bookmarks" width="90" height="90" />
+  <br/>
+  <p align="center">Bookmarks</p>
+</a>
+</td>
 <td align="center">
 <a href="#built-in-integrations">
   <img src="src/web/public/icons/labby.svg" alt="Monitor" width="90" height="90" />
@@ -101,6 +115,8 @@ Labby ships with a growing collection of integrations for the apps and services 
   <p align="center">qBittorrent</p>
 </a>
 </td>
+</tr>
+<tr>
 <td align="center">
 <a href="https://transmissionbt.com/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/di/transmission.svg" alt="Transmission" width="90" height="90" />
@@ -122,21 +138,6 @@ Labby ships with a growing collection of integrations for the apps and services 
   <p align="center">AdGuard<br/>Home</p>
 </a>
 </td>
-</tr>
-<tr>
-<td align="center">
-<a href="https://icalendar.org/" target="_blank" rel="noreferrer noopener">
-  <img src="https://api.iconify.design/lucide/calendar-days.svg" alt="Calendar" width="90" height="90" />
-  <br/>
-  <p align="center">Calendar</p>
-</a>
-<td align="center">
-<a href="#built-in-integrations">
-  <img src="https://api.iconify.design/lucide/bookmark.svg" alt="Bookmarks" width="90" height="90" />
-  <br/>
-  <p align="center">Bookmarks</p>
-</a>
-</td>
 <td align="center">
 <a href="https://jellyfin.org/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/di/jellyfin.svg" alt="Jellyfin" width="90" height="90" />
@@ -151,6 +152,8 @@ Labby ships with a growing collection of integrations for the apps and services 
   <p align="center">Emby</p>
 </a>
 </td>
+</tr>
+<tr>
 <td align="center">
 <a href="https://www.plex.tv/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/di/plex.svg" alt="Plex" width="90" height="90" />
@@ -179,8 +182,6 @@ Labby ships with a growing collection of integrations for the apps and services 
   <p align="center">Sonarr</p>
 </a>
 </td>
-</tr>
-<tr>
 <td align="center">
 <a href="https://github.com/samuelloranger/rawkoon" target="_blank" rel="noreferrer noopener">
   <img src="https://github.com/samuelloranger/rawkoon/raw/main/apps/web/public/icon.svg" alt="Rawkoon" width="90" height="90" />
@@ -188,6 +189,8 @@ Labby ships with a growing collection of integrations for the apps and services 
   <p align="center">Rawkoon</p>
 </a>
 </td>
+</tr>
+<tr>
 <td align="center">
 <a href="https://openweathermap.org/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/openweather.png" alt="Weather" width="90" height="90" />
@@ -210,8 +213,6 @@ Labby ships with a growing collection of integrations for the apps and services 
   <p align="center">Reddit</p>
 </a>
 </td>
-</tr>
-<tr>
 <td align="center">
 <a href="https://news.ycombinator.com/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/di/hacker-news.svg" alt="Hacker News" width="90" height="90" />
