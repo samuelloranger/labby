@@ -125,6 +125,19 @@ Labby ships with a growing collection of integrations for the apps and services 
 </tr>
 <tr>
 <td align="center">
+<a href="https://icalendar.org/" target="_blank" rel="noreferrer noopener">
+  <img src="https://api.iconify.design/lucide/calendar-days.svg" alt="Calendar" width="90" height="90" />
+  <br/>
+  <p align="center">Calendar</p>
+</a>
+<td align="center">
+<a href="#built-in-integrations">
+  <img src="https://api.iconify.design/lucide/bookmark.svg" alt="Bookmarks" width="90" height="90" />
+  <br/>
+  <p align="center">Bookmarks</p>
+</a>
+</td>
+<td align="center">
 <a href="https://jellyfin.org/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/di/jellyfin.svg" alt="Jellyfin" width="90" height="90" />
   <br/>
@@ -183,25 +196,12 @@ Labby ships with a growing collection of integrations for the apps and services 
 </a>
 </td>
 <td align="center">
-<a href="https://icalendar.org/" target="_blank" rel="noreferrer noopener">
-  <img src="https://api.iconify.design/lucide/calendar-days.svg" alt="Calendar" width="90" height="90" />
-  <br/>
-  <p align="center">Calendar</p>
-</a>
-</td>
-<td align="center">
 <a href="https://docs.speedtest-tracker.dev/" target="_blank" rel="noreferrer noopener">
   <img src="src/web/public/icons/speedtest-tracker.svg" alt="Speedtest Tracker" width="90" height="90" />
   <br/>
   <p align="center">Speedtest<br/>Tracker</p>
 </a>
 </td>
-<td align="center">
-<a href="#built-in-integrations">
-  <img src="https://api.iconify.design/lucide/bookmark.svg" alt="Bookmarks" width="90" height="90" />
-  <br/>
-  <p align="center">Bookmarks</p>
-</a>
 </td>
 <td align="center">
 <a href="https://www.reddit.com/" target="_blank" rel="noreferrer noopener">
