@@ -170,7 +170,7 @@ Labby ships with a growing collection of integrations for the apps and services 
 <tr>
 <td align="center">
 <a href="https://github.com/samuelloranger/rawkoon" target="_blank" rel="noreferrer noopener">
-  <img src="https://api.iconify.design/lucide/clapperboard.svg" alt="Rawkoon" width="90" height="90" />
+  <img src="https://github.com/samuelloranger/rawkoon/raw/main/apps/web/public/icon.svg" alt="Rawkoon" width="90" height="90" />
   <br/>
   <p align="center">Rawkoon</p>
 </a>
