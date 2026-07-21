@@ -9,6 +9,7 @@
   <a href="https://github.com/samuelloranger/labby/releases"><img src="https://img.shields.io/github/v/release/samuelloranger/labby" alt="Latest release" /></a>
   <a href="https://github.com/samuelloranger/labby/actions/workflows/docker.yml"><img src="https://github.com/samuelloranger/labby/actions/workflows/docker.yml/badge.svg" alt="Docker build" /></a>
   <a href="https://github.com/samuelloranger/labby/pkgs/container/labby"><img src="https://img.shields.io/badge/ghcr.io-labby-2496ED?logo=docker&logoColor=white" alt="Container image" /></a>
+  <a href="https://buymeacoffee.com/samlo122"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee" /></a>
 </p>
 
 ![Dashboard Screenshot](docs/screenshot-v1.3.0.png)
@@ -269,6 +270,10 @@ For frontend work, run **both** dev servers. `bun run dev` alone does not serve 
 - **Backend** — Hono (JSON API, static SPA, SSE)
 - **Frontend** — Svelte 5, Vite
 - **Config** — SQLite (`bun:sqlite`), Zod validation, automatically seeded via migrations
+
+## Support
+
+If Labby is useful to you, consider [buying me a coffee](https://buymeacoffee.com/samlo122) ☕ — it keeps the project going.
 
 ## License
 
