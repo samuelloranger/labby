@@ -403,7 +403,7 @@
   }
   .ip-tab.active {
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   .ip-searchbar {
@@ -560,7 +560,7 @@
     font-family: var(--mono, ui-monospace, monospace);
     font-size: 0.76rem;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--accent-ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

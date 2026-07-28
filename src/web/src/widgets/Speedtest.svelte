@@ -306,7 +306,7 @@
   }
 
   .history-dl {
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   .history-ul {
