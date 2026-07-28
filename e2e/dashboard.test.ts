@@ -742,3 +742,43 @@ e2eLocalOnly('every control on a phone meets the 24px minimum tap target', async
   expect(undersized).toEqual([]);
   await page.close();
 }, 30_000);
+
+e2e('reduced motion removes movement but keeps feedback', async () => {
+  const calm = await browser.newPage({ reducedMotion: 'reduce' });
+  await calm.goto(BASE, { waitUntil: 'load' });
+  await calm.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const reduced = await calm.evaluate(() => {
+    const read = (sel: string) => {
+      const el = document.querySelector(sel);
+      if (!el) return null;
+      const style = getComputedStyle(el);
+      return {
+        animation: style.animationName,
+        transitionProperty: style.transitionProperty,
+        transitionDuration: style.transitionDuration,
+      };
+    };
+    return { header: read('header.top'), page: read('.page'), button: read('.iconbtn') };
+  });
+
+  // Movement stops: the header no longer slides in from above.
+  expect(reduced.header?.animation).toBe('none');
+  // Feedback survives: a button still acknowledges hover and focus.
+  expect(reduced.button?.transitionProperty).toContain('background-color');
+  expect(reduced.button?.transitionDuration).not.toBe('0s');
+  // The regression this guards: `transition: none` on everything, which is
+  // what the rule used to do.
+  expect(reduced.button?.transitionProperty).not.toContain('transform');
+  await calm.close();
+
+  // And with no preference expressed, the full motion language is intact.
+  const lively = await browser.newPage({ reducedMotion: 'no-preference' });
+  await lively.goto(BASE, { waitUntil: 'load' });
+  await lively.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+  const full = await lively.evaluate(
+    () => getComputedStyle(document.querySelector('header.top') as Element).animationName,
+  );
+  expect(full).toBe('slide-down');
+  await lively.close();
+}, 30_000);

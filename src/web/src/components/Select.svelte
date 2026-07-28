@@ -340,6 +340,23 @@
   :global([data-theme="dark-cyberpunk"]) .custom-select:hover { background: #1c0a3a; }
   :global([data-theme="dark-cyberpunk"]) .select-dropdown { background: #120626; }
 
+  /* The dropdown still needs to announce that it opened; under reduced motion
+     it fades in place instead of rising. */
+  @media (prefers-reduced-motion: reduce) {
+    .select-dropdown {
+      animation-name: fadeIn;
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   @keyframes slideUp {
     from {
       opacity: 0;
