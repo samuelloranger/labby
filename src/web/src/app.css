@@ -50,13 +50,15 @@
 }
 
 :root[data-theme="light"] {
-  --accent-ink: #a86200;
   --wall:
     radial-gradient(40% 50% at 18% 18%, #ffe2c2 0%, transparent 60%),
     radial-gradient(40% 50% at 82% 12%, #ffd9c9 0%, transparent 60%),
     radial-gradient(45% 55% at 75% 82%, #fff0c4 0%, transparent 58%),
     radial-gradient(40% 50% at 12% 88%, #ffe6cf 0%, transparent 55%),
     linear-gradient(160deg, #fbf5ee, #f6efe8);
+  /* This theme inherits --accent from :root, so it has no --accent-soft to sit
+     beside; every other palette declares --accent-ink right after that pair. */
+  --accent-ink: #a86200;
   --glass: rgba(255, 255, 255, 0.55);
   --glass-2: rgba(255, 255, 255, 0.42);
   --glass-brd: rgba(255, 255, 255, 0.7);
