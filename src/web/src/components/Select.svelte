@@ -287,7 +287,7 @@
 
   .select-option.selected {
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: 700;
   }
 

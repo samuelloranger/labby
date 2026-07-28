@@ -409,6 +409,6 @@
 
   .mode-btn.active {
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 </style>

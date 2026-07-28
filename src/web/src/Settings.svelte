@@ -294,7 +294,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-ink);
     margin-bottom: 6px;
   }
   .settings-sub {
@@ -343,7 +343,7 @@
   }
   .svc-mark.on {
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: 800;
   }
   .svc-title {
@@ -409,7 +409,7 @@
   }
   .type-pick:hover {
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   @media (max-width: 640px) {

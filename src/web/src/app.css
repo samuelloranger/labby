@@ -15,9 +15,14 @@
   --blur: saturate(180%) blur(12px);
   --accent: #ff9500;
   --accent-soft: rgba(255, 149, 0, 0.15);
+  /* --accent is a fill colour first: dots, bars, borders, active pills. Where it
+     has to be read as text it needs 4.5:1, which several light palettes miss —
+     those themes override --accent-ink with a darker cast of the same hue. */
+  --accent-ink: var(--accent);
+  /* Status colours for the dark themes; the light half is retuned below. */
   --ok: #30b85f;
   --warn: #f2a33c;
-  --down: #ff453a;
+  --down: #ff6b60;
   --idle: #b6bac2;
   /* Focus ring rides on --ink, which every theme redefines against its own
      background — so the ring clears 3:1 on all 22 themes without per-theme work. */
@@ -45,6 +50,7 @@
 }
 
 :root[data-theme="light"] {
+  --accent-ink: #a86200;
   --wall:
     radial-gradient(40% 50% at 18% 18%, #ffe2c2 0%, transparent 60%),
     radial-gradient(40% 50% at 82% 12%, #ffd9c9 0%, transparent 60%),
@@ -59,7 +65,7 @@
   --surface-2: rgba(120, 120, 140, 0.16);
   --ink: #1d1d1f;
   --ink-dim: #62636a;
-  --ink-faint: #9b9da6;
+  --ink-faint: #70727e;
   --shadow: 0 10px 34px rgba(40, 40, 60, 0.12);
   --shadow-hi: 0 14px 40px rgba(40, 40, 60, 0.18);
 }
@@ -81,7 +87,7 @@
   --surface-2: rgba(255, 255, 255, 0.1);
   --ink: #f5f5f7;
   --ink-dim: #a9abb3;
-  --ink-faint: #70727b;
+  --ink-faint: #7d8089;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.62);
 }
@@ -102,7 +108,7 @@
   --surface-2: rgba(15, 23, 42, 0.11);
   --ink: #0f172a;
   --ink-dim: #475569;
-  --ink-faint: #94a3b8;
+  --ink-faint: #5d7290;
   --shadow: 0 10px 34px rgba(15, 23, 42, 0.12);
   --shadow-hi: 0 14px 40px rgba(15, 23, 42, 0.18);
 }
@@ -115,6 +121,7 @@
     linear-gradient(160deg, #f7fee7, #d9f99d);
   --accent: #059669;
   --accent-soft: rgba(5, 150, 105, 0.14);
+  --accent-ink: #04865d;
   --glass: rgba(255, 255, 255, 0.56);
   --glass-2: rgba(255, 255, 255, 0.44);
   --glass-brd: rgba(16, 185, 129, 0.26);
@@ -123,7 +130,7 @@
   --surface-2: rgba(6, 78, 59, 0.13);
   --ink: #052e2b;
   --ink-dim: #3f625c;
-  --ink-faint: #78958f;
+  --ink-faint: #607a75;
   --shadow: 0 10px 34px rgba(6, 78, 59, 0.12);
   --shadow-hi: 0 14px 40px rgba(6, 78, 59, 0.18);
 }
@@ -144,7 +151,7 @@
   --surface-2: rgba(136, 19, 55, 0.12);
   --ink: #3b0a1e;
   --ink-dim: #70425a;
-  --ink-faint: #a7798f;
+  --ink-faint: #97637c;
   --shadow: 0 10px 34px rgba(136, 19, 55, 0.12);
   --shadow-hi: 0 14px 40px rgba(136, 19, 55, 0.18);
 }
@@ -165,7 +172,7 @@
   --surface-2: rgba(255, 255, 255, 0.1);
   --ink: #f9fafb;
   --ink-dim: #cbd5e1;
-  --ink-faint: #64748b;
+  --ink-faint: #6c7d96;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
 }
@@ -220,6 +227,7 @@
     linear-gradient(160deg, #f0f4f8, #e5e9f0);
   --accent: #5e81ac;
   --accent-soft: rgba(94, 129, 172, 0.14);
+  --accent-ink: #5275a0;
   --glass: rgba(255, 255, 255, 0.6);
   --glass-2: rgba(255, 255, 255, 0.45);
   --glass-brd: rgba(216, 222, 233, 0.8);
@@ -228,7 +236,7 @@
   --surface-2: rgba(76, 86, 106, 0.14);
   --ink: #2e3440;
   --ink-dim: #4c566a;
-  --ink-faint: #6c7a96;
+  --ink-faint: #66748f;
   --shadow: 0 10px 34px rgba(46, 52, 64, 0.1);
   --shadow-hi: 0 14px 40px rgba(46, 52, 64, 0.16);
 }
@@ -241,6 +249,7 @@
     linear-gradient(160deg, #fffaf3, #fdf4e7);
   --accent: #ea580c;
   --accent-soft: rgba(234, 88, 12, 0.14);
+  --accent-ink: #c94c0a;
   --glass: rgba(255, 255, 255, 0.58);
   --glass-2: rgba(255, 255, 255, 0.44);
   --glass-brd: rgba(253, 186, 116, 0.55);
@@ -270,7 +279,7 @@
   --surface-2: rgba(255, 255, 255, 0.13);
   --ink: #f8f8f2;
   --ink-dim: #a2a6c2;
-  --ink-faint: #7b81a7;
+  --ink-faint: #868bae;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.68);
 }
@@ -291,7 +300,7 @@
   --surface-2: rgba(255, 255, 255, 0.11);
   --ink: #eceff4;
   --ink-dim: #d8dee9;
-  --ink-faint: #818ca2;
+  --ink-faint: #8e98ab;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.65);
 }
@@ -333,7 +342,7 @@
   --surface-2: rgba(255, 255, 255, 0.1);
   --ink: #f1f5f9;
   --ink-dim: #cbd5e1;
-  --ink-faint: #64748b;
+  --ink-faint: #6c7d96;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.52);
   --shadow-hi: 0 16px 48px rgba(0, 0, 0, 0.64);
 }
@@ -409,6 +418,7 @@
     linear-gradient(160deg, #f9fafb, #e5e7eb);
   --accent: #65a30d;
   --accent-soft: rgba(101, 163, 13, 0.14);
+  --accent-ink: #51820a;
   --glass: rgba(255, 255, 255, 0.58);
   --glass-2: rgba(255, 255, 255, 0.46);
   --glass-brd: rgba(156, 163, 175, 0.34);
@@ -417,7 +427,7 @@
   --surface-2: rgba(17, 24, 39, 0.11);
   --ink: #111827;
   --ink-dim: #4b5563;
-  --ink-faint: #9ca3af;
+  --ink-faint: #6c7586;
   --shadow: 0 10px 34px rgba(17, 24, 39, 0.12);
   --shadow-hi: 0 14px 40px rgba(17, 24, 39, 0.18);
 }
@@ -430,6 +440,7 @@
     linear-gradient(160deg, #f0fdff, #cffafe);
   --accent: #0891b2;
   --accent-soft: rgba(8, 145, 178, 0.14);
+  --accent-ink: #07809d;
   --glass: rgba(255, 255, 255, 0.58);
   --glass-2: rgba(255, 255, 255, 0.46);
   --glass-brd: rgba(103, 232, 249, 0.4);
@@ -438,7 +449,7 @@
   --surface-2: rgba(8, 47, 73, 0.12);
   --ink: #083344;
   --ink-dim: #155e75;
-  --ink-faint: #5a93a6;
+  --ink-faint: #4b7c8c;
   --shadow: 0 10px 34px rgba(8, 47, 73, 0.12);
   --shadow-hi: 0 14px 40px rgba(8, 47, 73, 0.18);
 }
@@ -451,6 +462,7 @@
     linear-gradient(160deg, #f0fdf4, #dcfce7);
   --accent: #16a34a;
   --accent-soft: rgba(22, 163, 74, 0.14);
+  --accent-ink: #12873d;
   --glass: rgba(255, 255, 255, 0.58);
   --glass-2: rgba(255, 255, 255, 0.46);
   --glass-brd: rgba(134, 239, 172, 0.4);
@@ -459,7 +471,7 @@
   --surface-2: rgba(20, 83, 45, 0.12);
   --ink: #14532d;
   --ink-dim: #3f6212;
-  --ink-faint: #6b9476;
+  --ink-faint: #5a7c63;
   --shadow: 0 10px 34px rgba(20, 83, 45, 0.12);
   --shadow-hi: 0 14px 40px rgba(20, 83, 45, 0.18);
 }
@@ -480,7 +492,7 @@
   --surface-2: rgba(40, 42, 54, 0.12);
   --ink: #282a36;
   --ink-dim: #5b5f7a;
-  --ink-faint: #9499b5;
+  --ink-faint: #6b7299;
   --shadow: 0 10px 34px rgba(40, 42, 54, 0.12);
   --shadow-hi: 0 14px 40px rgba(40, 42, 54, 0.18);
 }
@@ -504,6 +516,18 @@
   --ink-faint: #a8527e;
   --shadow: 0 10px 34px rgba(124, 0, 64, 0.12);
   --shadow-hi: 0 14px 40px rgba(124, 0, 64, 0.18);
+}
+
+/* Every light palette lands its cards between L=0.96 and L=0.99, so one retuned
+   status set serves all eleven. The dark values above stay: they already clear
+   AA on their own backgrounds and dimming them would flatten the board.
+   These are read as text (`color: var(--down)`) as well as painted into 9px
+   dots, so they are held to 4.5:1, not the 3:1 a pure indicator would need. */
+:root[data-theme^="light"] {
+  --ok: #15803d;
+  --warn: #b45309;
+  --down: #b91c1c;
+  --idle: #64748b;
 }
 
 * {
@@ -767,7 +791,7 @@ header.top {
 }
 .card a:hover,
 .modal-panel a:hover {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .grid {
@@ -880,7 +904,7 @@ header.top {
   height: 31px;
   border-radius: 10px;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   display: grid;
   place-items: center;
   flex: none;
@@ -1199,7 +1223,7 @@ header.top {
 .pct {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1236,7 +1260,7 @@ header.top {
 }
 
 .spd .dn {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .mini-list {
@@ -1316,7 +1340,7 @@ header.top {
 }
 
 .gauge .v.accent {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .gauge .k {
@@ -1356,7 +1380,7 @@ header.top {
 .beszel-summary b {
   display: block;
   margin-top: 3px;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 1.3rem;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -1659,7 +1683,7 @@ header.top {
 
 .jf .who {
   font-size: 0.72rem;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 700;
 }
 
@@ -1784,7 +1808,7 @@ header.top {
   font-family: inherit;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* generic modal (Modal.svelte) */
@@ -1861,7 +1885,7 @@ header.top {
   text-align: center;
   font-weight: 700;
   font-size: 0.78rem;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-variant-numeric: tabular-nums;
   padding-top: 1px;
 }
@@ -2019,7 +2043,7 @@ header.top {
   flex: 0 0 64px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-variant-numeric: tabular-nums;
 }
 
