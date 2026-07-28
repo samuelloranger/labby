@@ -251,20 +251,26 @@
 
 <header class="top">
   <div class="top-in">
-    <div class="brand">
-      <img class="logo" class:reconnecting={!connectedVal} src="/icons/labby.svg" alt="Labby" width="28" height="28" />
+    <h1 class="brand">
+      <img class="logo" class:reconnecting={!connectedVal} src="/icons/labby.svg" alt="" width="28" height="28" />
       <span>{title.toLowerCase()}</span>
-    </div>
+    </h1>
+
+    <!-- The reconnecting logo pulse is the only signal a sighted user gets; this
+         is the same signal for everyone else. -->
+    <p class="sr-only" role="status">
+      {connectedVal ? 'Live updates connected' : 'Live updates disconnected, reconnecting'}
+    </p>
 
     {#if currentTime}
       <span class="header-time">{currentTime}</span>
     {/if}
 
     {#if monitorIds.length > 0}
-      <div class="summary">
-        <span class="chip" title="Monitored sites up"><span class="dot ok"></span><b>{summary.up}</b></span>
-        <span class="chip" title="Monitored sites warning"><span class="dot warn"></span><b>{summary.warn}</b></span>
-        <span class="chip" title="Monitored sites down"><span class="dot down"></span><b>{summary.down}</b></span>
+      <div class="summary" role="status" aria-label="Monitored sites">
+        <span class="chip" title="Monitored sites up"><span class="dot ok"></span><b>{summary.up}</b><span class="sr-only"> up</span></span>
+        <span class="chip" title="Monitored sites warning"><span class="dot warn"></span><b>{summary.warn}</b><span class="sr-only"> warning</span></span>
+        <span class="chip" title="Monitored sites down"><span class="dot down"></span><b>{summary.down}</b><span class="sr-only"> down</span></span>
       </div>
     {/if}
 

@@ -41,7 +41,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:120px"></div>
   {:else if state.error && !state.data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else if state.data}
     <div class="gauges">
       <div class="gauge"><div class="v">{formatNumber(state.data.queries)}</div><div class="k">Queries · 24h</div></div>

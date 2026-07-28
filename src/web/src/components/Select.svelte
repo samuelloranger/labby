@@ -179,7 +179,6 @@
     border-radius: var(--radius-sm);
     cursor: pointer;
     user-select: none;
-    outline: none;
     transition: all 0.2s var(--ease);
     box-sizing: border-box;
   }

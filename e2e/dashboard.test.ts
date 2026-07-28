@@ -545,3 +545,137 @@ e2e('Decorative motion is off by default and toggling it updates data-motion and
   });
   await page.close();
 }, 30_000);
+
+// --- Accessibility guards -------------------------------------------------
+// These lock in the semantics a screen reader depends on. They are cheap to
+// break silently (an attribute drops off in a refactor and nothing looks
+// wrong), which is exactly why they are asserted here.
+
+e2e('the dashboard exposes exactly one h1 and a live region for stream state', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  expect(await page.locator('h1').count()).toBe(1);
+  expect((await page.locator('h1').innerText()).trim().length).toBeGreaterThan(0);
+
+  // The reconnecting logo pulse is a visual-only signal; this is its text twin.
+  const streamStatus = page.locator('p.sr-only[role="status"]');
+  await streamStatus.waitFor({ state: 'attached', timeout: 5_000 });
+  expect(await streamStatus.innerText()).toContain('Live updates');
+
+  // sr-only must stay out of the layout while remaining in the a11y tree.
+  const box = await streamStatus.boundingBox();
+  expect(box?.width).toBeLessThanOrEqual(2);
+
+  await page.close();
+}, 30_000);
+
+e2e('every focusable control paints a focus ring', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const selector = 'a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])';
+  const controls = await page.locator(selector).all();
+  expect(controls.length).toBeGreaterThan(5);
+
+  const unringed: string[] = [];
+  for (const control of controls) {
+    if (!(await control.isVisible().catch(() => false))) continue;
+    await control.focus().catch(() => {});
+    // Several controls use `transition: all`, so the ring animates in — read
+    // the settled value, not the frame the focus event landed on.
+    await page.waitForTimeout(250);
+    const info = await control.evaluate((node) => {
+      const style = getComputedStyle(node);
+      return {
+        ringless: style.outlineStyle === 'none' || style.outlineWidth === '0px',
+        label: node.getAttribute('aria-label') || node.textContent?.trim().slice(0, 30) || node.tagName,
+      };
+    });
+    if (info.ringless) unringed.push(info.label);
+  }
+  expect(unringed).toEqual([]);
+}, 60_000);
+
+e2eLocalOnly('a download bar with no printed percentage exposes progressbar semantics', async () => {
+  const createRes = await fetch(`${BASE}/api/integrations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Progress A11y E2E',
+      type: 'qbittorrent',
+      enabled: true,
+      refreshSeconds: 300,
+      config: { max: 5 },
+    }),
+  });
+  const { id } = (await createRes.json()) as { id: number };
+
+  const page = await browser.newPage();
+  try {
+    await page.route(`**/api/integrations/${id}/data`, async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          torrents: [
+            { name: 'ubuntu.iso', progress: 42, dlSpeed: 1024, upSpeed: 0, state: 'downloading', hash: 'h1' },
+          ],
+          aggregateDlSpeed: 1024,
+          aggregateUpSpeed: 0,
+        }),
+      });
+    });
+
+    await page.goto(BASE, { waitUntil: 'load' });
+    const card = page.getByRole('button', { name: /Progress A11y E2E/ });
+    await card.waitFor({ state: 'visible', timeout: 10_000 });
+    await card.click();
+
+    const dialog = page.locator('dialog[open]');
+    await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+
+    const bar = dialog.getByRole('progressbar', { name: /ubuntu\.iso/ });
+    await bar.waitFor({ state: 'visible', timeout: 5_000 });
+    expect(await bar.getAttribute('aria-valuenow')).toBe('42');
+    expect(await bar.getAttribute('aria-valuemin')).toBe('0');
+    expect(await bar.getAttribute('aria-valuemax')).toBe('100');
+  } finally {
+    await page.close();
+    await fetch(`${BASE}/api/integrations/${id}`, { method: 'DELETE' });
+  }
+}, 30_000);
+
+e2eLocalOnly('an unreachable service announces its failure through an alert region', async () => {
+  const createRes = await fetch(`${BASE}/api/integrations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Alert A11y E2E',
+      type: 'adguard',
+      enabled: true,
+      refreshSeconds: 300,
+      config: { url: 'http://127.0.0.1:9', username: 'x', password: 'y' },
+    }),
+  });
+  const { id } = (await createRes.json()) as { id: number };
+
+  const page = await browser.newPage();
+  try {
+    await page.route(`**/api/integrations/${id}/data`, async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Unable to connect. Is the computer able to access the url?' }),
+      });
+    });
+    await page.goto(BASE, { waitUntil: 'load' });
+
+    const alert = page.getByRole('alert').filter({ hasText: 'Unable to connect' }).first();
+    await alert.waitFor({ state: 'visible', timeout: 10_000 });
+    expect(await alert.innerText()).toContain('Unable to connect');
+  } finally {
+    await page.close();
+    await fetch(`${BASE}/api/integrations/${id}`, { method: 'DELETE' });
+  }
+}, 30_000);

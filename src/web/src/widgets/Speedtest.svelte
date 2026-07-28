@@ -119,7 +119,7 @@
   {#if state.loading && !data}
     <div class="skeleton" style="height:160px"></div>
   {:else if state.error && !data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else if data}
     <div class="gauges">
       <div class="gauge">

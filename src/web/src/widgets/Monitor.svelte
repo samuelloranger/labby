@@ -42,7 +42,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:48px"></div>
   {:else if state.error && rows.length === 0}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else if rows.length === 0}
     <p class="state-msg">No sites configured</p>
   {:else if variant === 'tiles'}

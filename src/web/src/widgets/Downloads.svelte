@@ -78,7 +78,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:72px"></div>
   {:else if state.error && !state.data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else}
     <div class="gauges">
       <div class="gauge"><div class="v accent">{counts.downloading}</div><div class="k">Downloading</div></div>
@@ -112,7 +112,15 @@
               <Icon icon={paused ? 'lucide:play' : 'lucide:pause'} size={15} />
             </button>
           </div>
-          <div class="bar"><i style:width="{clampPercent(t.progress)}%"></i></div>
+          <!-- No percentage is printed next to this bar, so it has to carry the value itself. -->
+          <div
+            class="bar"
+            role="progressbar"
+            aria-label="{t.name} download progress"
+            aria-valuenow={Math.round(clampPercent(t.progress))}
+            aria-valuemin="0"
+            aria-valuemax="100"
+          ><i style:width="{clampPercent(t.progress)}%"></i></div>
           <div class="spd">
             <span class="dn">↓ {formatBytesPerSec(t.dlSpeed)}</span>
             <span>↑ {formatBytesPerSec(t.upSpeed)}</span>

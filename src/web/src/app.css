@@ -19,6 +19,29 @@
   --warn: #f2a33c;
   --down: #ff453a;
   --idle: #b6bac2;
+  /* Focus ring rides on --ink, which every theme redefines against its own
+     background — so the ring clears 3:1 on all 22 themes without per-theme work. */
+  --focus-ring: var(--ink);
+}
+
+/* One ring for the whole app. Components that need a different shape override
+   the radius, never the visibility. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Screen-reader-only text: present in the a11y tree, absent from layout. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 :root[data-theme="light"] {
@@ -566,6 +589,8 @@ header.top {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* It's the page's h1 — reset the UA margin, keep the wordmark size. */
+  margin: 0;
   font-weight: 800;
   font-size: 1.2rem;
   letter-spacing: -0.02em;
@@ -647,11 +672,6 @@ header.top {
 .iconbtn:hover {
   color: var(--ink);
   box-shadow: var(--shadow-hi);
-}
-
-.iconbtn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .theme-picker {
@@ -1110,11 +1130,6 @@ header.top {
 
 .btn:active {
   transform: scale(0.93);
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .btn.pending {
@@ -1589,11 +1604,6 @@ header.top {
 
 .sw.on i {
   left: 24px;
-}
-
-.sw:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .sess {
@@ -2352,7 +2362,6 @@ body::before {
   border-radius: var(--radius-sm);
   padding: 12px;
   color: var(--ink);
-  outline: none;
   resize: vertical;
   min-height: 120px;
 }

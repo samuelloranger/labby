@@ -45,7 +45,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:72px"></div>
   {:else if state.error && !state.data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else if !state.data?.sessions?.length}
     <p class="state-msg empty">No active sessions</p>
   {:else}
@@ -63,7 +63,15 @@
             <div class="cti">{s.title}</div>
             <div class="sub">{s.subtitle}</div>
             <div class="who">{s.user} · {s.device}</div>
-            <div class="bar"><i style:width="{clampPercent(s.progress)}%"></i></div>
+            <!-- No percentage is printed next to this bar, so it has to carry the value itself. -->
+            <div
+              class="bar"
+              role="progressbar"
+              aria-label="{s.title} playback progress"
+              aria-valuenow={Math.round(clampPercent(s.progress))}
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ><i style:width="{clampPercent(s.progress)}%"></i></div>
           </div>
         </div>
       {/each}

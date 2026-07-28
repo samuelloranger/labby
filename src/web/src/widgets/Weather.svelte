@@ -29,7 +29,7 @@
   {#if state.loading && !data}
     <div class="skeleton" style="height:140px"></div>
   {:else if locationError && !data}
-    <p class="state-msg error"><span class="dot down"></span>{locationError}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{locationError}</p>
   {:else if data}
     <div class="weather-hero">
       <img class="weather-icon" src={weatherIconUrl(data.icon)} alt="" width="72" height="72" />
