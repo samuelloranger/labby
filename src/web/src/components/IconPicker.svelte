@@ -428,7 +428,6 @@
     border-radius: var(--radius-sm);
     padding: 8px 10px;
     color: var(--ink);
-    outline: none;
   }
   .ip-searchbar .ip-input {
     padding-left: 32px;

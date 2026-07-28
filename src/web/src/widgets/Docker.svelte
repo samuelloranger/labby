@@ -69,7 +69,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:72px"></div>
   {:else if state.error && !state.data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else}
     <div class="gauges">
       <div class="gauge"><div class="v">{running}</div><div class="k">Running</div></div>
@@ -96,7 +96,7 @@
         </div>
         <div class="usage">
           {#if c.state === 'running' && c.cpuPercent != null}
-            cpu <span class="meter" class:hot={c.cpuPercent > 50}><i style:width="{c.cpuPercent}%"></i></span>
+            cpu <span class="meter" class:hot={c.cpuPercent > 50} aria-hidden="true"><i style:width="{c.cpuPercent}%"></i></span>
             {c.cpuPercent}%
           {:else}
             <span style="color:var(--ink-faint)">—</span>

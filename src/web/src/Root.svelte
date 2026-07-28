@@ -26,7 +26,7 @@
 </script>
 
 {#if error}
-  <main class="page"><p class="state-msg error">{error}</p></main>
+  <main class="page"><p class="state-msg error" role="alert">{error}</p></main>
 {:else if route === '#settings'}
   <Settings />
 {:else if config}

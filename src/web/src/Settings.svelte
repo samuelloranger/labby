@@ -188,7 +188,7 @@
   </div>
 
   {#if error}
-    <p class="state-msg error">{error}</p>
+    <p class="state-msg error" role="alert">{error}</p>
   {/if}
 
   {#if loading}

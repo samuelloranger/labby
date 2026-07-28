@@ -493,7 +493,6 @@
     border-radius: var(--radius-sm);
     padding: 10px 12px;
     color: var(--ink);
-    outline: none;
   }
   /* The rule above targets every input; checkboxes must opt out of full-width box styling. */
   input[type="checkbox"] {

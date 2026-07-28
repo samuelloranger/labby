@@ -86,7 +86,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:168px"></div>
   {:else if state.error && !state.data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else if visible.length === 0}
     <p class="state-msg">No systems</p>
   {:else}
@@ -141,7 +141,7 @@
             </div>
           </div>
           {#if disk.usedPercent != null}
-            <div class="bar beszel-disk-bar {hotClass(disk.usedPercent)}">
+            <div class="bar beszel-disk-bar {hotClass(disk.usedPercent)}" aria-hidden="true">
               <i style:width="{clampPercent(disk.usedPercent)}%"></i>
             </div>
           {/if}

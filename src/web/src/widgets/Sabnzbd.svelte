@@ -69,7 +69,7 @@
   {#if state.loading && !state.data}
     <div class="skeleton" style="height:72px"></div>
   {:else if state.error && !state.data}
-    <p class="state-msg error"><span class="dot down"></span>{state.error}</p>
+    <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else if !slots.length}
     <p class="state-msg empty">Queue empty</p>
   {:else}
@@ -91,7 +91,7 @@
               <Icon icon={paused ? 'lucide:play' : 'lucide:pause'} size={15} />
             </button>
           </div>
-          <div class="bar"><i style:width="{clampPercent(s.progress)}%"></i></div>
+          <div class="bar" aria-hidden="true"><i style:width="{clampPercent(s.progress)}%"></i></div>
           <div class="spd">
             <span style="color:var(--ink-faint)">
               {paused ? 'paused' : s.status.toLowerCase()} · {s.timeLeft || '—'}
