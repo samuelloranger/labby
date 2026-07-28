@@ -1747,12 +1747,54 @@ a.name {
   }
 }
 
+/* Reduced motion means less movement, not less feedback. The previous rule was
+   `animation: none; transition: none` on every element, which also removed the
+   colour and opacity changes that tell you a button took your click or a
+   dropdown opened — so the people who asked for a calmer interface got a less
+   legible one instead.
+   What follows removes movement and keeps acknowledgment. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    /* Only non-spatial properties may still transition. Anything that moves,
+       grows, or blurs snaps to its end state. */
+    transition-property:
+      opacity, color, background-color, border-color, box-shadow, fill, stroke !important;
+    transition-duration: 120ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  /* Entrances: the page still fades, the header stops sliding in from above. */
+  header.top,
+  .tile,
+  .bar > *,
+  .beszel-disk-bar > *,
+  .usage > * {
     animation: none !important;
-    transition: none !important;
+  }
+
+  /* Decorative loops are already opt-in; reduced motion overrides the opt-in. */
+  :root[data-motion="on"] .brand .logo,
+  :root[data-motion="on"] .state-msg {
+    animation: none !important;
+  }
+
+  /* Kept, because each one is the only continuous signal for a live state:
+     the reconnecting logo, the live-activity dot, and the loading skeleton.
+     The logo pulse drops its scale and keeps the fade. */
+  .brand .logo.reconnecting {
+    animation-name: pulse-amber-flat !important;
+  }
+}
+
+@keyframes pulse-amber-flat {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 
@@ -2120,9 +2162,10 @@ a.name {
   text-overflow: ellipsis;
 }
 
-/* ── animations: blanket motion layer ──────────────────────────────
-   All of this is killed by the prefers-reduced-motion guard above
-   (animation/transition: none !important wins regardless of order). */
+/* ── animations ────────────────────────────────────────────────────
+   Under prefers-reduced-motion the guard above keeps the entrance fade and
+   the three live-state loops, and stops everything that moves. It is not a
+   blanket kill — check that block before adding motion here. */
 
 /* page + header entrance */
 .page {
