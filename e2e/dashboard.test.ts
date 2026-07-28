@@ -679,3 +679,66 @@ e2eLocalOnly('an unreachable service announces its failure through an alert regi
     await fetch(`${BASE}/api/integrations/${id}`, { method: 'DELETE' });
   }
 }, 30_000);
+
+// --- Responsive guards ----------------------------------------------------
+// Horizontal overflow is the kind of bug nobody reports and everybody feels:
+// the page rubber-bands sideways on a phone and the cause is one unshrinkable
+// flex child three levels down. Cheaper to assert than to rediscover.
+
+e2e('the board steps down through every column tier without overflowing', async () => {
+  const page = await browser.newPage();
+  const tiers = [
+    { width: 390, columns: '1' },
+    { width: 900, columns: '2' },
+    { width: 1200, columns: '3' },
+    { width: 1700, columns: '4' },
+  ];
+
+  for (const tier of tiers) {
+    await page.setViewportSize({ width: tier.width, height: 900 });
+    await page.goto(BASE, { waitUntil: 'load' });
+    await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+    await page.waitForTimeout(300);
+
+    const measured = await page.evaluate(() => ({
+      columns: getComputedStyle(document.querySelector('.grid') as Element).columnCount,
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+
+    expect(measured.columns, `column count at ${tier.width}px`).toBe(tier.columns);
+    expect(
+      measured.scrollWidth,
+      `${tier.width}px viewport scrolls horizontally (content is ${measured.scrollWidth}px)`,
+    ).toBeLessThanOrEqual(measured.clientWidth);
+  }
+
+  await page.close();
+}, 60_000);
+
+e2eLocalOnly('every control on a phone meets the 24px minimum tap target', async () => {
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  const undersized = await page.evaluate(() => {
+    const small: string[] = [];
+    for (const el of document.querySelectorAll('a[href],button:not([disabled]),input')) {
+      const box = el.getBoundingClientRect();
+      if (box.width === 0 || box.height === 0) continue;
+      if (box.width < 24 || box.height < 24) {
+        const name = (el.className || el.tagName)
+          .toString()
+          .split(' ')
+          .filter((c) => !c.startsWith('svelte-'))
+          .join('.');
+        small.push(`${name} ${Math.round(box.width)}x${Math.round(box.height)}`);
+      }
+    }
+    return [...new Set(small)];
+  });
+
+  expect(undersized).toEqual([]);
+  await page.close();
+}, 30_000);

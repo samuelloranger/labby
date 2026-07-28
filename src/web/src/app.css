@@ -812,7 +812,17 @@ header.top {
   margin-bottom: 20px;
 }
 
+/* The board went straight from three columns to one at 1080px, so every width
+   between a phone and a laptop — iPad portrait, a half-screen window — got a
+   single stretched column. Two columns hold down to ~720px, where a card gets
+   too narrow to read a service name and a latency on one line. */
 @media (max-width: 1080px) {
+  .grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 720px) {
   .grid {
     column-count: 1;
   }
@@ -963,6 +973,9 @@ header.top {
   padding: 11px 0;
   font-size: 0.92rem;
   border-bottom: 1px solid var(--glass-brd);
+  /* Grid and flex children default to min-width:auto, which lets a long service
+     name push the row past its track instead of ellipsing. */
+  min-width: 0;
 }
 
 .row:first-child {
@@ -975,10 +988,23 @@ header.top {
 
 .row .name {
   flex: 1;
+  min-width: 0;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The service name is a link but only as tall as its text — 19px, under the 24
+   WCAG 2.5.8 asks for. Padding grows the hit box to 41px; the matching negative
+   margin takes that growth back out of the layout, so the row looks identical.
+   (A ::after overlay is the usual trick and does not work here: .name sets
+   overflow:hidden for its ellipsis, which clips the pseudo-element.)
+   11px matches the row's own padding, so neighbouring links meet without
+   overlapping. */
+a.name {
+  padding-block: 11px;
+  margin-block: -11px;
 }
 
 .row .ms {
@@ -994,7 +1020,8 @@ header.top {
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* Four across where there is room, fewer where there is not. */
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
   gap: 12px;
 }
 
@@ -1800,7 +1827,10 @@ header.top {
   display: block;
   width: 100%;
   margin-top: 14px;
-  padding: 0;
+  /* Was a 16px-tall tap target. WCAG 2.5.8 wants 24 minimum; the vertical
+     padding buys it without moving the text. */
+  padding: 4px 0;
+  min-height: 24px;
   text-align: left;
   background: none;
   border: none;
@@ -2656,8 +2686,12 @@ body::before {
   font-size: 0.75rem;
 }
 
+/* Compact pairs rows up, but only where a pair actually fits. repeat(2, 1fr)
+   forced two columns into a 342px phone card and each row then burst its own
+   track, pushing the page 8px wider than the viewport. auto-fit collapses to
+   one column on its own, at any width, with no breakpoint to maintain. */
 :root[data-density="compact"] .rows {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   column-gap: 12px;
 }
