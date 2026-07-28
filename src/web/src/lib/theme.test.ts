@@ -1,11 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import {
-  composeTheme,
-  decomposeTheme,
-  isPalette,
-  PALETTES,
-  resolveConcreteTheme,
-} from './theme';
+import { composeTheme, decomposeTheme, isPalette, PALETTES, resolveConcreteTheme } from './theme';
 
 describe('PALETTES', () => {
   test('has 11 entries starting with amber', () => {
