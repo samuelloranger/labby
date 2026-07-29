@@ -54,3 +54,7 @@ For real frontend dev, run **both** `bun run dev` and `cd src/web && bun run dev
 ## Design
 
 CSS tokens live in `src/web/src/app.css`. `backdrop-filter` (glass) is used only on the header and cards. Every widget implements loading / error / empty / ready states and respects reduced-motion.
+
+## Deployment
+
+Tag-triggered ghcr image; the deployed stack lives in a separate host-side directory, not in this repo. See the `deploying-labby` skill (`.claude/skills/deploying-labby/SKILL.md`) before shipping — the SQLite config DB is host-only state.
