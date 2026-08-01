@@ -717,10 +717,9 @@ async function main() {
   console.log('Taking screenshot...');
   await page.evaluate(() => (document.body.style.overflow = 'hidden'));
 
-  const pkg = require('../package.json');
-  const version = pkg.version;
-  const filename = `screenshot-v${version}.png`;
-  const filepath = `docs/${filename}`;
+  // Stable filename: README and docs/index.md point here, so a new release never
+  // needs its links rewritten.
+  const filepath = 'docs/screenshot.png';
 
   await page.screenshot({ path: filepath, fullPage: false });
 

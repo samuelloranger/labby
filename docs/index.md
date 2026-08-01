@@ -25,4 +25,4 @@ features:
     details: Manage service URLs, credentials, refresh intervals, themes, and layout from the dashboard.
 ---
 
-![Labby dashboard](./screenshot-v1.6.0.png)
+![Labby dashboard](./screenshot.png)
