@@ -12,7 +12,7 @@
   <a href="https://buymeacoffee.com/samlo122"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee" /></a>
 </p>
 
-![Dashboard Screenshot](docs/screenshot-v1.3.0.png)
+![Dashboard Screenshot](docs/screenshot.png)
 
 A self-hosted homelab dashboard — lightweight like [Glance](https://github.com/glanceapp/glance), interactive like [Homarr](https://github.com/homarr-labs/homarr). One Bun process, one container, config stored in a small SQLite database and editable in-app.
 

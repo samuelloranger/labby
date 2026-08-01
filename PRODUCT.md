@@ -62,7 +62,7 @@ The current visual world — glass / `backdrop-filter`, warm amber default palet
 
 ## Evidence on Hand
 
-- Real screenshot at `docs/screenshot-v1.3.0.png` (README hero).
+- Real screenshot at `docs/screenshot.png` (README hero).
 - Real GitHub signals: MIT license, tagged releases, Docker build workflow, GHCR package, Buy Me a Coffee link at `buymeacoffee.com/samlo122`.
 - Real coverage: featured in selfh.st "Self-Host Weekly" (26 June 2026), which drove the star spike; syndicated onward to Yahoo Tech.
 - **Absent — must not be fabricated:** no testimonials, no named users or customers, no install counts, no uptime/performance benchmarks beyond the measured compression figures (JS 271,913 → 61,001 bytes; CSS 66,634 → 12,265 bytes), no pricing or commercial tier.
