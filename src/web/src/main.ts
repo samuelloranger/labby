@@ -4,7 +4,8 @@ import './app.css';
 
 mount(Root, { target: document.getElementById('app')! });
 
-if ('serviceWorker' in navigator) {
+// Only register in production builds — a SW in Vite dev caches HMR shells and fights reloads.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
