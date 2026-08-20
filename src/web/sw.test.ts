@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const swPath = join(dirname(fileURLToPath(import.meta.url)), 'sw.js');
+const swPath = join(dirname(fileURLToPath(import.meta.url)), 'public', 'sw.js');
 const sw = readFileSync(swPath, 'utf8');
 
 describe('sw.js', () => {

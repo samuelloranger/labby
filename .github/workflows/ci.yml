@@ -17,6 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4
 
       # --frozen-lockfile: test/build the exact committed dependency graph. A PR
       # that changes a manifest without its bun.lock fails here instead of
@@ -45,5 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4
       - run: bun install --frozen-lockfile
       - run: bun run lint
