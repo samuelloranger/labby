@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- deps: lockfile-driven install, cached unless deps change ---
-FROM oven/bun:1 AS deps
+FROM oven/bun:1.4 AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
 COPY src/web/package.json src/web/bun.lock* ./src/web/
@@ -19,7 +19,7 @@ RUN cd src/web && bun run build
 RUN bun build src/server/index.ts --outdir dist --target bun
 
 # --- runtime: minimal, non-root, single port ---
-FROM oven/bun:1-slim AS runtime
+FROM oven/bun:1.4-slim AS runtime
 WORKDIR /app
 RUN groupadd --system labby && useradd --system --gid labby labby
 COPY --from=build /app/dist ./dist
