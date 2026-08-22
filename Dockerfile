@@ -5,7 +5,7 @@ FROM oven/bun:1.4 AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
 COPY src/web/package.json src/web/bun.lock* ./src/web/
-RUN bun install && cd src/web && bun install
+RUN bun install --frozen-lockfile && cd src/web && bun install --frozen-lockfile
 
 # --- build: compile the Svelte SPA + bundle the server into one process ---
 FROM deps AS build

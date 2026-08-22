@@ -11,7 +11,7 @@
     "build:web": "cd src/web && bun run build",
     "build:server": "bun build src/server/index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
-    "test": "bun test",
+    "test": "bun test --parallel",
     "typecheck": "tsc --noEmit",
     "lint": "biome check",
     "format": "biome check --write",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@types/bun": "latest",
+    "@types/bun": "^1.4.0",
     "playwright": "1.61.0",
     "svelte": "^5.20.5",
     "typescript": "^7.0.2",
