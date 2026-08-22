@@ -3,7 +3,7 @@
 # --- deps: lockfile-driven install, cached unless deps change ---
 FROM oven/bun:1.4 AS deps
 WORKDIR /app
-COPY package.json bun.lock* ./
+COPY package.json bun.lock* bunfig.toml ./
 COPY src/web/package.json src/web/bun.lock* ./src/web/
 RUN bun install --frozen-lockfile && cd src/web && bun install --frozen-lockfile
 

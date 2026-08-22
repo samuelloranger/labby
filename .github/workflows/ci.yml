@@ -30,7 +30,7 @@ jobs:
         run: bun run typecheck
 
       - name: Test
-        run: bun test
+        run: bun run test
 
       # build:web (Vite) + build:server (bun bundle) compile the SPA and server.
       # Skips the `vendor-icons` step so CI needs no CDN network (icons are a
