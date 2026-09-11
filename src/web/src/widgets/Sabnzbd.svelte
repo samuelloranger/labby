@@ -2,6 +2,9 @@
   import Icon from '../components/Icon.svelte';
   import { getStore, type SabnzbdData, type WidgetState } from '$lib/stores';
   import { clampPercent, formatBytesPerSec } from '$lib/utils';
+  import { motionMs } from '$lib/motion';
+  import { flip } from 'svelte/animate';
+  import { fade } from 'svelte/transition';
 
   let { title, integrationId, max }: { title: string; integrationId: number; max?: number } =
     $props();
@@ -52,7 +55,7 @@
   });
 </script>
 
-<section class="card">
+<section class="card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon="di:sabnzbd" fallback="download" size={20} /></span>
@@ -76,7 +79,12 @@
     <div class="dl">
       {#each slots as s (s.id)}
         {@const paused = s.id in optimistic ? optimistic[s.id] : isPaused(s.status)}
-        <div class="tor" class:paused={paused}>
+        <div
+          class="tor"
+          class:paused={paused}
+          animate:flip={{ duration: motionMs(180) }}
+          transition:fade={{ duration: motionMs(150) }}
+        >
           <div class="top">
             <span class="dot {paused ? 'idle' : 'live'}"></span>
             <span class="tname" title={s.name}>{s.name}</span>

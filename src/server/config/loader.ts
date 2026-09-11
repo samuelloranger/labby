@@ -60,6 +60,7 @@ export async function saveThemeSettings(settings: {
   density?: DensityType;
   customCss?: string;
   motion?: boolean;
+  glass?: boolean;
 }): Promise<void> {
   const raw = await readConfigRaw();
   const parsed = JSON.parse(raw) as Record<string, unknown>;
@@ -71,6 +72,7 @@ export async function saveThemeSettings(settings: {
     ...(settings.density ? { density: settings.density } : {}),
     ...(settings.customCss !== undefined ? { customCss: settings.customCss } : {}),
     ...(settings.motion !== undefined ? { motion: settings.motion } : {}),
+    ...(settings.glass !== undefined ? { glass: settings.glass } : {}),
   };
   const config = DashboardSchema.parse(parsed);
   setSetting('dashboard', JSON.stringify(parsed, null, 2));

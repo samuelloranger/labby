@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import { getStore, type MonitorData, type WidgetState } from '$lib/stores';
+  import { pulseOnChange } from '$lib/motion';
 
   let {
     title,
@@ -28,7 +29,7 @@
   }));
 </script>
 
-<section class="card">
+<section class="card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon={headerIcon} fallback="activity" size={17} /></span>
@@ -49,7 +50,10 @@
     <div class="tiles">
       {#each rows as site}
         <a class="tile" href={site.url ?? '#'} target="_blank" rel="noopener">
-          <span class="dot {site.status === 'up' ? 'ok' : site.status === 'warn' ? 'warn' : 'down'}"></span>
+          <span
+            class="dot {site.status === 'up' ? 'ok' : site.status === 'warn' ? 'warn' : 'down'}"
+            use:pulseOnChange={site.status}
+          ></span>
           <span class="tic"><Icon icon={site.icon} fallback="layout-grid" size={28} /></span>
           <span class="lbl">{site.title}</span>
         </a>
@@ -59,7 +63,10 @@
     <div class="rows">
       {#each rows as site}
         <div class="row" class:bad={site.status === 'down'}>
-          <span class="dot {site.status === 'up' ? 'ok' : site.status === 'warn' ? 'warn' : 'down'}"></span>
+          <span
+            class="dot {site.status === 'up' ? 'ok' : site.status === 'warn' ? 'warn' : 'down'}"
+            use:pulseOnChange={site.status}
+          ></span>
           <Icon icon={site.icon} fallback="globe" size={20} />
           {#if site.url}
             <a class="name" href={site.url} target="_blank" rel="noopener">{site.title}</a>

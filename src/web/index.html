@@ -7,6 +7,8 @@ function r(v){var c;if(a.indexOf(v)>-1)return v;if(v==="system")return sys;if(ty
 document.documentElement.dataset.theme=r(s)||r(t)||sys;
 var d;try{d=localStorage.getItem("labby-density")}catch(_e){}
 document.documentElement.dataset.density=d==="compact"?"compact":"default";
+var g;try{g=localStorage.getItem("labby-glass")}catch(_e){}
+document.documentElement.dataset.glass=g==="off"?"off":"on";
 })();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">

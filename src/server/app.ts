@@ -53,6 +53,49 @@ function customCssFromConfig(): string {
   return config?.theme.customCss ?? '';
 }
 
+/**
+ * Inline the hub's cached payloads into the HTML so the first paint already has
+ * data.
+ *
+ * Without this every widget renders a fixed-height skeleton and then snaps to
+ * its real height once the stream fills it ~200ms later. The board is
+ * `column-count` masonry, so each of those resizes reflows a whole column —
+ * measured on a live board, one feed card grew 234px and shoved the two cards
+ * below it down with it.
+ *
+ * This is the cheap half of SSR: the server ships state, not markup. No second
+ * render path, no hydration, no separate build — the scheduler has already
+ * polled this data and the hub is already caching it per stream key.
+ */
+// Per-channel budget for the inlined snapshot. A download client with a few
+// hundred torrents serialises to ~100KB, and the card shows two numbers until
+// someone opens the modal — inlining that on every uncached page load costs far
+// more than the reflow it saves. Oversized channels are simply left out: the
+// widget renders its skeleton and fills from the stream exactly as before, which
+// is the behaviour those cards already had without visible jump.
+const SNAPSHOT_CHANNEL_BUDGET = 32 * 1024;
+
+function snapshotScript(): string {
+  const snapshot: Record<string, unknown> = {};
+  for (const [channel, data] of hub.getSnapshot()) {
+    const encoded = JSON.stringify(data);
+    if (encoded && encoded.length <= SNAPSHOT_CHANNEL_BUDGET) snapshot[channel] = data;
+  }
+  // Payloads carry upstream strings — torrent names, feed titles, container
+  // names. Escaping `<` is what stops any of them closing this script tag.
+  const json = JSON.stringify(snapshot).replaceAll('<', '\\u003c');
+  return `<script id="labby-snapshot" type="application/json">${json}</script>`;
+}
+
+/** The one place index.html is patched, shared by the two routes that serve it. */
+function renderIndex(html: string): string {
+  const patched = html.replaceAll('__LABBY_THEME__', themeFromConfig());
+  return patched.replace(
+    '</head>',
+    `<style id="labby-custom-css">${customCssFromConfig()}</style>${snapshotScript()}</head>`,
+  );
+}
+
 function secretKeys(type: string): string[] {
   return (INTEGRATIONS[type as IntegrationType]?.fields ?? [])
     .filter((field) => field.secret)
@@ -84,17 +127,10 @@ app.use('*', async (c, next) => {
   if (c.req.path === '/' || c.req.path === '/index.html') {
     const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
     if (html) {
-      const theme = themeFromConfig();
-      let patched = html.replaceAll('__LABBY_THEME__', theme);
-      const customCss = customCssFromConfig();
-      patched = patched.replace(
-        '</head>',
-        `<style id="labby-custom-css">${customCss}</style></head>`,
-      );
       // HTML must always revalidate so a new build's hashed assets are picked up
       // (assets themselves are immutable-cached in serveStatic).
       c.header('Cache-Control', 'no-cache');
-      return c.html(patched);
+      return c.html(renderIndex(html));
     }
   }
   await next();
@@ -237,6 +273,7 @@ app.post('/api/theme', async (c) => {
     density?: string;
     customCss?: string;
     motion?: boolean;
+    glass?: boolean;
   }>();
   const updates: Parameters<typeof saveThemeSettings>[0] = {};
 
@@ -269,6 +306,12 @@ app.post('/api/theme', async (c) => {
       return c.json({ error: 'Invalid motion' }, 400);
     }
     updates.motion = body.motion;
+  }
+  if (body.glass !== undefined) {
+    if (typeof body.glass !== 'boolean') {
+      return c.json({ error: 'Invalid glass' }, 400);
+    }
+    updates.glass = body.glass;
   }
 
   await saveThemeSettings(updates);
@@ -412,12 +455,8 @@ app.post('/api/restore', async (c) => {
 app.get('*', async (c) => {
   const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
   if (!html) return c.text('Labby frontend not built. Run: bun run build', 503);
-  const theme = themeFromConfig();
-  let patched = html.replaceAll('__LABBY_THEME__', theme);
-  const customCss = customCssFromConfig();
-  patched = patched.replace('</head>', `<style id="labby-custom-css">${customCss}</style></head>`);
   c.header('Cache-Control', 'no-cache');
-  return c.html(patched);
+  return c.html(renderIndex(html));
 });
 
 export { app };

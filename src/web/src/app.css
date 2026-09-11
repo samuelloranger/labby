@@ -762,7 +762,9 @@ header.top {
   padding: 6px 16px;
   border-radius: calc(var(--radius-sm) - 4px);
   cursor: pointer;
-  transition: all 0.2s var(--ease);
+  transition:
+    color 0.2s var(--ease),
+    background 0.2s var(--ease);
 }
 
 .page-tab:hover {
@@ -932,26 +934,48 @@ header.top {
 }
 
 .dot {
+  /* The colour goes through a custom property so .dot-changed can draw its ring
+     in the dot's own colour without restating the status cascade. */
+  --dot: var(--idle);
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--idle);
+  background: var(--dot);
   flex: none;
 }
 
 .dot.ok {
-  background: var(--ok);
+  --dot: var(--ok);
 }
 .dot.warn {
-  background: var(--warn);
+  --dot: var(--warn);
 }
 .dot.down {
-  background: var(--down);
+  --dot: var(--down);
 }
 .dot.live {
-  background: var(--accent);
+  --dot: var(--accent);
   box-shadow: 0 0 8px var(--accent);
   animation: breathe 2.4s var(--ease) infinite;
+}
+
+/* One-shot ring when a status dot changes colour. A service going down is the
+   single most important event this dashboard reports, and without this it is a
+   9px colour swap between two paints that nobody glancing at the tab will
+   catch. Applied by the pulseOnChange action in lib/motion.ts, which skips the
+   value present at mount and no-ops under reduced motion — so this needs no
+   entry in the guard below. Box-shadow only: no layout, no repaint of anything
+   but the dot. */
+.dot-changed {
+  animation: dot-change 0.5s var(--ease);
+}
+@keyframes dot-change {
+  from {
+    box-shadow: 0 0 0 0 var(--dot);
+  }
+  to {
+    box-shadow: 0 0 0 8px transparent;
+  }
 }
 
 @keyframes breathe {
@@ -1040,11 +1064,9 @@ a.name {
   text-decoration: none;
   color: var(--ink-dim);
   background: var(--glass-2);
-  transition: 0.18s var(--ease);
 }
 
 .tile:hover {
-  transform: translateY(-3px);
   box-shadow: var(--shadow-hi);
   color: var(--ink);
 }
@@ -1802,7 +1824,12 @@ a.name {
 }
 
 /* Drop the glass blur for users/devices that ask for less transparency — also
-   the cheapest escape hatch for weak GPUs where backdrop-filter is the bottleneck. */
+   the cheapest escape hatch for weak GPUs where backdrop-filter is the bottleneck.
+   The same switch is exposed as "Glass effect" in Settings (data-glass), because
+   prefers-reduced-transparency is an OS-level setting almost nobody has found.
+   Measured on the live board while hovering rows: 75.5ms median frame with the
+   blur, 16.6ms without. It is a cliff, not a dial — halving the radius to 6px
+   only reached 63.6ms, so there is nothing to tune, only to switch off. */
 @media (prefers-reduced-transparency: reduce) {
   *,
   *::before,
@@ -1810,6 +1837,13 @@ a.name {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
+}
+
+:root[data-glass="off"] *,
+:root[data-glass="off"] *::before,
+:root[data-glass="off"] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 .logs-modal {
@@ -2234,8 +2268,34 @@ header.top {
     border-color 0.3s var(--ease);
 }
 
-/* tile / row hover */
-.tile,
+/* A dropped SSE stream calls markStale() on every store at once, so this is a
+   board-wide signal, not a per-widget one: the whole board drains of colour
+   while the header logo pulses. Nothing is hidden and no card blanks — what is
+   on screen is still the last true data, it is just no longer live.
+   Two deliberate restraints:
+   - Saturation only. Fading the card with opacity was the obvious pairing, but
+     it pulls body text below the AA contrast this project targets, and the
+     colour drain already carries the meaning on its own.
+   - Not transitioned. Every card has a backdrop-filter, and animating a filter
+     over the top of one re-blurs it each frame — the same cost that got the
+     aurora drift removed further down this file. Stale is a discrete fact, so
+     it snaps: one repaint instead of 300ms of re-blur across the whole board,
+     and a flapping stream cannot thrash it. */
+.card.stale {
+  filter: saturate(0.35);
+}
+
+/* tile / row hover.
+   .tile is listed separately because it is the only one of the three whose
+   hover also changes box-shadow and colour — folding it into the shared rule
+   is what made those two snap. */
+.tile {
+  transition:
+    transform 0.2s var(--ease),
+    background 0.2s var(--ease),
+    box-shadow 0.2s var(--ease),
+    color 0.2s var(--ease);
+}
 .ctr,
 .row {
   transition:
@@ -2315,12 +2375,16 @@ header.top {
 .bar,
 .usage,
 .beszel-disk-bar {
+  /* transform-origin belongs on the element, not inside the keyframe. Declared
+     only in `from`, it is an animated property in its own right: it interpolated
+     from `left` to the default `50% 50%` over the same 0.7s, so the bar crept
+     toward the centre while it grew instead of filling left to right. */
+  transform-origin: left center;
   animation: grow-bar 0.7s var(--ease) both;
 }
 @keyframes grow-bar {
   from {
     transform: scaleX(0);
-    transform-origin: left;
   }
   to {
     transform: scaleX(1);
@@ -2445,7 +2509,9 @@ body::before {
   border: 1px solid var(--glass-brd);
   padding: 10px 16px;
   border-radius: var(--radius-sm);
-  transition: all 0.15s var(--ease);
+  transition:
+    color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
 }
 
 .radio-label:hover {
@@ -2503,7 +2569,10 @@ body::before {
   border-radius: var(--pill);
   cursor: pointer;
   box-shadow: 0 4px 14px var(--accent-soft);
-  transition: all 0.18s var(--ease);
+  transition:
+    transform 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    opacity 0.18s var(--ease);
 }
 
 .settings-btn:hover:not(:disabled) {

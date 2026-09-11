@@ -40,6 +40,8 @@ export type Dashboard = {
     layout: LayoutType;
     density?: 'default' | 'compact';
     customCss?: string;
+    motion?: boolean;
+    glass?: boolean;
   };
 };
 

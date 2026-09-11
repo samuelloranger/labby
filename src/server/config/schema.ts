@@ -49,6 +49,9 @@ export const ThemeConfigSchema = z.object({
   density: DensitySchema.default('compact'),
   customCss: z.string().optional(),
   motion: z.boolean().default(false),
+  // On by default: glass is the identity. Off is the escape hatch for hardware
+  // where backdrop-filter is the frame budget — measured 4.5x on a weak GPU.
+  glass: z.boolean().default(true),
 });
 export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
 
@@ -67,6 +70,7 @@ export const DashboardSchema = z.object({
     layout: 'masonry',
     density: 'compact',
     motion: false,
+    glass: true,
   }),
 });
 

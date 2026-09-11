@@ -16,7 +16,7 @@
   }
 </script>
 
-<section class="card">
+<section class="card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon="lucide:layout-grid" fallback="layout-grid" size={18} /></span>
@@ -71,8 +71,5 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .bm-tile { transition: none; }
   }
 </style>

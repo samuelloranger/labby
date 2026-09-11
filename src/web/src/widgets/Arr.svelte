@@ -10,7 +10,7 @@
   const items = $derived((state.data?.upcoming ?? []).slice(0, max));
 </script>
 
-<section class="card">
+<section class="card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon {icon} fallback={kind === 'radarr' ? 'film' : 'tv'} size={20} /></span>

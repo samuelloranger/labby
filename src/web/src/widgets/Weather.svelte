@@ -13,7 +13,7 @@
   );
 </script>
 
-<section class="card weather-card">
+<section class="card weather-card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon="lucide:cloud-sun" fallback="cloud-sun" size={20} /></span>
