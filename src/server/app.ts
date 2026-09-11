@@ -383,7 +383,7 @@ const RestoreSchema = z.object({
       // Reject unknown types so a corrupt/hand-edited backup can't write rows
       // the scheduler and UI will silently drop.
       type: z.enum(INTEGRATION_TYPES),
-      config: z.record(z.unknown()),
+      config: z.record(z.string(), z.unknown()),
       enabled: z.boolean(),
       refreshSeconds: z.number().int().nullable(),
       position: z.number().int().optional(),

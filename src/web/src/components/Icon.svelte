@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Box } from 'lucide-svelte';
+  import { Box } from '@lucide/svelte';
   import { LUCIDE_ICONS as ICONS } from '$lib/lucide-set';
   import { resolveIconSrc } from '$lib/utils';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Monitor, Moon, Settings, Database, Sun } from 'lucide-svelte';
+  import { Monitor, Moon, Settings, Database, Sun } from '@lucide/svelte';
   import Modal from './Modal.svelte';
   import Select from './Select.svelte';
   import { get } from 'svelte/store';

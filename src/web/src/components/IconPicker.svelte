@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown, Search, X } from 'lucide-svelte';
+  import { ChevronDown, Search, X } from '@lucide/svelte';
   import Icon from './Icon.svelte';
   import {
     filterIcons,

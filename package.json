@@ -21,17 +21,16 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "hono": "^4.7.4",
-    "zod": "^3.24.2"
+    "hono": "^4.13.7",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.0",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@types/bun": "^1.4.0",
-    "playwright": "1.61.0",
-    "svelte": "^5.20.5",
+    "@biomejs/biome": "^2.5.13",
+    "@types/bun": "^1.4.2",
+    "playwright": "1.63.0",
+    "svelte": "^5.57.0",
     "typescript": "^7.0.2",
-    "vite": "^6.2.0",
+    "vite": "^8.3.0",
     "vitepress": "^1.6.4"
   }
 }

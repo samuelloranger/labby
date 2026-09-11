@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Database, Download, TriangleAlert, Upload } from 'lucide-svelte';
+  import { Database, Download, TriangleAlert, Upload } from '@lucide/svelte';
 
   // Restore errors surface to the page-level error banner in the parent.
   let { error = $bindable() }: { error?: string | null } = $props();

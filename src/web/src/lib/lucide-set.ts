@@ -28,7 +28,6 @@ import {
   Gamepad2,
   Gauge,
   GitBranch,
-  Github,
   Globe,
   HardDrive,
   Headphones,
@@ -72,7 +71,7 @@ import {
   Wifi,
   Wind,
   Zap,
-} from 'lucide-svelte';
+} from '@lucide/svelte';
 
 export const LUCIDE_ICONS: Record<string, typeof Box> = {
   activity: Activity,
@@ -101,7 +100,6 @@ export const LUCIDE_ICONS: Record<string, typeof Box> = {
   'gamepad-2': Gamepad2,
   gauge: Gauge,
   'git-branch': GitBranch,
-  github: Github,
   globe: Globe,
   'hard-drive': HardDrive,
   headphones: Headphones,

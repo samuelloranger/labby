@@ -62,7 +62,12 @@ export const SiteSchema = z.object({
 
 export const DashboardSchema = z.object({
   title: z.string().default('Labby'),
-  theme: ThemeConfigSchema.default({ default: 'system', layout: 'masonry' }),
+  theme: ThemeConfigSchema.default({
+    default: 'system',
+    layout: 'masonry',
+    density: 'compact',
+    motion: false,
+  }),
 });
 
 export type Dashboard = z.infer<typeof DashboardSchema>;
