@@ -19,7 +19,7 @@ describe('Jellyfin client', () => {
       const url = String(input);
       if (url.endsWith('/Sessions')) {
         const headers = init?.headers as Record<string, string>;
-        expect(headers['X-Emby-Token']).toBe('jf-key');
+        expect(headers.Authorization).toContain('Token="jf-key"');
         return Response.json([
           {
             Id: 'sess-1',
