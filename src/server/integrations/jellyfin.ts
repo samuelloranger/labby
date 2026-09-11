@@ -3,6 +3,13 @@ import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type JellyfinConfig = { url?: string; apiKey?: string };
 
+// Jellyfin 12 disabled the legacy bare `X-Emby-Token` header by default; auth
+// now goes through the standard Authorization header with the MediaBrowser
+// scheme (https://jellyfin.org/posts/jellyfin-release-12.0/).
+function authHeader(key: string): string {
+  return `MediaBrowser Token="${key}", Client="labby", Device="labby", DeviceId="labby-server", Version="1.0"`;
+}
+
 export async function getJellyfinSessions(
   config: JellyfinConfig,
 ): Promise<JellyfinPayload | { error: string }> {
@@ -14,7 +21,7 @@ export async function getJellyfinSessions(
   return soft('Jellyfin', async () => {
     const res = await fetch(`${base}/Sessions`, {
       headers: {
-        'X-Emby-Token': key,
+        Authorization: authHeader(key),
         Accept: 'application/json',
       },
       signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -89,7 +96,7 @@ export async function getJellyfinImage(
     const res = await fetch(
       `${base}/Items/${encodeURIComponent(itemId)}/Images/Primary?maxHeight=120`,
       {
-        headers: { 'X-Emby-Token': key },
+        headers: { Authorization: authHeader(key) },
         signal: AbortSignal.timeout(TIMEOUT_MS),
       },
     );
