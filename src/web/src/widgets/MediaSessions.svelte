@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Play } from 'lucide-svelte';
+  import { Play } from '@lucide/svelte';
   import Icon from '../components/Icon.svelte';
   import { getStore, type WidgetState } from '$lib/stores';
   import { clampPercent } from '$lib/utils';

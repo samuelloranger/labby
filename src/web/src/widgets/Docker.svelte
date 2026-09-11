@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FileText, Play, RotateCcw, Square } from 'lucide-svelte';
+  import { FileText, Play, RotateCcw, Square } from '@lucide/svelte';
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
   import { getStore, type DockerData, type WidgetState } from '$lib/stores';

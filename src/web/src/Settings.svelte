@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ArrowLeft, ChevronDown, ChevronUp, Database, Pencil, Plus, Trash2 } from 'lucide-svelte';
+  import { ArrowLeft, ChevronDown, ChevronUp, Database, Pencil, Plus, Trash2 } from '@lucide/svelte';
   import Icon from './components/Icon.svelte';
   import IntegrationForm from './components/IntegrationForm.svelte';
   import BackupPanel from './components/BackupPanel.svelte';

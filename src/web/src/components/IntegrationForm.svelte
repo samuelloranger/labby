@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Eye, EyeOff, Plus, Trash2 } from 'lucide-svelte';
+  import { Eye, EyeOff, Plus, Trash2 } from '@lucide/svelte';
   import Icon from './Icon.svelte';
   import IconPicker from './IconPicker.svelte';
   import type { FieldDef, IntegrationRow, IntegrationTypeMeta } from '$lib/types';
