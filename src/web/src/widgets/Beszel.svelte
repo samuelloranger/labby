@@ -74,7 +74,7 @@
   }
 </script>
 
-<section class="card beszel-card">
+<section class="card beszel-card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon="di:beszel" fallback="chart-no-axes-combined" size={20} /></span>

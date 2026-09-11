@@ -94,7 +94,7 @@
   }
 </script>
 
-<section class="card">
+<section class="card" class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon="/icons/speedtest-tracker.svg" fallback="gauge" size={20} /></span>
@@ -197,7 +197,10 @@
     font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s var(--ease);
+    transition:
+      background 0.2s var(--ease),
+      color 0.2s var(--ease),
+      transform 0.2s var(--ease);
   }
 
   .btn-run:hover:not(:disabled) {

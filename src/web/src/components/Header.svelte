@@ -23,6 +23,7 @@
   let palette = $state<Palette>(initial.palette);
   let density = $state<'default' | 'compact'>('compact');
   let motion = $state(config.theme?.motion ?? false);
+  let glass = $state(config.theme?.glass ?? true);
   let customCss = $state(config.theme?.customCss ?? '');
   let settingsOpen = $state(false);
   let saving = $state(false);
@@ -87,6 +88,14 @@
     } catch {}
 
     document.documentElement.dataset.motion = motion ? 'on' : 'off';
+    // localStorage wins on load so the inline resolver in index.html and this
+    // component agree — otherwise the blur would flash back on at mount.
+    try {
+      const storedGlass = localStorage.getItem('labby-glass');
+      if (storedGlass) glass = storedGlass !== 'off';
+    } catch {}
+    if (config.theme) config.theme.glass = glass;
+    document.documentElement.dataset.glass = glass ? 'on' : 'off';
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const mon = [
@@ -135,6 +144,11 @@
     document.documentElement.dataset.motion = next ? 'on' : 'off';
   }
 
+  function previewGlass(next: boolean) {
+    glass = next;
+    document.documentElement.dataset.glass = next ? 'on' : 'off';
+  }
+
   function previewCss(next: string) {
     customCss = next;
   }
@@ -178,6 +192,7 @@
     palette = decomposed.palette;
     density = config.theme?.density ?? 'default';
     motion = config.theme?.motion ?? false;
+    glass = config.theme?.glass ?? true;
     customCss = config.theme?.customCss ?? '';
     settingsOpen = true;
   }
@@ -191,7 +206,9 @@
     density = config.theme?.density ?? 'default';
     document.documentElement.dataset.density = density;
     motion = config.theme?.motion ?? false;
+    glass = config.theme?.glass ?? true;
     document.documentElement.dataset.motion = motion ? 'on' : 'off';
+    document.documentElement.dataset.glass = glass ? 'on' : 'off';
     customCss = config.theme?.customCss ?? '';
   }
 
@@ -206,6 +223,7 @@
           theme: next,
           density: density,
           motion: motion,
+          glass: glass,
           customCss: customCss,
         }),
       });
@@ -213,6 +231,7 @@
         config.theme.default = next as any;
         config.theme.density = density;
         config.theme.motion = motion;
+        config.theme.glass = glass;
         config.theme.customCss = customCss;
         try {
           if (next === 'system') {
@@ -221,6 +240,7 @@
             localStorage.setItem('labby-theme', next);
           }
           localStorage.setItem('labby-density', density);
+          localStorage.setItem('labby-glass', glass ? 'on' : 'off');
         } catch {}
         settingsOpen = false;
       }
@@ -355,6 +375,14 @@
       </div>
 
       <div class="settings-group">
+        <label class="radio-label">
+          <input type="checkbox" checked={glass} onchange={(e) => previewGlass(e.currentTarget.checked)} />
+          <span>Glass effect</span>
+        </label>
+        <p class="settings-help">Frosted blur behind the header and cards. Beautiful, and the single most expensive thing the dashboard draws — turning it off measured about 4.5x faster repaints on a weak GPU. Switch it off if hovering feels sluggish.</p>
+      </div>
+
+      <div class="settings-group">
         <label for="settings-css">Custom CSS</label>
         <textarea id="settings-css" value={customCss} oninput={(e) => previewCss(e.currentTarget.value)} placeholder={"/* Your styles, e.g. .card { border-radius: 12px; } */"} rows={6}></textarea>
         <p class="settings-help">Applies your own styles across the dashboard. Previews live; discarded if you close without saving.</p>
@@ -400,7 +428,9 @@
     background: transparent;
     color: var(--ink-faint);
     cursor: pointer;
-    transition: all 0.15s var(--ease);
+    transition:
+      color 0.15s var(--ease),
+      background 0.15s var(--ease);
   }
 
   .mode-btn:hover {

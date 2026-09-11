@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { app } from './app';
 import { getConfig, loadConfig } from './config/loader';
 import { createIntegration, deleteIntegration, listIntegrations } from './db';
+import { hub } from './sse/hub';
 
 const TEST_NAME = '__test_app_routes__';
 
@@ -179,4 +180,46 @@ test('GET unknown static asset returns 404', async () => {
 test('GET * serves SPA or reports missing build', async () => {
   const res = await app.request('/some-spa-route');
   expect([200, 404, 503]).toContain(res.status);
+});
+
+test('inlined snapshot escapes payload text that could close the script tag', async () => {
+  await loadConfig();
+  // A feed title or torrent name is upstream text we do not control, so it has
+  // to be unable to break out of <script id="labby-snapshot">.
+  hub.publish('int:999999', { error: '</script><img src=x onerror=alert(1)>' });
+
+  const res = await app.request('/');
+  // No built frontend in the test env is fine — that path serves plain text.
+  if (res.headers.get('content-type')?.includes('text/html')) {
+    const html = await res.text();
+    const start = html.indexOf('<script id="labby-snapshot"');
+    expect(start).toBeGreaterThan(-1);
+    const block = html.slice(start, html.indexOf('</script>', start));
+    expect(block).not.toContain('<img');
+    expect(block).toContain('\\u003c/script');
+
+    const json = block.slice(block.indexOf('>') + 1);
+    const parsed = JSON.parse(json) as Record<string, { error: string }>;
+    // Escaping must be transport-only: the value round-trips unchanged.
+    expect(parsed['int:999999'].error).toBe('</script><img src=x onerror=alert(1)>');
+  }
+});
+
+test('inlined snapshot drops channels over the size budget', async () => {
+  await loadConfig();
+  const big = {
+    torrents: Array.from({ length: 4000 }, (_, i) => ({ name: `torrent-${i}`, hash: `${i}` })),
+  };
+  hub.publish('int:999998', big as never);
+  hub.publish('int:999997', { queries: 1 } as never);
+
+  const res = await app.request('/');
+  if (res.headers.get('content-type')?.includes('text/html')) {
+    const html = await res.text();
+    const start = html.indexOf('<script id="labby-snapshot"');
+    const block = html.slice(start, html.indexOf('</script>', start));
+    const parsed = JSON.parse(block.slice(block.indexOf('>') + 1)) as Record<string, unknown>;
+    expect(parsed['int:999998']).toBeUndefined(); // over budget, falls back to the skeleton
+    expect(parsed['int:999997']).toBeDefined(); // small payloads still inline
+  }
 });

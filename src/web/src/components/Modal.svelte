@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { fly } from 'svelte/transition';
+  import { motionMs, prefersReducedMotion } from '$lib/motion';
 
   let {
     title,
@@ -10,6 +11,7 @@
   }: { title: string; meta?: string; onClose: () => void; children: Snippet } = $props();
 
   let dialogEl = $state<HTMLDialogElement | undefined>();
+
 
   $effect(() => {
     dialogEl?.showModal();
@@ -32,7 +34,7 @@
   aria-label={title}
   onclick={onBackdropClick}
   onclose={onClose}
-  transition:fly={{ y: 18, duration: 220 }}
+  transition:fly={{ y: prefersReducedMotion() ? 0 : 18, duration: motionMs(220) || 120 }}
 >
   <div class="modal-head">
     <span class="mt">{title}{#if meta}<span class="mm">{meta}</span>{/if}</span>

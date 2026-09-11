@@ -3,6 +3,8 @@
   import Icon from '../components/Icon.svelte';
   import Modal from '../components/Modal.svelte';
   import { getStore, type DockerData, type WidgetState } from '$lib/stores';
+  import { motionMs, pulseOnChange } from '$lib/motion';
+  import { flip } from 'svelte/animate';
 
   let { title, integrationId }: { title: string; integrationId: number } = $props();
 
@@ -57,7 +59,7 @@
   }
 </script>
 
-<button class="card summary-card" onclick={() => (listOpen = true)} disabled={!state.data}>
+<button class="card summary-card" onclick={() => (listOpen = true)} disabled={!state.data} class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon icon="di:docker" fallback="box" size={17} /></span>
@@ -67,7 +69,12 @@
   </div>
 
   {#if state.loading && !state.data}
-    <div class="skeleton" style="height:72px"></div>
+    <!-- 103px = gauges (64) + card-cta (25.09, a line-height fraction) + its
+         14px margin: the exact height of the body this replaces, which does not
+         vary with the payload — the card shows two numbers whether there are
+         three torrents or four hundred. Measured, not guessed; being 32px short
+         here was moving every card below it on load. -->
+    <div class="skeleton" style="height:103px"></div>
   {:else if state.error && !state.data}
     <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else}
@@ -85,8 +92,11 @@
       <p class="state-msg">No containers</p>
     {/if}
     {#each containers as c (c.id)}
-      <div class="ctr">
-        <span class="dot {c.state === 'running' ? 'ok' : c.state === 'exited' ? 'down' : 'warn'}"></span>
+      <div class="ctr" animate:flip={{ duration: motionMs(180) }}>
+        <span
+          class="dot {c.state === 'running' ? 'ok' : c.state === 'exited' ? 'down' : 'warn'}"
+          use:pulseOnChange={c.state}
+        ></span>
         <Icon icon={containerIcon(c.name)} fallback="box" class="clogo" size={28} />
         <div>
           <div class="cname">{c.name}</div>

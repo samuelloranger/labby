@@ -179,7 +179,11 @@
     border-radius: var(--radius-sm);
     cursor: pointer;
     user-select: none;
-    transition: all 0.2s var(--ease);
+    transition:
+      border-color 0.2s var(--ease),
+      background 0.2s var(--ease),
+      color 0.2s var(--ease),
+      box-shadow 0.2s var(--ease);
     box-sizing: border-box;
   }
 
@@ -275,7 +279,9 @@
     gap: 10px;
     padding: 8px 12px;
     border-radius: 6px;
-    transition: all 0.12s var(--ease);
+    transition:
+      background 0.12s var(--ease),
+      color 0.12s var(--ease);
     color: var(--ink-dim);
     font-weight: 500;
   }

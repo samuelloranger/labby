@@ -36,7 +36,7 @@
   </div>
 {/snippet}
 
-  <section class="card">
+  <section class="card" class:stale={state.stale}>
     <div class="chead">
       <span class="ti">
         <span class="ibox"><Icon {icon} {fallback} size={18} /></span>

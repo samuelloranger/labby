@@ -310,9 +310,30 @@ function attachIntegrationListeners(source: EventSource, ids: number[]) {
   }
 }
 
+/**
+ * Fill any store the stream could not fill on its own.
+ *
+ * `/api/integrations/:id/data` runs a live upstream fetch, so this is only worth
+ * doing for integrations the server has no usable cached payload for. Anything
+ * seeded with real data from the inlined snapshot is skipped on the first
+ * connect: the SSE replay carries that same payload, and re-fetching it live
+ * made cards visibly change size mid-load — a feed that had cached posts but
+ * whose upstream was refusing requests painted full, then collapsed to its error
+ * and dropped the card below it 369px.
+ *
+ * Skipping is also the honest reading of the config: a cached payload is at most
+ * `refreshSeconds` old, which is the staleness the user asked for. Fetching all
+ * of them live on every page load was a burst of upstream requests that the
+ * "push, don't poll" contract does not ask for.
+ *
+ * The skip is first-connect only. A reconnect clears the set, because after a
+ * dropped stream the cached data really can be stale.
+ */
 async function bootstrapStores(ids: number[]) {
+  const pending = ids.filter((id) => !seededFromSnapshot.has(id));
+  seededFromSnapshot.clear();
   await Promise.all(
-    ids.map(async (id) => {
+    pending.map(async (id) => {
       try {
         const res = await fetch(`/api/integrations/${id}/data`);
         if (res.ok) patchStore(id, await res.json());
@@ -338,6 +359,40 @@ export function markStale() {
     store.update((s) => ({ ...s, stale: true }));
   }
 }
+
+/**
+ * Seed every store from the snapshot the server inlined into the HTML.
+ *
+ * Runs at module scope, so stores already hold data before the first component
+ * reads them and widgets never render the skeleton frame they would otherwise
+ * resize away from. Anything not in the snapshot (an integration the scheduler
+ * has not polled yet) falls through to the skeleton exactly as before.
+ */
+const seededFromSnapshot = new Set<number>();
+
+function seedFromInlineSnapshot(): void {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('labby-snapshot');
+  if (!el?.textContent) return;
+  let snapshot: Record<string, unknown>;
+  try {
+    snapshot = JSON.parse(el.textContent);
+  } catch {
+    return; // a malformed snapshot must never stop the stream from opening
+  }
+  for (const [channel, data] of Object.entries(snapshot)) {
+    const id = idFromEvent(channel);
+    if (id == null) continue;
+    patchStore(id, data);
+    // Only real data earns the bootstrap skip below. A cached *error* is worth
+    // retrying live on load — it may well have cleared since the last poll, and
+    // painting a stale failure is the one case where the snapshot is worse than
+    // a fetch.
+    if (!isError(data)) seededFromSnapshot.add(id);
+  }
+}
+
+seedFromInlineSnapshot();
 
 export function initStream() {
   void fetchIntegrationIds().then(() => {

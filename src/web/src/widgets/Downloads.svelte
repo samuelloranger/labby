@@ -3,6 +3,9 @@
   import Modal from '../components/Modal.svelte';
   import { getStore, type DownloadsData, type WidgetState } from '$lib/stores';
   import { clampPercent, formatBytesPerSec, formatEta, isSeedingTorrent, prepareDownloads } from '$lib/utils';
+  import { motionMs } from '$lib/motion';
+  import { flip } from 'svelte/animate';
+  import { fade } from 'svelte/transition';
 
   let {
     title,
@@ -64,7 +67,7 @@
   }
 </script>
 
-<button class="card summary-card" onclick={() => (listOpen = true)} disabled={!state.data}>
+<button class="card summary-card" onclick={() => (listOpen = true)} disabled={!state.data} class:stale={state.stale}>
   <div class="chead">
     <span class="ti">
       <span class="ibox"><Icon {icon} fallback="download" size={20} /></span>
@@ -76,7 +79,12 @@
   </div>
 
   {#if state.loading && !state.data}
-    <div class="skeleton" style="height:72px"></div>
+    <!-- 103px = gauges (64) + card-cta (25.09, a line-height fraction) + its
+         14px margin: the exact height of the body this replaces, which does not
+         vary with the payload — the card shows two numbers whether there are
+         three torrents or four hundred. Measured, not guessed; being 32px short
+         here was moving every card below it on load. -->
+    <div class="skeleton" style="height:103px"></div>
   {:else if state.error && !state.data}
     <p class="state-msg error" role="alert"><span class="dot down" aria-hidden="true"></span>{state.error}</p>
   {:else}
@@ -97,7 +105,13 @@
       {#each list as t (t.hash)}
         {@const seed = isSeedingTorrent(t.state, t.progress)}
         {@const paused = t.hash in optimistic ? optimistic[t.hash] : isPaused(t.state)}
-        <div class="tor" class:seed={seed} class:paused={paused}>
+        <div
+          class="tor"
+          class:seed={seed}
+          class:paused={paused}
+          animate:flip={{ duration: motionMs(180) }}
+          transition:fade={{ duration: motionMs(150) }}
+        >
           <div class="top">
             <span class="dot {paused ? 'idle' : seed ? 'ok' : 'live'}"></span>
             <span class="tname" title={t.name}>{t.name}</span>
