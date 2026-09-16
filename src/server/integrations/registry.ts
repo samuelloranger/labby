@@ -6,6 +6,7 @@ import { containerAction, containerLogs, type DockerConfig, listContainers } fro
 import { type EmbyConfig, getEmbySessions } from './emby';
 import { getHackerNews, type HNConfig } from './hackernews';
 import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
+import { getLiveTennis, TENNIS_REFRESH_SECONDS, type TennisConfig } from './live-tennis';
 import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
 import { getPlexSessions, type PlexConfig } from './plex';
@@ -37,6 +38,7 @@ export type IntegrationType =
   | 'reddit'
   | 'hackernews'
   | 'weather'
+  | 'tennis'
   | 'calendar'
   | 'speedtest'
   | 'bookmarks';
@@ -241,6 +243,12 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'units', label: 'Units', kind: 'select', options: ['metric', 'imperial'] },
     ],
     fetch: (c) => getOpenWeather(c as WeatherConfig),
+  },
+  tennis: {
+    label: 'Tennis',
+    defaultRefreshSeconds: TENNIS_REFRESH_SECONDS,
+    fields: [{ key: 'apiKey', label: 'Live Tennis API free key', secret: true }, MAX_FIELD],
+    fetch: (c) => getLiveTennis(c as TennisConfig),
   },
   calendar: {
     label: 'Calendar',

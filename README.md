@@ -18,7 +18,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Features
 
-- **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, weather, calendar, speedtest, bookmarks, Reddit, Hacker News
+- **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, weather, tennis, calendar, speedtest, bookmarks, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config & credentials** — stored in SQLite (`config/labby.db`), Zod-validated; edit service URLs/keys from the in-app Manage Services page
@@ -253,6 +253,20 @@ The `icon` field accepts prefixed strings:
 ### Refresh intervals
 
 Set poll cadence per integration on the Manage Services page (`refreshSeconds`; defaults come from the integration type). The browser receives updates via SSE, not its own timers.
+
+### Tennis snapshots
+
+Add a **Tennis** service with a [Live Tennis API free key](https://livetennisapi.com/subscribe/free)
+(no card required). The key stays on the server. Scores refresh no faster than every
+15 minutes, even if a shorter interval is configured. Widgets sharing a key share
+one request, including retries: 96 requests per 24 hours versus the free limit of
+100/day. This is a periodic snapshot, with its fetch time shown on the widget.
+
+Only the first 200 in-progress matches are fetched; a notice appears if more exist.
+**Max items** controls how many are displayed without additional API calls.
+The cache is per running Labby process: restarts or using the same key in other
+apps consume additional quota. Rate-limit responses delay retries. No paid plan
+is needed, and completed-match history is not fetched.
 
 ## Development
 

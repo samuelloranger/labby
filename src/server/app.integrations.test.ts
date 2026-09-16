@@ -14,12 +14,37 @@ test('GET /api/integrations/types returns metadata without fetch', async () => {
   const res = await app.request('/api/integrations/types');
   expect(res.status).toBe(200);
   const body = (await res.json()) as any[];
-  expect(body.length).toBe(19);
+  expect(body.length).toBe(20);
   for (const item of body) {
     expect(item).toHaveProperty('type');
     expect(item).toHaveProperty('label');
     expect(item).toHaveProperty('fields');
     expect(item).not.toHaveProperty('fetch');
+  }
+});
+
+test('tennis credentials stay out of integration responses', async () => {
+  let id: number | undefined;
+  try {
+    const res = await app.request('/api/integrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: TEST_NAME,
+        type: 'tennis',
+        enabled: false,
+        config: { apiKey: 'tennis-secret', max: 3 },
+        refreshSeconds: 1,
+      }),
+    });
+    expect(res.status).toBe(200);
+    const row = (await res.json()) as { id: number; config: Record<string, unknown> };
+    id = row.id;
+    expect(row.config).toEqual({ max: 3 });
+    const list = await (await app.request('/api/integrations')).text();
+    expect(list).not.toContain('tennis-secret');
+  } finally {
+    if (id !== undefined) deleteIntegration(id);
   }
 });
 

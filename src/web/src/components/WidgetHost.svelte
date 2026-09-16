@@ -9,6 +9,7 @@
   import Rawkoon from '../widgets/Rawkoon.svelte';
   import Feed from '../widgets/Feed.svelte';
   import Weather from '../widgets/Weather.svelte';
+  import Tennis from '../widgets/Tennis.svelte';
   import Calendar from '../widgets/Calendar.svelte';
   import Speedtest from '../widgets/Speedtest.svelte';
   import Bookmarks from '../widgets/Bookmarks.svelte';
@@ -45,6 +46,8 @@
   <Feed {title} integrationId={id} icon="di:hacker-news" fallback="flame" max={c.max} />
 {:else if integration.type === 'weather'}
   <Weather {title} integrationId={id} />
+{:else if integration.type === 'tennis'}
+  <Tennis {title} integrationId={id} max={c.max} />
 {:else if integration.type === 'calendar'}
   <Calendar {title} integrationId={id} max={c.max} />
 {:else if integration.type === 'speedtest'}

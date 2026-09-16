@@ -236,6 +236,22 @@ export type SabnzbdPayload = {
   slots: SabnzbdSlot[];
 };
 
+export type TennisPayload = {
+  fetchedAt: string;
+  hasMore: boolean;
+  matches: Array<{
+    id: number;
+    tournament: string;
+    players: [string, string];
+    games: [number[], number[]] | null;
+    points: [string | null, string | null];
+    server: 1 | 2 | null;
+    tiebreak: boolean;
+    stale: boolean;
+    eventStatus: string | null;
+  }>;
+};
+
 export type Channel = string;
 
 export type IntegrationConfig = Record<string, unknown>;
@@ -253,6 +269,7 @@ export type ChannelPayload =
   | ArrPayload
   | RawkoonPayload
   | WeatherPayload
+  | TennisPayload
   | CalendarPayload
   | SpeedtestPayload;
 

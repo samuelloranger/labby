@@ -99,6 +99,7 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
 | [Sonarr](https://sonarr.tv/) | `sonarr` | URL, API key |
 | [Rawkoon](https://github.com/samuelloranger/rawkoon) | `rawkoon` | URL, API key |
 | [OpenWeather](https://openweathermap.org/) | `weather` | OpenWeather API key, city or latitude/longitude, units |
+| Tennis | `tennis` | Live Tennis API free key, max matches to display |
 | [iCalendar](https://icalendar.org/) | `calendar` | ICS feed URLs |
 | [Speedtest Tracker](https://docs.speedtest-tracker.dev/) | `speedtest` | Speedtest Tracker URL, API token |
 | [Bookmarks](#built-in-integrations) | `bookmarks` | Links with title, URL, and optional icon |
@@ -121,3 +122,20 @@ The `icon` field accepts prefixed strings:
 Docker integrations accept either a TCP endpoint, such as `tcp://host:2375`, or a mounted unix socket such as `/var/run/docker.sock`.
 
 The Docker socket grants root-equivalent control of the Docker daemon. For read/write separation, use a Docker socket proxy and point Labby's read and write hosts at proxies with different permissions.
+
+## Tennis
+
+Use a [free Live Tennis API key](https://livetennisapi.com/subscribe/free), with no
+card or purchase required. The key is stored server-side. Each widget shows the
+fetch time, player scores, serve and tiebreak indicators, and any suspension or
+stale-score warning. Null scores are shown as unknown rather than 0–0.
+
+Requests are limited in code to one per key every 15 minutes (96/day, within the
+100/day free allowance), shared by all rows and manual refreshes. Lower configured
+intervals cannot bypass this limit; failures also wait, and longer Retry-After
+periods are honored. The cache lasts for the running server process; restarts and
+other apps using the key consume additional quota.
+
+The widget requests only the first page of up to 200 in-progress matches. It
+shows a notice when another page exists. Max items changes the display only.
+No completed-match history or paid endpoint is used.

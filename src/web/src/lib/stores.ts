@@ -231,6 +231,22 @@ export type FeedData = {
 export type BookmarkLink = { title: string; url: string; icon?: string };
 export type BookmarksData = { links: BookmarkLink[] };
 
+export type TennisData = {
+  fetchedAt: string;
+  hasMore: boolean;
+  matches: Array<{
+    id: number;
+    tournament: string;
+    players: [string, string];
+    games: [number[], number[]] | null;
+    points: [string | null, string | null];
+    server: 1 | 2 | null;
+    tiebreak: boolean;
+    stale: boolean;
+    eventStatus: string | null;
+  }>;
+};
+
 export type WidgetState<T> = {
   loading: boolean;
   error: string | null;
