@@ -1,14 +1,21 @@
 <script lang="ts">
   import App from './App.svelte';
   import Settings from './Settings.svelte';
+  import AuthScreenView from './components/AuthScreen.svelte';
   import type { Dashboard } from '$lib/types';
+  import { readAuthScreen } from '$lib/auth';
   import { onMount } from 'svelte';
 
   let config = $state<Dashboard | null>(null);
   let error = $state<string | null>(null);
   let route = $state<string>(window.location.hash);
 
+  // Server-chosen screen (not allowed / signed out); null on the normal dashboard.
+  const authScreen = readAuthScreen();
+
   onMount(async () => {
+    if (authScreen) return; // nothing to load: the viewer can't see the dashboard
+
     const handleHashChange = () => { route = window.location.hash; };
     window.addEventListener('hashchange', handleHashChange);
 
@@ -25,7 +32,9 @@
   });
 </script>
 
-{#if error}
+{#if authScreen}
+  <AuthScreenView screen={authScreen} />
+{:else if error}
   <main class="page"><p class="state-msg error" role="alert">{error}</p></main>
 {:else if route === '#settings'}
   <Settings />

@@ -1,8 +1,9 @@
 const CACHE_NAME = 'labby-cache-__BUILD__';
 
+// The HTML shell is not precached: with OIDC login on, `/` answers with a
+// redirect to the provider and a failed addAll() aborts the whole install. The
+// network-first navigation handler below caches the shell after a real load.
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.webmanifest',
   '/icons/labby.svg',
   '/icons/labby-icon-16.png',
