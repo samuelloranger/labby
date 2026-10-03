@@ -226,6 +226,9 @@ test('auth off: real app serves the stream and has no auth routes', async () => 
   const stream = await off.request('/api/stream');
   expect(stream.status).toBe(200);
   stream.body?.cancel();
+  const index = await off.request('/');
+  expect(index.headers.has('location')).toBe(false);
+  expect([200, 503]).toContain(index.status);
 });
 
 test('static build output stays public', async () => {
@@ -244,6 +247,16 @@ test('api without a session is 401 JSON, not a redirect', async () => {
 test('real app api is gated when mounted behind withAuth', async () => {
   const res = await withAuth(realApp, cfg()).request('/api/config');
   expect(res.status).toBe(401);
+});
+
+test('cross-site guard still applies to API writes behind the auth gate', async () => {
+  const cookie = await sessionCookie({ email: 'a@example.com' });
+  const res = await withAuth(realApp, cfg()).request('/api/theme', {
+    method: 'POST',
+    headers: { cookie, 'sec-fetch-site': 'cross-site', 'content-type': 'text/plain' },
+    body: '{}',
+  });
+  expect(res.status).toBe(403);
 });
 
 test('page without a session redirects to the provider with PKCE', async () => {
