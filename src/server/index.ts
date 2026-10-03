@@ -1,4 +1,5 @@
 import { app } from './app';
+import { readAuthConfig } from './auth';
 import { loadConfig } from './config/loader';
 import { migrateLayoutToIntegrations } from './config/migrate-layout';
 import { initScheduler } from './sse/scheduler';
@@ -6,6 +7,15 @@ import { initScheduler } from './sse/scheduler';
 const PORT = Number(process.env.LABBY_PORT ?? 8080);
 
 async function main() {
+  let auth: ReturnType<typeof readAuthConfig>;
+  try {
+    auth = readAuthConfig(process.env);
+  } catch (err) {
+    console.error(`OIDC config error: ${(err as Error).message}`);
+    process.exit(1);
+  }
+  console.log(auth ? `OIDC login enabled (issuer ${auth.issuer})` : 'OIDC login disabled');
+
   console.log('Loading config from SQLite database');
 
   migrateLayoutToIntegrations();
