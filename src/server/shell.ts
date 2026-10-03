@@ -75,8 +75,11 @@ function authScreenScript(screen: AuthScreen): string {
 export function renderShell(html: string, opts: { authScreen?: AuthScreen } = {}): string {
   const patched = html.replaceAll('__LABBY_THEME__', themeFromConfig());
   const data = opts.authScreen ? authScreenScript(opts.authScreen) : snapshotScript();
+  // A replacer function, not a replacement string: a provider display name or
+  // custom CSS containing `$&`, `` $` ``, `$'` would otherwise be expanded by
+  // String.replace's special pattern syntax and splice the page into the marker.
   return patched.replace(
     '</head>',
-    `<style id="labby-custom-css">${customCssFromConfig()}</style>${data}</head>`,
+    () => `<style id="labby-custom-css">${customCssFromConfig()}</style>${data}</head>`,
   );
 }

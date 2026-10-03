@@ -47,3 +47,12 @@ test('auth screen marker escapes provider-supplied names', () => {
   expect(out).not.toContain('</script><script>alert(1)');
   expect(out).toContain('\\u003c/script>');
 });
+
+test('auth screen marker keeps $ replacement patterns literal', () => {
+  const user = "a$'b$&c@example.com";
+  const out = renderShell(TEMPLATE, { authScreen: { kind: 'forbidden', user } });
+  expect(out).toContain(
+    `<script id="labby-auth-screen" type="application/json">{"kind":"forbidden","user":"${user}"}</script>`,
+  );
+  expect(out.split('</head>').length - 1).toBe(1);
+});
