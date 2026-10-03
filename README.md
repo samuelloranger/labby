@@ -26,9 +26,11 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Security
 
-**Labby has no authentication.** Run it behind a reverse proxy restricted to your LAN or VPN. Anyone who can reach the app can read status and control integrated services.
+**Login is off by default.** Out of the box Labby has no authentication: run it behind a reverse proxy restricted to your LAN or VPN, or protect it with forward-auth at the proxy. Anyone who can reach an unprotected Labby can read status and control integrated services.
 
-Do not expose Labby to the public internet without network-level access control.
+**Optional OIDC login.** Set `LABBY_OIDC_ISSUER`, `LABBY_OIDC_CLIENT_ID`, `LABBY_OIDC_CLIENT_SECRET` and `LABBY_URL` and Labby requires sign-in through any OpenID Connect provider (Authentik, Authelia, Keycloak, Pocket ID, …). Requires HTTPS. See the [security guide](docs/guide/security.md) for provider setup and the optional email/group allowlist.
+
+Writes sent by another website through your browser (cross-site requests) are always rejected.
 
 Backups (plaintext, including credentials) are written to `config/backups/` on the server, never returned in an API response.
 
@@ -53,7 +55,7 @@ services:
 
 Open `http://localhost:8080`, then add your service URLs and credentials on the **Manage Services** page (the Database icon in the header). On first run Labby seeds its SQLite DB (`config/labby.db`) with a default layout via built-in migrations; everything you configure is stored there, in the mounted `config/` volume.
 
-> **`config/` must be writable by the user the container runs as.** If the DB errors with `SQLITE_READONLY`, set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`. Labby has no auth — keep it behind a LAN/VPN reverse proxy (see [Security](#security)).
+> **`config/` must be writable by the user the container runs as.** If the DB errors with `SQLITE_READONLY`, set `user: "<uid>:<gid>"` in `docker-compose.yml` to match the owner of `config/`. Without OIDC login configured, keep Labby behind a LAN/VPN reverse proxy (see [Security](#security)).
 
 ## Build from source
 

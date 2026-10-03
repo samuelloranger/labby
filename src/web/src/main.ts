@@ -1,7 +1,9 @@
 import { mount } from 'svelte';
+import { reloadOnUnauthorized } from './lib/auth';
 import Root from './Root.svelte';
 import './app.css';
 
+reloadOnUnauthorized();
 mount(Root, { target: document.getElementById('app')! });
 
 // Only register in production builds — a SW in Vite dev caches HMR shells and fights reloads.

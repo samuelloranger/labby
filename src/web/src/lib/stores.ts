@@ -406,6 +406,9 @@ export function initStream() {
     es.onerror = () => {
       streamConnected.set(false);
       markStale();
+      // A 401 closes an EventSource for good (no auto-reconnect on non-200).
+      // Probe through the wrapped fetch so an expired session bounces to login.
+      if (es?.readyState === EventSource.CLOSED) void fetch('/api/auth/me');
     };
   });
 

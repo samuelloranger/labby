@@ -223,3 +223,18 @@ test('inlined snapshot drops channels over the size budget', async () => {
     expect(parsed['int:999997']).toBeDefined(); // small payloads still inline
   }
 });
+
+test('cross-site POST to an action route is rejected', async () => {
+  const res = await app.request('/api/theme', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain', 'sec-fetch-site': 'cross-site' },
+    body: JSON.stringify({ theme: 'dark-ocean' }),
+  });
+  expect(res.status).toBe(403);
+});
+
+test('unknown /api paths return 404 JSON instead of the SPA shell', async () => {
+  const res = await app.request('/api/does-not-exist');
+  expect(res.status).toBe(404);
+  expect(await res.json()).toEqual({ error: 'Not found' });
+});

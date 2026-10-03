@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Monitor, Moon, Settings, Database, Sun } from '@lucide/svelte';
+  import { Monitor, Moon, Settings, Database, Sun, LogOut } from '@lucide/svelte';
   import Modal from './Modal.svelte';
   import Select from './Select.svelte';
   import { get } from 'svelte/store';
   import { getStore, streamConnected, type MonitorData, type WidgetState } from '$lib/stores';
   import type { Dashboard, IntegrationRow } from '$lib/types';
+  import { type AuthUser, fetchAuthUser } from '$lib/auth';
   import {
     composeTheme,
     decomposeTheme,
@@ -29,6 +30,7 @@
   let saving = $state(false);
 
   let currentTime = $state('');
+  let authUser = $state<AuthUser | null>(null);
 
   const monitorIds = $derived(
     integrations.filter((r) => r.type === 'monitor' && r.enabled).map((r) => r.id),
@@ -64,6 +66,8 @@
   }
 
   onMount(() => {
+    void fetchAuthUser().then((user) => (authUser = user));
+
     // Remove server-injected custom css tag since Svelte will handle it
     const serverStyle = document.getElementById('labby-custom-css');
     if (serverStyle) {
@@ -322,6 +326,12 @@
     <button class="iconbtn" onclick={openSettings} aria-label="Customize interface" title="Customize interface">
       <Settings size={17} />
     </button>
+
+    {#if authUser}
+      <button class="iconbtn" onclick={() => (window.location.href = '/auth/logout')} aria-label="Sign out" title="Sign out">
+        <LogOut size={17} />
+      </button>
+    {/if}
   </div>
 </header>
 

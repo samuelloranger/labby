@@ -1,10 +1,11 @@
-import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { type Context, Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
-import { getConfig, getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
+import { crossSiteGuard } from './auth';
+import { getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
 import {
   DashboardSchema,
   DensitySchema,
@@ -32,69 +33,15 @@ import { resolveFavicon } from './integrations/favicon';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
 import { getPlexImage, type PlexConfig } from './integrations/plex';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
+import { readShell, renderShell } from './shell';
 import { hub } from './sse/hub';
 import { refreshIntegration, startScheduler } from './sse/scheduler';
 
 const app = new Hono();
 app.use(compress());
+app.use(crossSiteGuard());
 
 const WEB_DIST = path.join(process.cwd(), 'src', 'web', 'dist');
-const INDEX_PATH = path.join(WEB_DIST, 'index.html');
-
-function themeFromConfig(): string {
-  const config = getConfig();
-  const def = config?.theme.default ?? 'system';
-  if (def !== 'system') return def;
-  return '';
-}
-
-function customCssFromConfig(): string {
-  const config = getConfig();
-  return config?.theme.customCss ?? '';
-}
-
-/**
- * Inline the hub's cached payloads into the HTML so the first paint already has
- * data.
- *
- * Without this every widget renders a fixed-height skeleton and then snaps to
- * its real height once the stream fills it ~200ms later. The board is
- * `column-count` masonry, so each of those resizes reflows a whole column —
- * measured on a live board, one feed card grew 234px and shoved the two cards
- * below it down with it.
- *
- * This is the cheap half of SSR: the server ships state, not markup. No second
- * render path, no hydration, no separate build — the scheduler has already
- * polled this data and the hub is already caching it per stream key.
- */
-// Per-channel budget for the inlined snapshot. A download client with a few
-// hundred torrents serialises to ~100KB, and the card shows two numbers until
-// someone opens the modal — inlining that on every uncached page load costs far
-// more than the reflow it saves. Oversized channels are simply left out: the
-// widget renders its skeleton and fills from the stream exactly as before, which
-// is the behaviour those cards already had without visible jump.
-const SNAPSHOT_CHANNEL_BUDGET = 32 * 1024;
-
-function snapshotScript(): string {
-  const snapshot: Record<string, unknown> = {};
-  for (const [channel, data] of hub.getSnapshot()) {
-    const encoded = JSON.stringify(data);
-    if (encoded && encoded.length <= SNAPSHOT_CHANNEL_BUDGET) snapshot[channel] = data;
-  }
-  // Payloads carry upstream strings — torrent names, feed titles, container
-  // names. Escaping `<` is what stops any of them closing this script tag.
-  const json = JSON.stringify(snapshot).replaceAll('<', '\\u003c');
-  return `<script id="labby-snapshot" type="application/json">${json}</script>`;
-}
-
-/** The one place index.html is patched, shared by the two routes that serve it. */
-function renderIndex(html: string): string {
-  const patched = html.replaceAll('__LABBY_THEME__', themeFromConfig());
-  return patched.replace(
-    '</head>',
-    `<style id="labby-custom-css">${customCssFromConfig()}</style>${snapshotScript()}</head>`,
-  );
-}
 
 function secretKeys(type: string): string[] {
   return (INTEGRATIONS[type as IntegrationType]?.fields ?? [])
@@ -125,12 +72,12 @@ function preserveSecrets(
 
 app.use('*', async (c, next) => {
   if (c.req.path === '/' || c.req.path === '/index.html') {
-    const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
+    const html = await readShell();
     if (html) {
       // HTML must always revalidate so a new build's hashed assets are picked up
       // (assets themselves are immutable-cached in serveStatic).
       c.header('Cache-Control', 'no-cache');
-      return c.html(renderIndex(html));
+      return c.html(renderShell(html));
     }
   }
   await next();
@@ -452,11 +399,15 @@ app.post('/api/restore', async (c) => {
   return c.json({ ok: true });
 });
 
+// Unknown API paths must not fall through to the SPA shell (a 200 HTML page
+// reads as "endpoint exists" to the web app).
+app.all('/api/*', (c) => c.json({ error: 'Not found' }, 404));
+
 app.get('*', async (c) => {
-  const html = await readFile(INDEX_PATH, 'utf-8').catch(() => null);
+  const html = await readShell();
   if (!html) return c.text('Labby frontend not built. Run: bun run build', 503);
   c.header('Cache-Control', 'no-cache');
-  return c.html(renderIndex(html));
+  return c.html(renderShell(html));
 });
 
 export { app };
