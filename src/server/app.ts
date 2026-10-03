@@ -399,6 +399,10 @@ app.post('/api/restore', async (c) => {
   return c.json({ ok: true });
 });
 
+// Unknown API paths must not fall through to the SPA shell (a 200 HTML page
+// reads as "endpoint exists" to the web app).
+app.all('/api/*', (c) => c.json({ error: 'Not found' }, 404));
+
 app.get('*', async (c) => {
   const html = await readShell();
   if (!html) return c.text('Labby frontend not built. Run: bun run build', 503);

@@ -232,3 +232,9 @@ test('cross-site POST to an action route is rejected', async () => {
   });
   expect(res.status).toBe(403);
 });
+
+test('unknown /api paths return 404 JSON instead of the SPA shell', async () => {
+  const res = await app.request('/api/does-not-exist');
+  expect(res.status).toBe(404);
+  expect(await res.json()).toEqual({ error: 'Not found' });
+});

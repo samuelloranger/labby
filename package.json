@@ -21,6 +21,7 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
+    "@hono/oidc-auth": "^1.10.0",
     "hono": "^4.13.7",
     "zod": "^4.6.2"
   },
