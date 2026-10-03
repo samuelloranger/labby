@@ -42,6 +42,7 @@ test('readAuthScreen parses the shell marker', () => {
     user: 'eve@example.com',
   });
   expect(readAuthScreen(docWith('{"kind":"signed-out"}'))).toEqual({ kind: 'signed-out' });
+  expect(readAuthScreen(docWith('{"kind":"sign-in-failed"}'))).toEqual({ kind: 'sign-in-failed' });
 });
 
 test('readAuthScreen returns null for a normal dashboard page or a bad marker', () => {

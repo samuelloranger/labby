@@ -1,4 +1,4 @@
-import { afterEach, expect, mock, test } from 'bun:test';
+import { afterEach, expect, mock, spyOn, test } from 'bun:test';
 import { Hono } from 'hono';
 import { sign } from 'hono/jwt';
 import { app as realApp } from './app';
@@ -249,13 +249,29 @@ test('page without a session redirects to the provider with PKCE', async () => {
 
 test('callback is handled even when the request URL is plain http', async () => {
   mockDiscovery();
+  const warn = spyOn(console, 'warn').mockImplementation(() => {});
   const res = await withAuth(stubApp(), cfg()).request(
     'http://labby:8080/auth/callback?code=abc&state=xyz',
   );
   // No state/nonce cookies → the library rejects the callback. What matters is
   // that it was treated as a callback, not bounced back to the provider.
   expect(res.headers.get('location') ?? '').not.toContain('idp.example.com/authorize');
-  expect(res.status).toBeGreaterThanOrEqual(400);
+  expect(res.status).toBe(400);
+  expect(await res.text()).toMatch(/"kind":"sign-in-failed"|Sign-in did not complete/);
+  warn.mockRestore();
+});
+
+test('failed callback with an existing valid session redirects home', async () => {
+  mockDiscovery();
+  const warn = spyOn(console, 'warn').mockImplementation(() => {});
+  const cookie = await sessionCookie({ email: 'a@example.com' });
+  const res = await withAuth(stubApp(), cfg()).request(
+    'http://labby:8080/auth/callback?code=abc&state=xyz',
+    { headers: { cookie } },
+  );
+  expect(res.status).toBe(302);
+  expect(res.headers.get('location')).toBe('/');
+  warn.mockRestore();
 });
 
 test('valid session reaches the app and /api/auth/me', async () => {

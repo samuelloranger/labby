@@ -36,7 +36,10 @@ export async function fetchAuthUser(): Promise<AuthUser | null> {
 }
 
 /** Mirrors src/server/shell.ts — separate build roots, kept in sync by hand. */
-export type AuthScreen = { kind: 'forbidden'; user: string } | { kind: 'signed-out' };
+export type AuthScreen =
+  | { kind: 'forbidden'; user: string }
+  | { kind: 'signed-out' }
+  | { kind: 'sign-in-failed' };
 
 /**
  * The server serves "Not allowed" / "Signed out" through the normal shell with
@@ -50,6 +53,7 @@ export function readAuthScreen(
   try {
     const value = JSON.parse(text) as { kind?: unknown; user?: unknown };
     if (value.kind === 'signed-out') return { kind: 'signed-out' };
+    if (value.kind === 'sign-in-failed') return { kind: 'sign-in-failed' };
     if (value.kind === 'forbidden') {
       return { kind: 'forbidden', user: typeof value.user === 'string' ? value.user : '' };
     }

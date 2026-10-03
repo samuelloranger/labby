@@ -6,7 +6,10 @@ import { hub } from './sse/hub';
 const INDEX_PATH = path.join(process.cwd(), 'src', 'web', 'dist', 'index.html');
 
 /** What the web app renders instead of the dashboard (see Root.svelte). */
-export type AuthScreen = { kind: 'forbidden'; user: string } | { kind: 'signed-out' };
+export type AuthScreen =
+  | { kind: 'forbidden'; user: string }
+  | { kind: 'signed-out' }
+  | { kind: 'sign-in-failed' };
 
 function themeFromConfig(): string {
   const config = getConfig();

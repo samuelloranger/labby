@@ -172,14 +172,21 @@ export function claimsHook(cfg: AuthConfig): OidcClaimsHook {
  * palette, custom CSS) with a marker the web app renders as AuthScreen.svelte.
  * Plain text only when the web app isn't built (dev without `bun run build`).
  */
-async function authScreen(c: Context, screen: AuthScreen, status: 200 | 403): Promise<Response> {
+async function authScreen(
+  c: Context,
+  screen: AuthScreen,
+  status: 200 | 400 | 403,
+): Promise<Response> {
   const html = await readShell();
   c.header('Cache-Control', 'no-cache');
   if (html) return c.html(renderShell(html, { authScreen: screen }), status);
-  return c.text(
-    screen.kind === 'forbidden' ? `Not allowed: signed in as ${screen.user}` : 'Signed out',
-    status,
-  );
+  const text =
+    screen.kind === 'forbidden'
+      ? `Not allowed: signed in as ${screen.user}`
+      : screen.kind === 'sign-in-failed'
+        ? 'Sign-in did not complete'
+        : 'Signed out';
+  return c.text(text, status);
 }
 
 async function logout(c: Context, cfg: AuthConfig): Promise<Response> {
@@ -256,7 +263,28 @@ export function withAuth(app: Hono, cfg: AuthConfig | null): Hono {
   });
   // Explicit route: the library's own callback detection compares origins, and
   // behind a TLS-terminating proxy the request URL is http:// — it would never match.
-  root.get('/auth/callback', (c) => processOAuthCallback(c));
+  root.get('/auth/callback', async (c) => {
+    try {
+      return await processOAuthCallback(c);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`OIDC sign-in callback failed: ${message}`);
+      // The library keeps one state/nonce/code_verifier cookie, overwritten by
+      // every page load and deleted by every callback: parallel tabs, a
+      // stale/back-button callback, or a host other than LABBY_URL throw here.
+      // Another tab may have already completed sign-in, so check for a session
+      // before giving up — but never redirect to the provider automatically,
+      // or a misconfigured client loops forever.
+      let auth: Awaited<ReturnType<typeof getAuth>> = null;
+      try {
+        auth = await getAuth(c);
+      } catch {
+        auth = null;
+      }
+      if (auth && isAllowed(cfg, auth)) return c.redirect('/');
+      return authScreen(c, { kind: 'sign-in-failed' }, 400);
+    }
+  });
   root.get('/auth/logout', (c) => logout(c, cfg));
   root.use(gate(cfg));
   root.get('/api/auth/me', async (c) => {

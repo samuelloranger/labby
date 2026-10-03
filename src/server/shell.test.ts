@@ -26,6 +26,20 @@ test('auth screen shell carries the marker and never the widget snapshot', () =>
   );
 });
 
+test('auth screen shell carries the signed-out marker', () => {
+  const out = renderShell(TEMPLATE, { authScreen: { kind: 'signed-out' } });
+  expect(out).toContain(
+    '<script id="labby-auth-screen" type="application/json">{"kind":"signed-out"}</script>',
+  );
+});
+
+test('auth screen shell carries the sign-in-failed marker', () => {
+  const out = renderShell(TEMPLATE, { authScreen: { kind: 'sign-in-failed' } });
+  expect(out).toContain(
+    '<script id="labby-auth-screen" type="application/json">{"kind":"sign-in-failed"}</script>',
+  );
+});
+
 test('auth screen marker escapes provider-supplied names', () => {
   const out = renderShell(TEMPLATE, {
     authScreen: { kind: 'forbidden', user: '</script><script>alert(1)</script>' },

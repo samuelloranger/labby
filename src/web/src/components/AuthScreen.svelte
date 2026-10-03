@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LogIn, LogOut, ShieldX } from '@lucide/svelte';
+  import { LogIn, LogOut, ShieldX, TriangleAlert } from '@lucide/svelte';
   import type { AuthScreen } from '$lib/auth';
 
   let { screen }: { screen: AuthScreen } = $props();
@@ -9,12 +9,16 @@
   <section class="card auth-card" aria-labelledby="auth-title">
     <p class="brand"><img class="logo" src="/icons/labby.svg" alt="" width="28" height="28" /><span>labby</span></p>
     <div class="auth-badge" aria-hidden="true">
-      {#if screen.kind === 'forbidden'}<ShieldX size={22} />{:else}<LogOut size={22} />{/if}
+      {#if screen.kind === 'forbidden'}<ShieldX size={22} />{:else if screen.kind === 'sign-in-failed'}<TriangleAlert size={22} />{:else}<LogOut size={22} />{/if}
     </div>
     {#if screen.kind === 'forbidden'}
       <h1 id="auth-title">Not allowed</h1>
       <p class="auth-msg">Signed in as <b>{screen.user}</b>, which isn’t allowed to use this dashboard.</p>
       <a class="settings-btn auth-btn" href="/auth/logout"><LogOut size={16} />Sign out</a>
+    {:else if screen.kind === 'sign-in-failed'}
+      <h1 id="auth-title">Sign-in didn't complete</h1>
+      <p class="auth-msg">Something interrupted signing in. This can happen with several tabs open or an expired link.</p>
+      <a class="settings-btn auth-btn" href="/"><LogIn size={16} />Sign in again</a>
     {:else}
       <h1 id="auth-title">Signed out</h1>
       <p class="auth-msg">Your Labby session has ended.</p>
