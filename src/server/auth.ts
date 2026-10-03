@@ -157,7 +157,7 @@ export function isAllowed(cfg: AuthConfig, claims: { email?: unknown; groups?: u
  */
 export function claimsHook(cfg: AuthConfig): OidcClaimsHook {
   return async (orig, claims) => {
-    const groups = claims ? strings(claims.groups) : strings(orig?.groups);
+    const groups = Array.isArray(claims?.groups) ? strings(claims.groups) : strings(orig?.groups);
     return {
       sub: str(claims?.sub) || str(orig?.sub),
       email: str(claims?.email) || str(orig?.email),

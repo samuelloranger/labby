@@ -332,6 +332,21 @@ test('claims hook keeps previous claims when a refresh carries no id token', asy
   expect(out).toEqual(orig);
 });
 
+test('claims hook keeps previous groups when a refreshed id token omits them', async () => {
+  const hook = claimsHook(cfg({ allowedGroups: ['admins'] }));
+  const orig = {
+    sub: 'u1',
+    email: 'a@example.com',
+    name: 'Alice',
+    groups: ['admins'],
+    rtk: 'r',
+    rtkexp: 0,
+    ssnexp: 0,
+  };
+  const out = await hook(orig, { sub: 'u1', email: 'a@example.com' } as never, {} as never);
+  expect(out.groups).toEqual(['admins']);
+});
+
 test('logout clears the session and goes to the provider end-session endpoint', async () => {
   mockDiscovery();
   const app = withAuth(stubApp(), cfg());
