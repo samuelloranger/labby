@@ -4,6 +4,7 @@ import { type Context, Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
+import { crossSiteGuard } from './auth';
 import { getConfig, getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
 import {
   DashboardSchema,
@@ -37,6 +38,7 @@ import { refreshIntegration, startScheduler } from './sse/scheduler';
 
 const app = new Hono();
 app.use(compress());
+app.use(crossSiteGuard());
 
 const WEB_DIST = path.join(process.cwd(), 'src', 'web', 'dist');
 const INDEX_PATH = path.join(WEB_DIST, 'index.html');
