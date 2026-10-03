@@ -6,3 +6,12 @@ services:
       - "8080:8080"
     volumes:
       - ./config:/app/config
+    # Optional OIDC login — see docs/guide/security.md. Leave unset to keep login off.
+    # environment:
+    #   LABBY_URL: https://labby.example.com
+    #   LABBY_OIDC_ISSUER: https://auth.example.com/application/o/labby/
+    #   LABBY_OIDC_CLIENT_ID: labby
+    #   LABBY_OIDC_CLIENT_SECRET: change-me
+    #   LABBY_OIDC_SESSION_SECRET: at-least-32-random-characters-here
+    #   LABBY_OIDC_SCOPES: openid email profile offline_access
+    #   LABBY_OIDC_ALLOWED_GROUPS: admins
