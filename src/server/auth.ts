@@ -113,6 +113,12 @@ export function readAuthConfig(env: Env): AuthConfig | null {
   if (publicUrl.pathname !== '/' || publicUrl.search || publicUrl.hash) {
     throw new Error('LABBY_URL must be an origin without a path, e.g. https://labby.example.com');
   }
+  const LOCALHOST_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+  if (publicUrl.protocol === 'http:' && !LOCALHOST_HOSTNAMES.has(publicUrl.hostname)) {
+    throw new Error(
+      'LABBY_URL must use https:// (session cookies are Secure); http:// is only allowed for localhost',
+    );
+  }
 
   const providedSecret = value(env, 'LABBY_OIDC_SESSION_SECRET');
   if (providedSecret !== undefined && providedSecret.length < 32) {

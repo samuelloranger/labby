@@ -70,6 +70,17 @@ test('readAuthConfig rejects LABBY_URL with a path', () => {
   );
 });
 
+test('readAuthConfig rejects a plain-http LABBY_URL outside localhost', () => {
+  expect(() => readAuthConfig({ ...FULL, LABBY_URL: 'http://labby.example.com' })).toThrow(
+    'LABBY_URL',
+  );
+});
+
+test('readAuthConfig allows a plain-http LABBY_URL on localhost', () => {
+  const cfg = readAuthConfig({ ...FULL, LABBY_URL: 'http://localhost:8080' });
+  expect(cfg?.publicUrl).toBe('http://localhost:8080');
+});
+
 test('readAuthConfig rejects a short session secret and keeps a valid one', () => {
   expect(() => readAuthConfig({ ...FULL, LABBY_OIDC_SESSION_SECRET: 'short' })).toThrow(
     'LABBY_OIDC_SESSION_SECRET',
