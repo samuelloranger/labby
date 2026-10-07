@@ -1783,8 +1783,28 @@ a.name {
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scroll-snap-type: x mandatory;
+  /* Standard props drive Chrome/Firefox; the ::-webkit rules below are Safari's fallback. */
+  --recent-thumb: color-mix(in srgb, var(--ink-faint) 40%, transparent);
   scrollbar-width: thin;
-  padding-bottom: 4px;
+  scrollbar-color: var(--recent-thumb) transparent;
+  padding-bottom: 8px;
+}
+
+.recent-track:hover {
+  --recent-thumb: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.recent-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recent-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recent-track::-webkit-scrollbar-thumb {
+  border-radius: var(--pill);
+  background: var(--recent-thumb);
 }
 
 .recent-item {

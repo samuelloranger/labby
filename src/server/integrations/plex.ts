@@ -1,5 +1,6 @@
-import type { PlexPayload, PlexSession, RecentMediaItem, RecentMediaPayload } from '../types';
+import type { PlexPayload, PlexSession, RecentMediaPayload } from '../types';
 import { normalizeBase, soft, TIMEOUT_MS } from './http';
+import { groupSeasons, RECENT_FETCH, type RecentCandidate } from './recent';
 
 export type PlexConfig = { url?: string; token?: string };
 
@@ -110,16 +111,19 @@ export async function getPlexRecent(
         if (!type || section.key == null) return [];
         const params = new URLSearchParams({ type, sort: 'addedAt:desc' });
         return [
-          get(`/library/sections/${encodeURIComponent(String(section.key))}/all?${params}`, 20),
+          get(
+            `/library/sections/${encodeURIComponent(String(section.key))}/all?${params}`,
+            RECENT_FETCH,
+          ),
         ];
       }),
     );
     const metadata = lists
       .flatMap((body) => body.MediaContainer?.Metadata ?? [])
       .sort((a, b) => Number(b.addedAt ?? 0) - Number(a.addedAt ?? 0))
-      .slice(0, 20);
+      .slice(0, RECENT_FETCH);
 
-    const items: RecentMediaItem[] = metadata.flatMap((item) => {
+    const items: RecentCandidate[] = metadata.flatMap((item) => {
       const id = item.ratingKey != null ? String(item.ratingKey) : '';
       const kind = item.type === 'movie' ? 'movie' : item.type === 'episode' ? 'tv' : null;
       if (!id || !kind) return [];
@@ -128,6 +132,14 @@ export async function getPlexRecent(
           ? `S${String(item.parentIndex).padStart(2, '0')}E${String(item.index).padStart(2, '0')}`
           : '';
       const name = String(item.title ?? 'Unknown');
+      const seriesKey = item.grandparentRatingKey ?? item.grandparentTitle;
+      const season =
+        kind === 'tv' && seriesKey != null && item.parentIndex != null
+          ? {
+              key: `${seriesKey}:${item.parentIndex}`,
+              label: `S${String(item.parentIndex).padStart(2, '0')}`,
+            }
+          : undefined;
       const thumb = kind === 'tv' ? (item.grandparentThumb ?? item.thumb) : item.thumb;
       const addedAt = Number(item.addedAt);
       return [
@@ -147,10 +159,11 @@ export async function getPlexRecent(
             typeof thumb === 'string' && thumb.startsWith('/') && !thumb.startsWith('//')
               ? `/api/plex/image?path=${encodeURIComponent(thumb)}`
               : undefined,
+          season,
         },
       ];
     });
-    return { items };
+    return { items: groupSeasons(items) };
   });
 }
 

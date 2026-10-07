@@ -1,10 +1,6 @@
-import type {
-  JellyfinPayload,
-  JellyfinSession,
-  RecentMediaItem,
-  RecentMediaPayload,
-} from '../types';
+import type { JellyfinPayload, JellyfinSession, RecentMediaPayload } from '../types';
 import { normalizeBase, soft, TIMEOUT_MS } from './http';
+import { groupSeasons, RECENT_FETCH, type RecentCandidate } from './recent';
 
 export type JellyfinConfig = { url?: string; apiKey?: string };
 
@@ -97,7 +93,7 @@ export async function getJellyfinRecent(
       includeItemTypes: 'Movie,Episode',
       sortBy: 'DateCreated',
       sortOrder: 'Descending',
-      limit: '20',
+      limit: String(RECENT_FETCH),
       fields: 'DateCreated',
     });
     const res = await fetch(`${base}/Items?${params}`, {
@@ -107,7 +103,7 @@ export async function getJellyfinRecent(
     if (!res.ok) return { error: `Jellyfin error: ${res.status}` };
 
     const body = (await res.json()) as { Items?: Record<string, unknown>[] };
-    const items: RecentMediaItem[] = (body.Items ?? []).flatMap((item) => {
+    const items: RecentCandidate[] = (body.Items ?? []).flatMap((item) => {
       const id = typeof item.Id === 'string' ? item.Id : '';
       const kind = item.Type === 'Movie' ? 'movie' : item.Type === 'Episode' ? 'tv' : null;
       if (!id || !kind) return [];
@@ -116,6 +112,14 @@ export async function getJellyfinRecent(
           ? `S${String(item.ParentIndexNumber).padStart(2, '0')}E${String(item.IndexNumber).padStart(2, '0')}`
           : '';
       const name = String(item.Name ?? 'Unknown');
+      const seriesKey = item.SeriesId ?? item.SeriesName;
+      const season =
+        kind === 'tv' && seriesKey != null && item.ParentIndexNumber != null
+          ? {
+              key: `${seriesKey}:${item.ParentIndexNumber}`,
+              label: `S${String(item.ParentIndexNumber).padStart(2, '0')}`,
+            }
+          : undefined;
       const added = Date.parse(String(item.DateCreated ?? ''));
       // Episodes use the series poster when the series has one, else their own still.
       const posterId =
@@ -137,10 +141,11 @@ export async function getJellyfinRecent(
                 : '',
           addedAt: Number.isNaN(added) ? '' : new Date(added).toISOString(),
           posterUrl: posterId ? `/api/jellyfin/image/${encodeURIComponent(posterId)}` : undefined,
+          season,
         },
       ];
     });
-    return { items };
+    return { items: groupSeasons(items) };
   });
 }
 
