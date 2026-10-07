@@ -140,7 +140,12 @@ describe('Jellyfin client', () => {
             IndexNumber: 3,
             DateCreated: '2026-10-01T12:00:00Z',
           },
-          { Id: 'movie-2', Type: 'Movie', Name: 'No Art', DateCreated: '2026-09-30T12:00:00Z' },
+          {
+            Id: 'movie-2',
+            Type: 'Movie',
+            Name: 'No Art',
+            DateCreated: '2026-09-30T12:00:00.0000000Z',
+          },
         ],
       });
     }) as unknown as typeof fetch;
@@ -153,7 +158,7 @@ describe('Jellyfin client', () => {
             kind: 'movie',
             title: 'Film',
             subtitle: '2025',
-            addedAt: '2026-10-02T12:00:00Z',
+            addedAt: '2026-10-02T12:00:00.000Z',
             posterUrl: '/api/jellyfin/image/movie-1',
           },
           {
@@ -161,7 +166,7 @@ describe('Jellyfin client', () => {
             kind: 'tv',
             title: 'Series',
             subtitle: 'S02E03 · Pilot',
-            addedAt: '2026-10-01T12:00:00Z',
+            addedAt: '2026-10-01T12:00:00.000Z',
             posterUrl: '/api/jellyfin/image/series-1',
           },
           {
@@ -169,7 +174,7 @@ describe('Jellyfin client', () => {
             kind: 'movie',
             title: 'No Art',
             subtitle: '',
-            addedAt: '2026-09-30T12:00:00Z',
+            addedAt: '2026-09-30T12:00:00.000Z',
             posterUrl: undefined,
           },
         ],

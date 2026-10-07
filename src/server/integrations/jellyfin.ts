@@ -116,6 +116,7 @@ export async function getJellyfinRecent(
           ? `S${String(item.ParentIndexNumber).padStart(2, '0')}E${String(item.IndexNumber).padStart(2, '0')}`
           : '';
       const name = String(item.Name ?? 'Unknown');
+      const added = Date.parse(String(item.DateCreated ?? ''));
       // Episodes use the series poster when the series has one, else their own still.
       const posterId =
         kind === 'tv' && typeof item.SeriesId === 'string' && item.SeriesPrimaryImageTag
@@ -134,7 +135,7 @@ export async function getJellyfinRecent(
               : item.ProductionYear
                 ? String(item.ProductionYear)
                 : '',
-          addedAt: String(item.DateCreated ?? ''),
+          addedAt: Number.isNaN(added) ? '' : new Date(added).toISOString(),
           posterUrl: posterId ? `/api/jellyfin/image/${encodeURIComponent(posterId)}` : undefined,
         },
       ];
