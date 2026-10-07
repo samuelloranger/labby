@@ -84,22 +84,42 @@ export async function getPlexRecent(
   if (!token) return { error: 'PLEX_TOKEN not configured' };
 
   return soft('Plex', async () => {
-    const params = new URLSearchParams({ type: '1,4', sort: 'addedAt:desc' });
-    const res = await fetch(`${base}/library/all?${params}`, {
-      headers: {
-        'X-Plex-Token': token,
-        'X-Plex-Container-Start': '0',
-        'X-Plex-Container-Size': '20',
-        Accept: 'application/json',
-      },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!res.ok) return { error: `Plex error: ${res.status}` };
-
-    const body = (await res.json()) as {
-      MediaContainer?: { Metadata?: Record<string, unknown>[] };
+    const get = async (path: string, size?: number) => {
+      const res = await fetch(`${base}${path}`, {
+        headers: {
+          'X-Plex-Token': token,
+          Accept: 'application/json',
+          ...(size ? { 'X-Plex-Container-Start': '0', 'X-Plex-Container-Size': String(size) } : {}),
+        },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!res.ok) throw new Error(`Plex error: ${res.status}`);
+      return (await res.json()) as {
+        MediaContainer?: {
+          Directory?: Record<string, unknown>[];
+          Metadata?: Record<string, unknown>[];
+        };
+      };
     };
-    const items: RecentMediaItem[] = (body.MediaContainer?.Metadata ?? []).flatMap((item) => {
+
+    // Sorting by addedAt is per section, so query each movie/show section and merge.
+    const sections = (await get('/library/sections')).MediaContainer?.Directory ?? [];
+    const lists = await Promise.all(
+      sections.flatMap((section) => {
+        const type = section.type === 'movie' ? '1' : section.type === 'show' ? '4' : null;
+        if (!type || section.key == null) return [];
+        const params = new URLSearchParams({ type, sort: 'addedAt:desc' });
+        return [
+          get(`/library/sections/${encodeURIComponent(String(section.key))}/all?${params}`, 20),
+        ];
+      }),
+    );
+    const metadata = lists
+      .flatMap((body) => body.MediaContainer?.Metadata ?? [])
+      .sort((a, b) => Number(b.addedAt ?? 0) - Number(a.addedAt ?? 0))
+      .slice(0, 20);
+
+    const items: RecentMediaItem[] = metadata.flatMap((item) => {
       const id = item.ratingKey != null ? String(item.ratingKey) : '';
       const kind = item.type === 'movie' ? 'movie' : item.type === 'episode' ? 'tv' : null;
       if (!id || !kind) return [];

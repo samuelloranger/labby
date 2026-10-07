@@ -138,36 +138,48 @@ describe('Plex client', () => {
 
   test('maps newest movies and episodes from the library', async () => {
     const originalFetch = globalThis.fetch;
+    const movie = {
+      ratingKey: '12',
+      type: 'movie',
+      title: 'Film',
+      year: 2025,
+      addedAt: Date.parse('2026-10-02T12:00:00Z') / 1000,
+      thumb: '/library/metadata/12/thumb/1',
+    };
+    const episode = {
+      ratingKey: '13',
+      type: 'episode',
+      title: 'Pilot',
+      grandparentTitle: 'Series',
+      parentIndex: 2,
+      index: 3,
+      addedAt: Date.parse('2026-10-01T12:00:00Z') / 1000,
+      grandparentThumb: '/library/metadata/10/thumb/1',
+    };
+    const paths: string[] = [];
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input));
-      expect(url.pathname).toBe('/library/all');
-      expect(url.searchParams.get('type')).toBe('1,4');
-      expect(url.searchParams.get('sort')).toBe('addedAt:desc');
+      paths.push(url.pathname);
       expect((init?.headers as Record<string, string> | undefined)?.['X-Plex-Token']).toBe('token');
-      return Response.json({
-        MediaContainer: {
-          Metadata: [
-            {
-              ratingKey: '12',
-              type: 'movie',
-              title: 'Film',
-              year: 2025,
-              addedAt: Date.parse('2026-10-02T12:00:00Z') / 1000,
-              thumb: '/library/metadata/12/thumb/1',
-            },
-            {
-              ratingKey: '13',
-              type: 'episode',
-              title: 'Pilot',
-              grandparentTitle: 'Series',
-              parentIndex: 2,
-              index: 3,
-              addedAt: Date.parse('2026-10-01T12:00:00Z') / 1000,
-              grandparentThumb: '/library/metadata/10/thumb/1',
-            },
-          ],
-        },
-      });
+      if (url.pathname === '/library/sections') {
+        return Response.json({
+          MediaContainer: {
+            Directory: [
+              { key: '2', type: 'show' },
+              { key: '1', type: 'movie' },
+              { key: '3', type: 'artist' },
+            ],
+          },
+        });
+      }
+      expect(url.searchParams.get('sort')).toBe('addedAt:desc');
+      if (url.pathname === '/library/sections/1/all') {
+        expect(url.searchParams.get('type')).toBe('1');
+        return Response.json({ MediaContainer: { Metadata: [movie] } });
+      }
+      expect(url.pathname).toBe('/library/sections/2/all');
+      expect(url.searchParams.get('type')).toBe('4');
+      return Response.json({ MediaContainer: { Metadata: [episode] } });
     }) as unknown as typeof fetch;
     try {
       const result = await getPlexRecent({ url: 'http://plex.test', token: 'token' });
@@ -191,6 +203,7 @@ describe('Plex client', () => {
           },
         ],
       });
+      expect(paths).not.toContain('/library/sections/3/all');
     } finally {
       globalThis.fetch = originalFetch;
     }

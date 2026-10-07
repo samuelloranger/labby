@@ -148,6 +148,25 @@ describe('INTEGRATIONS registry', () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it('reuses recent media across polls while sessions refresh', async () => {
+    const originalFetch = globalThis.fetch;
+    const calls: string[] = [];
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      const path = new URL(String(input)).pathname;
+      calls.push(path);
+      return path === '/Sessions' ? Response.json([]) : Response.json({ Items: [] });
+    }) as unknown as typeof fetch;
+    try {
+      const config = { url: 'http://jellyfin-cache.test', apiKey: 'key' };
+      await INTEGRATIONS.jellyfin.fetch(config);
+      await INTEGRATIONS.jellyfin.fetch(config);
+      expect(calls.filter((p) => p === '/Sessions')).toHaveLength(2);
+      expect(calls.filter((p) => p === '/Items')).toHaveLength(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });
 
 describe('display-option fields', () => {
