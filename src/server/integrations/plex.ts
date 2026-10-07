@@ -1,4 +1,4 @@
-import type { PlexPayload, PlexSession } from '../types';
+import type { PlexPayload, PlexSession, RecentMediaItem, RecentMediaPayload } from '../types';
 import { normalizeBase, soft, TIMEOUT_MS } from './http';
 
 export type PlexConfig = { url?: string; token?: string };
@@ -72,6 +72,65 @@ export async function getPlexSessions(
     }
 
     return { sessions, playing: sessions.length };
+  });
+}
+
+export async function getPlexRecent(
+  config: PlexConfig,
+): Promise<RecentMediaPayload | { error: string }> {
+  const base = normalizeBase(config.url);
+  const token = config.token ?? null;
+  if (!base) return { error: 'PLEX_URL not configured' };
+  if (!token) return { error: 'PLEX_TOKEN not configured' };
+
+  return soft('Plex', async () => {
+    const params = new URLSearchParams({ type: '1,4', sort: 'addedAt:desc' });
+    const res = await fetch(`${base}/library/all?${params}`, {
+      headers: {
+        'X-Plex-Token': token,
+        'X-Plex-Container-Start': '0',
+        'X-Plex-Container-Size': '20',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) return { error: `Plex error: ${res.status}` };
+
+    const body = (await res.json()) as {
+      MediaContainer?: { Metadata?: Record<string, unknown>[] };
+    };
+    const items: RecentMediaItem[] = (body.MediaContainer?.Metadata ?? []).flatMap((item) => {
+      const id = item.ratingKey != null ? String(item.ratingKey) : '';
+      const kind = item.type === 'movie' ? 'movie' : item.type === 'episode' ? 'tv' : null;
+      if (!id || !kind) return [];
+      const episode =
+        item.parentIndex != null && item.index != null
+          ? `S${String(item.parentIndex).padStart(2, '0')}E${String(item.index).padStart(2, '0')}`
+          : '';
+      const name = String(item.title ?? 'Unknown');
+      const thumb = kind === 'tv' ? (item.grandparentThumb ?? item.thumb) : item.thumb;
+      const addedAt = Number(item.addedAt);
+      return [
+        {
+          id,
+          kind,
+          title: kind === 'tv' ? String(item.grandparentTitle ?? name) : name,
+          subtitle:
+            kind === 'tv'
+              ? [episode, name].filter(Boolean).join(' · ')
+              : item.year
+                ? String(item.year)
+                : '',
+          addedAt:
+            Number.isFinite(addedAt) && addedAt > 0 ? new Date(addedAt * 1000).toISOString() : '',
+          posterUrl:
+            typeof thumb === 'string' && thumb.startsWith('/') && !thumb.startsWith('//')
+              ? `/api/plex/image?path=${encodeURIComponent(thumb)}`
+              : undefined,
+        },
+      ];
+    });
+    return { items };
   });
 }
 

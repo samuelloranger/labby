@@ -60,6 +60,18 @@ export type JellyfinData = {
     isTranscoding: boolean;
   }>;
   playing: number;
+  sessionError?: string;
+  recent?: RecentMediaItem[];
+  recentError?: string;
+};
+
+export type RecentMediaItem = {
+  id: string;
+  kind: 'movie' | 'tv';
+  title: string;
+  subtitle: string;
+  addedAt: string;
+  posterUrl?: string;
 };
 
 export type SabnzbdData = {
@@ -103,6 +115,9 @@ export type PlexData = {
     isTranscoding: boolean;
   }>;
   playing: number;
+  sessionError?: string;
+  recent?: RecentMediaItem[];
+  recentError?: string;
 };
 
 export type BeszelData = {

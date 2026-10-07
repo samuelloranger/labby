@@ -105,6 +105,8 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
 | [Reddit](https://www.reddit.com/) | `reddit` | Subreddits to merge into one feed |
 | [Hacker News](https://news.ycombinator.com/) | `hackernews` | No config |
 
+Jellyfin and Plex cards show active sessions plus a scrollable **Recently added** strip of movies and TV episodes. Posters are served through Labby so media server credentials stay on the server. The strip uses the same integration settings; no extra configuration is needed.
+
 ## Icons
 
 The `icon` field accepts prefixed strings:

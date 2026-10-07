@@ -181,6 +181,38 @@ e2e('dashboard renders without uncaught errors and every widget reaches a termin
   await page.close();
 }, 30_000);
 
+e2e('Jellyfin card shows recently added media and scrolls the poster strip', async () => {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
+  const recent = Array.from({ length: 8 }, (_, i) => ({
+    id: String(i),
+    kind: i % 2 ? 'tv' : 'movie',
+    title: `Title ${i + 1}`,
+    subtitle: i % 2 ? 'S01E01 · Pilot' : '2026',
+    addedAt: new Date().toISOString(),
+  }));
+  await page.route('**/api/integrations', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([{ id: 99, name: 'Jellyfin', type: 'jellyfin', config: {}, enabled: true, refreshSeconds: 30, position: 0 }]),
+    }),
+  );
+  await page.route('**/api/integrations/99/data', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ sessions: [], playing: 0, recent }),
+    }),
+  );
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.recent-item').first().waitFor({ state: 'visible' });
+  expect(await page.locator('.recent-item').count()).toBe(8);
+  expect(await page.getByText('No active sessions').isVisible()).toBe(true);
+  const track = page.locator('.recent-track');
+  await page.getByRole('button', { name: 'Scroll recent media right' }).click();
+  await page.waitForFunction(() => (document.querySelector('.recent-track')?.scrollLeft ?? 0) > 0);
+  expect(await track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+  await page.close();
+});
+
 e2e('an unreachable service degrades to a down state, not a crash', async () => {
   const page = await browser.newPage();
   await page.goto(BASE, { waitUntil: 'load' });

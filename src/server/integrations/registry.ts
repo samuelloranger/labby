@@ -5,10 +5,10 @@ import { type CalendarConfig, getCalendarEvents } from './calendar';
 import { containerAction, containerLogs, type DockerConfig, listContainers } from './docker-client';
 import { type EmbyConfig, getEmbySessions } from './emby';
 import { getHackerNews, type HNConfig } from './hackernews';
-import { getJellyfinSessions, type JellyfinConfig } from './jellyfin';
+import { getJellyfinRecent, getJellyfinSessions, type JellyfinConfig } from './jellyfin';
 import { checkSites, type MonitorConfig } from './monitor';
 import { getOpenWeather, type WeatherConfig } from './openweather';
-import { getPlexSessions, type PlexConfig } from './plex';
+import { getPlexRecent, getPlexSessions, type PlexConfig } from './plex';
 import { getQBittorrentTorrents, type QbitConfig, qbittorrentAction } from './qbittorrent';
 import { getRawkoonSummary, type RawkoonConfig } from './rawkoon';
 import { getRedditPosts, type RedditConfig } from './reddit';
@@ -156,7 +156,20 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'apiKey', label: 'API Key', secret: true },
     ],
-    fetch: (c) => getJellyfinSessions(c as JellyfinConfig),
+    fetch: async (c) => {
+      const [sessions, recent] = await Promise.all([
+        getJellyfinSessions(c as JellyfinConfig),
+        getJellyfinRecent(c as JellyfinConfig),
+      ]);
+      if ('error' in sessions && 'error' in recent) return sessions;
+      return {
+        sessions: 'sessions' in sessions ? sessions.sessions : [],
+        playing: 'playing' in sessions ? sessions.playing : 0,
+        sessionError: 'error' in sessions ? sessions.error : undefined,
+        recent: 'items' in recent ? recent.items : [],
+        recentError: 'error' in recent ? recent.error : undefined,
+      };
+    },
   },
   emby: {
     label: 'Emby',
@@ -174,7 +187,20 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       { key: 'url', label: 'URL' },
       { key: 'token', label: 'Token', secret: true },
     ],
-    fetch: (c) => getPlexSessions(c as PlexConfig),
+    fetch: async (c) => {
+      const [sessions, recent] = await Promise.all([
+        getPlexSessions(c as PlexConfig),
+        getPlexRecent(c as PlexConfig),
+      ]);
+      if ('error' in sessions && 'error' in recent) return sessions;
+      return {
+        sessions: 'sessions' in sessions ? sessions.sessions : [],
+        playing: 'playing' in sessions ? sessions.playing : 0,
+        sessionError: 'error' in sessions ? sessions.error : undefined,
+        recent: 'items' in recent ? recent.items : [],
+        recentError: 'error' in recent ? recent.error : undefined,
+      };
+    },
   },
   beszel: {
     label: 'Beszel',

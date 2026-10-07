@@ -271,6 +271,36 @@ const PAYLOADS: Record<string, unknown> = {
       },
     ],
     playing: 2,
+    recent: [
+      {
+        id: 'm1',
+        kind: 'movie',
+        title: 'Dune: Part Two',
+        subtitle: '2024',
+        addedAt: new Date(MS - 86400000).toISOString(),
+      },
+      {
+        id: 'e1',
+        kind: 'tv',
+        title: 'The Bear',
+        subtitle: 'S03E08 · Ice Chips',
+        addedAt: new Date(MS - 172800000).toISOString(),
+      },
+      {
+        id: 'm2',
+        kind: 'movie',
+        title: 'Poor Things',
+        subtitle: '2023',
+        addedAt: new Date(MS - 259200000).toISOString(),
+      },
+      {
+        id: 'e2',
+        kind: 'tv',
+        title: 'Severance',
+        subtitle: 'S02E01 · Hello, Ms. Cobel',
+        addedAt: new Date(MS - 345600000).toISOString(),
+      },
+    ],
   },
   'int:7': {
     city: 'Montreal',

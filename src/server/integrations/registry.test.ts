@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './registry';
 
 const ALL_TYPES: IntegrationType[] = [
@@ -126,6 +126,27 @@ describe('INTEGRATIONS registry', () => {
     expect(out.links.length).toBe(1);
     const empty = (await INTEGRATIONS.bookmarks.fetch({})) as { links: unknown[] };
     expect(empty.links).toEqual([]);
+  });
+
+  it('keeps Jellyfin sessions when the recent query fails', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (input: RequestInfo | URL) =>
+      String(input).includes('/Sessions')
+        ? Response.json([{ Id: 'session', NowPlayingItem: { Id: 'movie', Name: 'Film' } }])
+        : new Response('unavailable', { status: 503 }),
+    ) as unknown as typeof fetch;
+    try {
+      const result = (await INTEGRATIONS.jellyfin.fetch({
+        url: 'http://jellyfin.test',
+        apiKey: 'key',
+      })) as { sessions: unknown[]; playing: number; recent: unknown[]; recentError: string };
+      expect(result.playing).toBe(1);
+      expect(result.sessions).toHaveLength(1);
+      expect(result.recent).toEqual([]);
+      expect(result.recentError).toBe('Jellyfin error: 503');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });
 
