@@ -66,7 +66,21 @@ export type JellyfinSession = {
 export type JellyfinPayload = {
   sessions: JellyfinSession[];
   playing: number;
+  sessionError?: string;
+  recent?: RecentMediaItem[];
+  recentError?: string;
 };
+
+export type RecentMediaItem = {
+  id: string;
+  kind: 'movie' | 'tv';
+  title: string;
+  subtitle: string;
+  addedAt: string;
+  posterUrl?: string;
+};
+
+export type RecentMediaPayload = { items: RecentMediaItem[] };
 
 export type EmbySession = {
   id: string;
@@ -98,6 +112,9 @@ export type PlexSession = {
 export type PlexPayload = {
   sessions: PlexSession[];
   playing: number;
+  sessionError?: string;
+  recent?: RecentMediaItem[];
+  recentError?: string;
 };
 
 export type BeszelSystem = {

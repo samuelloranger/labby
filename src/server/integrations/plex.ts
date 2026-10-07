@@ -1,5 +1,6 @@
-import type { PlexPayload, PlexSession } from '../types';
+import type { PlexPayload, PlexSession, RecentMediaPayload } from '../types';
 import { normalizeBase, soft, TIMEOUT_MS } from './http';
+import { groupSeasons, RECENT_FETCH, type RecentCandidate } from './recent';
 
 export type PlexConfig = { url?: string; token?: string };
 
@@ -72,6 +73,97 @@ export async function getPlexSessions(
     }
 
     return { sessions, playing: sessions.length };
+  });
+}
+
+export async function getPlexRecent(
+  config: PlexConfig,
+): Promise<RecentMediaPayload | { error: string }> {
+  const base = normalizeBase(config.url);
+  const token = config.token ?? null;
+  if (!base) return { error: 'PLEX_URL not configured' };
+  if (!token) return { error: 'PLEX_TOKEN not configured' };
+
+  return soft('Plex', async () => {
+    const get = async (path: string, size?: number) => {
+      const res = await fetch(`${base}${path}`, {
+        headers: {
+          'X-Plex-Token': token,
+          Accept: 'application/json',
+          ...(size ? { 'X-Plex-Container-Start': '0', 'X-Plex-Container-Size': String(size) } : {}),
+        },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!res.ok) throw new Error(`Plex error: ${res.status}`);
+      return (await res.json()) as {
+        MediaContainer?: {
+          Directory?: Record<string, unknown>[];
+          Metadata?: Record<string, unknown>[];
+        };
+      };
+    };
+
+    // Sorting by addedAt is per section, so query each movie/show section and merge.
+    const sections = (await get('/library/sections')).MediaContainer?.Directory ?? [];
+    const lists = await Promise.all(
+      sections.flatMap((section) => {
+        const type = section.type === 'movie' ? '1' : section.type === 'show' ? '4' : null;
+        if (!type || section.key == null) return [];
+        const params = new URLSearchParams({ type, sort: 'addedAt:desc' });
+        return [
+          get(
+            `/library/sections/${encodeURIComponent(String(section.key))}/all?${params}`,
+            RECENT_FETCH,
+          ),
+        ];
+      }),
+    );
+    const metadata = lists
+      .flatMap((body) => body.MediaContainer?.Metadata ?? [])
+      .sort((a, b) => Number(b.addedAt ?? 0) - Number(a.addedAt ?? 0))
+      .slice(0, RECENT_FETCH);
+
+    const items: RecentCandidate[] = metadata.flatMap((item) => {
+      const id = item.ratingKey != null ? String(item.ratingKey) : '';
+      const kind = item.type === 'movie' ? 'movie' : item.type === 'episode' ? 'tv' : null;
+      if (!id || !kind) return [];
+      const episode =
+        item.parentIndex != null && item.index != null
+          ? `S${String(item.parentIndex).padStart(2, '0')}E${String(item.index).padStart(2, '0')}`
+          : '';
+      const name = String(item.title ?? 'Unknown');
+      const seriesKey = item.grandparentRatingKey ?? item.grandparentTitle;
+      const season =
+        kind === 'tv' && seriesKey != null && item.parentIndex != null
+          ? {
+              key: `${seriesKey}:${item.parentIndex}`,
+              label: `S${String(item.parentIndex).padStart(2, '0')}`,
+            }
+          : undefined;
+      const thumb = kind === 'tv' ? (item.grandparentThumb ?? item.thumb) : item.thumb;
+      const addedAt = Number(item.addedAt);
+      return [
+        {
+          id,
+          kind,
+          title: kind === 'tv' ? String(item.grandparentTitle ?? name) : name,
+          subtitle:
+            kind === 'tv'
+              ? [episode, name].filter(Boolean).join(' · ')
+              : item.year
+                ? String(item.year)
+                : '',
+          addedAt:
+            Number.isFinite(addedAt) && addedAt > 0 ? new Date(addedAt * 1000).toISOString() : '',
+          posterUrl:
+            typeof thumb === 'string' && thumb.startsWith('/') && !thumb.startsWith('//')
+              ? `/api/plex/image?path=${encodeURIComponent(thumb)}`
+              : undefined,
+          season,
+        },
+      ];
+    });
+    return { items: groupSeasons(items) };
   });
 }
 

@@ -1,5 +1,6 @@
-import type { JellyfinPayload, JellyfinSession } from '../types';
+import type { JellyfinPayload, JellyfinSession, RecentMediaPayload } from '../types';
 import { normalizeBase, soft, TIMEOUT_MS } from './http';
+import { groupSeasons, RECENT_FETCH, type RecentCandidate } from './recent';
 
 export type JellyfinConfig = { url?: string; apiKey?: string };
 
@@ -78,6 +79,76 @@ export async function getJellyfinSessions(
   });
 }
 
+export async function getJellyfinRecent(
+  config: JellyfinConfig,
+): Promise<RecentMediaPayload | { error: string }> {
+  const base = normalizeBase(config.url);
+  const key = config.apiKey ?? null;
+  if (!base) return { error: 'JELLYFIN_URL not configured' };
+  if (!key) return { error: 'JELLYFIN_API_KEY not configured' };
+
+  return soft('Jellyfin', async () => {
+    const params = new URLSearchParams({
+      recursive: 'true',
+      includeItemTypes: 'Movie,Episode',
+      sortBy: 'DateCreated',
+      sortOrder: 'Descending',
+      limit: String(RECENT_FETCH),
+      fields: 'DateCreated',
+    });
+    const res = await fetch(`${base}/Items?${params}`, {
+      headers: { Authorization: authHeader(key), Accept: 'application/json' },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) return { error: `Jellyfin error: ${res.status}` };
+
+    const body = (await res.json()) as { Items?: Record<string, unknown>[] };
+    const items: RecentCandidate[] = (body.Items ?? []).flatMap((item) => {
+      const id = typeof item.Id === 'string' ? item.Id : '';
+      const kind = item.Type === 'Movie' ? 'movie' : item.Type === 'Episode' ? 'tv' : null;
+      if (!id || !kind) return [];
+      const episode =
+        item.ParentIndexNumber != null && item.IndexNumber != null
+          ? `S${String(item.ParentIndexNumber).padStart(2, '0')}E${String(item.IndexNumber).padStart(2, '0')}`
+          : '';
+      const name = String(item.Name ?? 'Unknown');
+      const seriesKey = item.SeriesId ?? item.SeriesName;
+      const season =
+        kind === 'tv' && seriesKey != null && item.ParentIndexNumber != null
+          ? {
+              key: `${seriesKey}:${item.ParentIndexNumber}`,
+              label: `S${String(item.ParentIndexNumber).padStart(2, '0')}`,
+            }
+          : undefined;
+      const added = Date.parse(String(item.DateCreated ?? ''));
+      // Episodes use the series poster when the series has one, else their own still.
+      const posterId =
+        kind === 'tv' && typeof item.SeriesId === 'string' && item.SeriesPrimaryImageTag
+          ? item.SeriesId
+          : (item.ImageTags as Record<string, unknown> | undefined)?.Primary
+            ? id
+            : null;
+      return [
+        {
+          id,
+          kind,
+          title: kind === 'tv' ? String(item.SeriesName ?? name) : name,
+          subtitle:
+            kind === 'tv'
+              ? [episode, name].filter(Boolean).join(' · ')
+              : item.ProductionYear
+                ? String(item.ProductionYear)
+                : '',
+          addedAt: Number.isNaN(added) ? '' : new Date(added).toISOString(),
+          posterUrl: posterId ? `/api/jellyfin/image/${encodeURIComponent(posterId)}` : undefined,
+          season,
+        },
+      ];
+    });
+    return { items: groupSeasons(items) };
+  });
+}
+
 /**
  * Fetches a Jellyfin item's primary image server-side (with the API key) so the
  * browser can render it without ever seeing the token. Returns the upstream
@@ -94,7 +165,7 @@ export async function getJellyfinImage(
 
   try {
     const res = await fetch(
-      `${base}/Items/${encodeURIComponent(itemId)}/Images/Primary?maxHeight=120`,
+      `${base}/Items/${encodeURIComponent(itemId)}/Images/Primary?maxHeight=240`,
       {
         headers: { Authorization: authHeader(key) },
         signal: AbortSignal.timeout(TIMEOUT_MS),

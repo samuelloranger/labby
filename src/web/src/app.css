@@ -1743,6 +1743,112 @@ a.name {
   margin-top: 8px;
 }
 
+.recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--glass-brd);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.recent-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.recent-controls button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.recent-controls button:hover {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+.recent-track {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  /* Standard props drive Chrome/Firefox; the ::-webkit rules below are Safari's fallback. */
+  --recent-thumb: color-mix(in srgb, var(--ink-faint) 40%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--recent-thumb) transparent;
+  padding-bottom: 8px;
+}
+
+.recent-track:hover {
+  --recent-thumb: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.recent-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recent-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recent-track::-webkit-scrollbar-thumb {
+  border-radius: var(--pill);
+  background: var(--recent-thumb);
+}
+
+.recent-item {
+  flex: 0 0 92px;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.recent-poster {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 138px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink-faint);
+}
+
+.recent-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recent-title,
+.recent-subtitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-title {
+  margin-top: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.recent-subtitle {
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+}
+
 .state-msg {
   color: var(--ink-dim);
   font-size: 0.85rem;

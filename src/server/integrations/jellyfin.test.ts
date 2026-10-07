@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
 import type { JellyfinConfig } from './jellyfin';
-import { getJellyfinImage, getJellyfinSessions } from './jellyfin';
+import { getJellyfinImage, getJellyfinRecent, getJellyfinSessions } from './jellyfin';
 
 describe('Jellyfin client', () => {
   test('reports missing config', async () => {
@@ -108,6 +108,79 @@ describe('Jellyfin client', () => {
     expect(result instanceof Response).toBe(true);
     if (result instanceof Response) {
       expect(result.headers.get('Content-Type')).toBe('image/jpeg');
+    }
+  });
+
+  test('maps newest movies and episodes with series posters', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      expect(url.pathname).toBe('/Items');
+      expect(url.searchParams.get('sortBy')).toBe('DateCreated');
+      expect(url.searchParams.get('includeItemTypes')).toBe('Movie,Episode');
+      expect(url.searchParams.get('fields')).toBe('DateCreated');
+      return Response.json({
+        Items: [
+          {
+            Id: 'movie-1',
+            Type: 'Movie',
+            Name: 'Film',
+            ProductionYear: 2025,
+            DateCreated: '2026-10-02T12:00:00Z',
+            ImageTags: { Primary: 'tag' },
+          },
+          {
+            Id: 'episode-1',
+            Type: 'Episode',
+            Name: 'Pilot',
+            SeriesName: 'Series',
+            SeriesId: 'series-1',
+            SeriesPrimaryImageTag: 'series-tag',
+            ParentIndexNumber: 2,
+            IndexNumber: 3,
+            DateCreated: '2026-10-01T12:00:00Z',
+          },
+          {
+            Id: 'movie-2',
+            Type: 'Movie',
+            Name: 'No Art',
+            DateCreated: '2026-09-30T12:00:00.0000000Z',
+          },
+        ],
+      });
+    }) as unknown as typeof fetch;
+    try {
+      const result = await getJellyfinRecent({ url: 'http://jellyfin.test', apiKey: 'key' });
+      expect(result).toEqual({
+        items: [
+          {
+            id: 'movie-1',
+            kind: 'movie',
+            title: 'Film',
+            subtitle: '2025',
+            addedAt: '2026-10-02T12:00:00.000Z',
+            posterUrl: '/api/jellyfin/image/movie-1',
+          },
+          {
+            id: 'episode-1',
+            kind: 'tv',
+            title: 'Series',
+            subtitle: 'S02E03 · Pilot',
+            addedAt: '2026-10-01T12:00:00.000Z',
+            posterUrl: '/api/jellyfin/image/series-1',
+          },
+          {
+            id: 'movie-2',
+            kind: 'movie',
+            title: 'No Art',
+            subtitle: '',
+            addedAt: '2026-09-30T12:00:00.000Z',
+            posterUrl: undefined,
+          },
+        ],
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
     }
   });
 });
