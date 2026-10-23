@@ -15,7 +15,7 @@ import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm' with { type: 'file' };
 import jpeg from 'jpeg-js';
 import satori from 'satori';
-import { HEIGHT, WIDTH } from './cards';
+import { designWidth, HEIGHT } from './cards';
 import type { Node } from './h';
 
 // The server is bundled into dist/index.js with these files copied beside it;
@@ -52,19 +52,29 @@ export type Frame = { jpeg: Uint8Array<ArrayBuffer>; etag: string };
 const JPEG_QUALITY = 85;
 let last: { key: number | bigint; frame: Frame } | null = null;
 
+export type Screen = { width: number; height: number };
+
 /**
- * Renders a panel tree to an 800x480 JPEG. Consecutive identical frames (same
- * SVG) reuse the previous bytes and ETag, so a device polling every few seconds
- * mostly gets 304s and the server skips rasterising.
+ * Renders a panel tree (built for {@link designWidth}(screen) x 480) to a JPEG
+ * of exactly `screen` size. Consecutive identical frames reuse the previous
+ * bytes and ETag, so a device polling every few seconds mostly gets 304s and
+ * the server skips rasterising.
  */
-export async function renderFrame(tree: Node): Promise<Frame> {
+export async function renderFrame(
+  tree: Node,
+  screen: Screen = { width: 800, height: 480 },
+): Promise<Frame> {
   const fonts = await init();
   // biome-ignore lint/suspicious/noExplicitAny: Satori's types want a ReactNode; h() builds the same shape.
-  const svg = await satori(tree as any, { width: WIDTH, height: HEIGHT, fonts });
-  const key = Bun.hash(svg);
+  const svg = await satori(tree as any, { width: designWidth(screen), height: HEIGHT, fonts });
+  const key = Bun.hash(`${screen.width}x${screen.height}\n${svg}`);
   if (last?.key === key) return last.frame;
-  // Satori already converted text to paths, so resvg needs no fonts of its own.
-  const image = new Resvg(svg, { font: { loadSystemFonts: false } }).render();
+  // Satori already converted text to paths, so resvg needs no fonts of its own;
+  // the zoom scales the 480 px-tall layout to the screen's real height.
+  const image = new Resvg(svg, {
+    font: { loadSystemFonts: false },
+    fitTo: { mode: 'zoom', value: screen.height / HEIGHT },
+  }).render();
   const encoded = jpeg.encode(
     { data: image.pixels, width: image.width, height: image.height },
     JPEG_QUALITY,

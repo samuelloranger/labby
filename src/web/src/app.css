@@ -2649,6 +2649,41 @@ body::before {
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
+.settings-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-faint);
+}
+
+.settings-size input {
+  flex: 1;
+  min-width: 0;
+  /* 16px keeps iOS Safari from zooming when the field is focused. */
+  font: 600 16px var(--font);
+  font-variant-numeric: tabular-nums;
+  background: var(--glass-2);
+  border: 1px solid var(--glass-brd);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--ink);
+}
+
+.settings-size input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.settings-error {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--down);
+}
+
+.settings-help a {
+  color: var(--accent-ink);
+}
+
 .settings-help {
   font-size: 0.76rem;
   color: var(--ink-faint);

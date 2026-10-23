@@ -1,7 +1,7 @@
 import { afterEach, expect, mock, test } from 'bun:test';
 import type { IntegrationRow } from '../db';
 import { resolveArt } from './art';
-import { Panel } from './cards';
+import { designWidth, Panel } from './cards';
 import { decide } from './layout';
 import { renderFrame } from './render';
 import type { PanelSnapshot } from './snapshot';
@@ -113,4 +113,37 @@ test('concurrent renders share one artwork fetch', async () => {
   const [a, b] = await Promise.all([resolveArt(refs, rows), resolveArt(refs, rows)]);
   expect(calls).toBe(1);
   expect(a.get('8:shared-art:poster')).toBe(b.get('8:shared-art:poster'));
+});
+
+test('frames come out at exactly the configured screen size', async () => {
+  const s = snap(0);
+  for (const screen of [
+    { width: 480, height: 320 },
+    { width: 1024, height: 600 },
+    { width: 1280, height: 800 },
+    { width: 1920, height: 800 },
+  ]) {
+    const f = await renderFrame(
+      Panel(s, decide(s, null), () => undefined, designWidth(screen)),
+      screen,
+    );
+    const sof = f.jpeg.findIndex((b, i) => b === 0xff && f.jpeg[i + 1] === 0xc0);
+    const view = new DataView(f.jpeg.buffer, f.jpeg.byteOffset + sof);
+    expect([view.getUint16(7), view.getUint16(5)]).toEqual([screen.width, screen.height]);
+  }
+});
+
+test('the same frame at two sizes gets two ETags', async () => {
+  const s = snap(5);
+  const small = { width: 800, height: 480 };
+  const big = { width: 1000, height: 600 };
+  const a = await renderFrame(
+    Panel(s, decide(s, null), () => undefined, designWidth(small)),
+    small,
+  );
+  const b = await renderFrame(
+    Panel(s, decide(s, null), () => undefined, designWidth(big)),
+    big,
+  );
+  expect(a.etag).not.toBe(b.etag);
 });

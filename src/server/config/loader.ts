@@ -4,6 +4,7 @@ import {
   DashboardSchema,
   type DensityType,
   type LayoutType,
+  type PanelConfig,
   type ThemeName,
 } from './schema';
 
@@ -74,6 +75,15 @@ export async function saveThemeSettings(settings: {
     ...(settings.motion !== undefined ? { motion: settings.motion } : {}),
     ...(settings.glass !== undefined ? { glass: settings.glass } : {}),
   };
+  const config = DashboardSchema.parse(parsed);
+  setSetting('dashboard', JSON.stringify(parsed, null, 2));
+  setState({ ok: true, config });
+}
+
+export async function savePanelSettings(panel: PanelConfig): Promise<void> {
+  const raw = await readConfigRaw();
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  parsed.panel = panel;
   const config = DashboardSchema.parse(parsed);
   setSetting('dashboard', JSON.stringify(parsed, null, 2));
   setState({ ok: true, config });

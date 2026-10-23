@@ -5,11 +5,17 @@ import { compress } from 'hono/compress';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { crossSiteGuard } from './auth';
-import { getConfigState, reloadConfig, saveThemeSettings } from './config/loader';
+import {
+  getConfigState,
+  reloadConfig,
+  savePanelSettings,
+  saveThemeSettings,
+} from './config/loader';
 import {
   DashboardSchema,
   DensitySchema,
   LayoutSchema,
+  PanelConfigSchema,
   sanitizeDashboard,
   ThemeSchema,
 } from './config/schema';
@@ -412,6 +418,15 @@ app.get('/api/panel.jpg', async (c) => {
 
 // Why the panel looks the way it does: placements with their scores and reasons.
 app.get('/api/panel/layout', (c) => c.json(currentPanel().decision));
+
+app.post('/api/panel/settings', async (c) => {
+  const parsed = PanelConfigSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid panel size' }, 400);
+  }
+  await savePanelSettings(parsed.data);
+  return c.json({ ok: true });
+});
 
 // Unknown API paths must not fall through to the SPA shell (a 200 HTML page
 // reads as "endpoint exists" to the web app).

@@ -9,6 +9,8 @@
     id = '',
     style = '',
     pill = false,
+    label = 'Palette selector',
+    swatches = true,
   }: {
     value: string;
     options: readonly (readonly [string, string])[] | { value: string; label: string }[];
@@ -16,6 +18,10 @@
     id?: string;
     style?: string;
     pill?: boolean;
+    /** Accessible name of the combobox. */
+    label?: string;
+    /** Palette color dots; off for lists that aren't palettes. */
+    swatches?: boolean;
   } = $props();
 
   let open = $state(false);
@@ -129,10 +135,12 @@
   role="combobox"
   aria-expanded={open}
   aria-haspopup="listbox"
-  aria-label="Palette selector"
+  aria-label={label}
 >
   <div class="select-trigger">
-    <span class="theme-dot" style="background: {themeColors[value] || '#888'}"></span>
+    {#if swatches}
+      <span class="theme-dot" style="background: {themeColors[value] || '#888'}"></span>
+    {/if}
     <span class="select-label">{currentLabel}</span>
     <ChevronDown size={14} class="chevron-icon" />
   </div>
@@ -156,7 +164,9 @@
           role="option"
           aria-selected={item.value === value}
         >
-          <span class="theme-dot" style="background: {themeColors[item.value] || '#888'}"></span>
+          {#if swatches}
+            <span class="theme-dot" style="background: {themeColors[item.value] || '#888'}"></span>
+          {/if}
           <span class="option-label">{item.label}</span>
           {#if item.value === value}
             <span class="selected-indicator"></span>

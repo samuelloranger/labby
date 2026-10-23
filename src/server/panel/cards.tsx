@@ -14,8 +14,14 @@ import type { ArtRef, Cond, PanelSnapshot } from './snapshot';
 // display:flex, there is no grid, and padding is added on top of an explicit
 // width, so sizes below come from flex or from the grid geometry.
 
-export const WIDTH = 800;
+/**
+ * Cards are laid out 480 px tall at the target screen's aspect ratio, then the
+ * raster is scaled to the exact screen size. Wider screens get wider cards
+ * instead of a letterboxed 800x480 frame.
+ */
 export const HEIGHT = 480;
+export const designWidth = (screen: { width: number; height: number }) =>
+  (HEIGHT * screen.width) / screen.height;
 
 const C = {
   bg: '#0c0a08',
@@ -37,13 +43,18 @@ const PAD = 18;
 const GAP = 12;
 const HEADER = 44;
 const TOP = PAD + HEADER + GAP;
-const CELL_W = (WIDTH - PAD * 2 - GAP * (COLS - 1)) / COLS;
 const CELL_H = (HEIGHT - TOP - PAD - GAP * (ROWS - 1)) / ROWS;
-/** Inner width of a one-column card (16 px padding + 1 px border on each side). */
-const CARD_INNER_W = Math.floor(CELL_W - 34);
+
+type Geo = { width: number; cellW: number; cardInnerW: number };
+
+function geometry(width: number): Geo {
+  const cellW = (width - PAD * 2 - GAP * (COLS - 1)) / COLS;
+  // Inner width of a one-column card (16 px padding + 1 px border on each side).
+  return { width, cellW, cardInnerW: Math.floor(cellW - 34) };
+}
 
 export type ArtLookup = (ref: ArtRef | undefined) => string | undefined;
-type Ctx = { s: PanelSnapshot; issues: Issue[]; art: ArtLookup };
+type Ctx = { s: PanelSnapshot; issues: Issue[]; art: ArtLookup; geo: Geo };
 
 // ---------- formatting ----------
 const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -398,7 +409,7 @@ function DownloadsCard({ s }: Ctx, size: Placement['size']) {
   );
 }
 
-function PlayingCard({ s, art }: Ctx, size: Placement['size']) {
+function PlayingCard({ s, art, geo }: Ctx, size: Placement['size']) {
   const [main, ...rest] = s.sessions;
   if (size !== 'tall') {
     return (
@@ -422,8 +433,8 @@ function PlayingCard({ s, art }: Ctx, size: Placement['size']) {
       <Art
         title={main.title}
         src={art(main.backdrop) ?? art(main.poster)}
-        width={CARD_INNER_W}
-        height={Math.round((CARD_INNER_W * 9) / 16)}
+        width={geo.cardInnerW}
+        height={Math.round((geo.cardInnerW * 9) / 16)}
         font={44}
       />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
@@ -598,20 +609,20 @@ function card(p: Placement, ctx: Ctx): Node {
   }
 }
 
-const rect = (p: Placement) => ({
-  left: PAD + p.rect.col * (CELL_W + GAP),
+const rect = (p: Placement, { cellW }: Geo) => ({
+  left: PAD + p.rect.col * (cellW + GAP),
   top: TOP + p.rect.row * (CELL_H + GAP),
-  width: p.rect.w * CELL_W + (p.rect.w - 1) * GAP,
+  width: p.rect.w * cellW + (p.rect.w - 1) * GAP,
   height: p.rect.h * CELL_H + (p.rect.h - 1) * GAP,
 });
 
-function Night({ s, issues }: Ctx) {
+function Night({ s, issues, geo }: Ctx) {
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: WIDTH,
+        width: geo.width,
         height: HEIGHT,
         background: '#000',
         color: '#5a5d66',
@@ -680,8 +691,10 @@ function Empty() {
   );
 }
 
-export function Panel(s: PanelSnapshot, d: Decision, art: ArtLookup): Node {
-  const ctx: Ctx = { s, issues: d.issues, art };
+/** `width` is the design width from {@link designWidth}; 800 for an 800x480 screen. */
+export function Panel(s: PanelSnapshot, d: Decision, art: ArtLookup, width = 800): Node {
+  const geo = geometry(width);
+  const ctx: Ctx = { s, issues: d.issues, art, geo };
   if (d.mode === 'night') return Night(ctx);
   const bad = d.issues.some((i) => i.severity === 'down');
   const warn = d.issues.length > 0;
@@ -691,7 +704,7 @@ export function Panel(s: PanelSnapshot, d: Decision, art: ArtLookup): Node {
       style={{
         display: 'flex',
         position: 'relative',
-        width: WIDTH,
+        width: geo.width,
         height: HEIGHT,
         backgroundImage: WALL,
         backgroundColor: C.bg,
@@ -705,7 +718,7 @@ export function Panel(s: PanelSnapshot, d: Decision, art: ArtLookup): Node {
           position: 'absolute',
           left: PAD,
           top: PAD,
-          width: WIDTH - PAD * 2,
+          width: geo.width - PAD * 2,
           height: HEADER,
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -740,7 +753,7 @@ export function Panel(s: PanelSnapshot, d: Decision, art: ArtLookup): Node {
             position: 'absolute',
             left: PAD,
             top: TOP,
-            width: WIDTH - PAD * 2,
+            width: geo.width - PAD * 2,
             height: HEIGHT - TOP - PAD,
           }}
         >
@@ -748,7 +761,9 @@ export function Panel(s: PanelSnapshot, d: Decision, art: ArtLookup): Node {
         </div>
       ) : (
         d.placements.map((p) => (
-          <div style={{ display: 'flex', position: 'absolute', ...rect(p) }}>{card(p, ctx)}</div>
+          <div style={{ display: 'flex', position: 'absolute', ...rect(p, geo) }}>
+            {card(p, ctx)}
+          </div>
         ))
       )}
     </div>

@@ -43,6 +43,8 @@ export type Dashboard = {
     motion?: boolean;
     glass?: boolean;
   };
+  /** Screen size for /api/panel.jpg. */
+  panel?: { width: number; height: number };
 };
 
 export type IntegrationRow = {

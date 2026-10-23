@@ -1,9 +1,10 @@
 # Display panel
 
-Labby can render your homelab as a single 800x480 image for a small screen on a
-desk or wall, such as a cheap 7" ESP32 display. The device stays simple: it
-downloads `GET /api/panel.jpg` every few seconds and draws it. All layout work
-happens in Labby.
+Labby can render your homelab as a single image for a small screen on a desk or
+wall, such as a cheap 7" ESP32 display (800x480 by default,
+[configurable](#screen-size)). The device stays simple: it downloads
+`GET /api/panel.jpg` every few seconds and draws it. All layout work happens in
+Labby.
 
 ```
 http://labby.local:8080/api/panel.jpg
@@ -35,6 +36,15 @@ through as a red line.
 `GET /api/panel/layout` returns the current decision as JSON: every card placed,
 its size, its score and why it was chosen.
 
+## Screen size
+
+Set the resolution of your screen under **Customize interface → Display panel
+size**: presets for 800x480 (most 7" ESP32 boards), 1024x600, 1280x800 and
+480x320, or a custom size. Any landscape size between 5:4 and 12:5 works, from
+320x240 up to 1920x1200. The layout is drawn 480 px tall at your screen's
+aspect ratio and scaled to the exact size, so a wider screen gets wider cards
+rather than a letterboxed image.
+
 ## Settings
 
 | Variable | Default | Description |
@@ -60,5 +70,5 @@ ESP32-8048S070), a loop like this is enough:
 3. On `200`, decode the JPEG (for example with `TJpg_Decoder`) straight to the screen and remember the new `ETag`.
 4. Wait 5–10 seconds and repeat.
 
-Frames are about 50–60 KB. Identical frames keep the same `ETag`, so most polls
+At 800x480, frames are about 50–60 KB. Identical frames keep the same `ETag`, so most polls
 cost a `304` and no rendering on the server.

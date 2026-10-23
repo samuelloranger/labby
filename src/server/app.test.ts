@@ -264,3 +264,28 @@ test('GET /api/panel/layout explains the current layout', async () => {
   expect(Array.isArray(body.placements)).toBe(true);
   expect(Array.isArray(body.issues)).toBe(true);
 });
+
+test('POST /api/panel/settings validates and saves the panel size', async () => {
+  await loadConfig();
+  const post = (body: unknown) =>
+    app.request('/api/panel/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  expect((await post({ width: 480, height: 800 })).status).toBe(400); // portrait
+  expect((await post({ width: 100, height: 60 })).status).toBe(400); // too small
+  expect((await post({ width: 1024.5, height: 600 })).status).toBe(400);
+  const bad = await post({ width: 1000, height: 1000 });
+  expect(((await bad.json()) as { error: string }).error).toContain('landscape');
+
+  expect((await post({ width: 1024, height: 600 })).status).toBe(200);
+  expect(getConfig()?.panel).toEqual({ width: 1024, height: 600 });
+  const frame = await app.request('/api/panel.jpg');
+  const bytes = new Uint8Array(await frame.arrayBuffer());
+  const sof = bytes.findIndex((b, i) => b === 0xff && bytes[i + 1] === 0xc0);
+  const view = new DataView(bytes.buffer, bytes.byteOffset + sof);
+  expect([view.getUint16(7), view.getUint16(5)]).toEqual([1024, 600]);
+
+  expect((await post({ width: 800, height: 480 })).status).toBe(200);
+});

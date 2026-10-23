@@ -26,6 +26,32 @@
   let motion = $state(config.theme?.motion ?? false);
   let glass = $state(config.theme?.glass ?? true);
   let customCss = $state(config.theme?.customCss ?? '');
+
+  // Common ESP32 / small HDMI display resolutions for /api/panel.jpg.
+  const PANEL_PRESETS = [
+    ['800x480', '7" · 800 × 480 (CrowPanel, Sunton)'],
+    ['1024x600', '7" HD · 1024 × 600'],
+    ['1280x800', '10.1" · 1280 × 800'],
+    ['480x320', '3.5" · 480 × 320'],
+    ['custom', 'Custom size'],
+  ] as const;
+  const presetFor = (w: number, h: number) =>
+    PANEL_PRESETS.some(([v]) => v === `${w}x${h}`) ? `${w}x${h}` : 'custom';
+  // Synced from config each time the dialog opens (openSettings).
+  let panelWidth = $state(800);
+  let panelHeight = $state(480);
+  let panelPreset = $state<string>('800x480');
+  let panelError = $state('');
+
+  function choosePanelPreset(next: string) {
+    panelPreset = next;
+    panelError = '';
+    if (next === 'custom') return;
+    const [w, h] = next.split('x').map(Number);
+    panelWidth = w;
+    panelHeight = h;
+  }
+
   let settingsOpen = $state(false);
   let saving = $state(false);
 
@@ -198,7 +224,31 @@
     motion = config.theme?.motion ?? false;
     glass = config.theme?.glass ?? true;
     customCss = config.theme?.customCss ?? '';
+    panelWidth = config.panel?.width ?? 800;
+    panelHeight = config.panel?.height ?? 480;
+    panelPreset = presetFor(panelWidth, panelHeight);
+    panelError = '';
     settingsOpen = true;
+  }
+
+  /** Saves the panel size if it changed; returns false (and shows why) when rejected. */
+  async function savePanelSize(): Promise<boolean> {
+    const width = Number(panelWidth);
+    const height = Number(panelHeight);
+    if (width === config.panel?.width && height === config.panel?.height) return true;
+    const res = await fetch('/api/panel/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ width, height }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      panelError = body?.error ?? 'Could not save the panel size';
+      return false;
+    }
+    config.panel = { width, height };
+    panelError = '';
+    return true;
   }
 
   function closeSettings() {
@@ -246,7 +296,7 @@
           localStorage.setItem('labby-density', density);
           localStorage.setItem('labby-glass', glass ? 'on' : 'off');
         } catch {}
-        settingsOpen = false;
+        if (await savePanelSize()) settingsOpen = false;
       }
     } catch (err) {
       console.error('Failed to save settings:', err);
@@ -390,6 +440,22 @@
           <span>Glass effect</span>
         </label>
         <p class="settings-help">Frosted blur behind the header and cards. Beautiful, and the single most expensive thing the dashboard draws — turning it off measured about 4.5x faster repaints on a weak GPU. Switch it off if hovering feels sluggish.</p>
+      </div>
+
+      <div class="settings-group">
+        <label for="settings-panel">Display panel size</label>
+        <Select id="settings-panel" label="Display panel size" swatches={false} value={panelPreset} options={PANEL_PRESETS} onchange={choosePanelPreset} pill={false} style="width: 100%;" />
+        {#if panelPreset === 'custom'}
+          <div class="settings-size">
+            <input type="number" inputmode="numeric" min="320" max="1920" aria-label="Panel width in pixels" bind:value={panelWidth} oninput={() => (panelError = '')} />
+            <span aria-hidden="true">×</span>
+            <input type="number" inputmode="numeric" min="240" max="1200" aria-label="Panel height in pixels" bind:value={panelHeight} oninput={() => (panelError = '')} />
+          </div>
+        {/if}
+        {#if panelError}
+          <p class="settings-error" role="alert">{panelError}</p>
+        {/if}
+        <p class="settings-help">Resolution of the small screen showing <a href="/api/panel.jpg" target="_blank" rel="noreferrer">/api/panel.jpg</a>. Landscape, between 5:4 and 12:5; cards reflow to fit.</p>
       </div>
 
       <div class="settings-group">

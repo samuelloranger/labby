@@ -273,8 +273,20 @@ e2e('Customize dialog traps focus, closes on Escape, and returns focus to its tr
   const dialog = page.locator('dialog[open]');
   await dialog.waitFor({ state: 'visible', timeout: 5_000 });
 
-  for (let i = 0; i < 10; i++) await page.keyboard.press('Tab');
-  expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true);
+  // A native modal <dialog> makes the page inert: Tab cycles through the
+  // dialog's controls plus one stop for the browser's own UI (document.body in
+  // headless). Walk well past a full cycle and check focus never lands outside.
+  const focusInDialog = () => page.evaluate(() => !!document.activeElement?.closest('dialog'));
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press('Tab');
+    const escaped = await page.evaluate(() => {
+      const el = document.activeElement;
+      return !!el && el !== document.body && !el.closest('dialog');
+    });
+    expect(escaped).toBe(false);
+  }
+  for (let i = 0; i < 2 && !(await focusInDialog()); i++) await page.keyboard.press('Tab');
+  expect(await focusInDialog()).toBe(true);
 
   await page.keyboard.press('Escape');
   await dialog.waitFor({ state: 'detached', timeout: 5_000 });
