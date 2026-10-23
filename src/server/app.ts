@@ -33,6 +33,7 @@ import { resolveFavicon } from './integrations/favicon';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
 import { getPlexImage, type PlexConfig } from './integrations/plex';
 import { INTEGRATIONS, type IntegrationType, integrationTypes } from './integrations/registry';
+import { currentPanel, renderPanel } from './panel';
 import { readShell, renderShell } from './shell';
 import { hub } from './sse/hub';
 import { refreshIntegration, startScheduler } from './sse/scheduler';
@@ -398,6 +399,19 @@ app.post('/api/restore', async (c) => {
   startScheduler();
   return c.json({ ok: true });
 });
+
+// --- ESP32 panel: an 800x480 JPEG of the homelab for small displays ---
+app.get('/api/panel.jpg', async (c) => {
+  const { frame } = await renderPanel();
+  const headers = { ETag: frame.etag, 'Cache-Control': 'no-cache' };
+  // Devices poll; an unchanged frame costs them a 304 instead of ~50 KB.
+  if (c.req.header('if-none-match') === frame.etag)
+    return new Response(null, { status: 304, headers });
+  return new Response(frame.jpeg, { headers: { ...headers, 'Content-Type': 'image/jpeg' } });
+});
+
+// Why the panel looks the way it does: placements with their scores and reasons.
+app.get('/api/panel/layout', (c) => c.json(currentPanel().decision));
 
 // Unknown API paths must not fall through to the SPA shell (a 200 HTML page
 // reads as "endpoint exists" to the web app).

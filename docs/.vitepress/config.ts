@@ -25,6 +25,7 @@ export default defineConfig({
       { text: 'Getting Started', link: '/guide/getting-started' },
       { text: 'Integrations', link: '/guide/integrations' },
       { text: 'Security', link: '/guide/security' },
+      { text: 'Display panel', link: '/guide/panel' },
       { text: 'Development', link: '/guide/development' },
     ],
     socialLinks: [

@@ -1,6 +1,11 @@
 import { describe, expect, mock, test } from 'bun:test';
 import type { JellyfinConfig } from './jellyfin';
-import { getJellyfinImage, getJellyfinRecent, getJellyfinSessions } from './jellyfin';
+import {
+  getJellyfinArt,
+  getJellyfinImage,
+  getJellyfinRecent,
+  getJellyfinSessions,
+} from './jellyfin';
 
 describe('Jellyfin client', () => {
   test('reports missing config', async () => {
@@ -160,6 +165,7 @@ describe('Jellyfin client', () => {
             subtitle: '2025',
             addedAt: '2026-10-02T12:00:00.000Z',
             posterUrl: '/api/jellyfin/image/movie-1',
+            posterId: 'movie-1',
           },
           {
             id: 'episode-1',
@@ -168,6 +174,7 @@ describe('Jellyfin client', () => {
             subtitle: 'S02E03 · Pilot',
             addedAt: '2026-10-01T12:00:00.000Z',
             posterUrl: '/api/jellyfin/image/series-1',
+            posterId: 'series-1',
           },
           {
             id: 'movie-2',
@@ -182,5 +189,61 @@ describe('Jellyfin client', () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+});
+
+describe('Jellyfin panel artwork', () => {
+  const config: JellyfinConfig = { url: 'http://jellyfin.test', apiKey: 'key' };
+
+  async function sessionsFor(item: Record<string, unknown>) {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async () =>
+      Response.json([
+        {
+          Id: 's',
+          UserName: 'u',
+          Client: 'c',
+          PlayState: {},
+          NowPlayingItem: { Id: 'item', Name: 'x', ...item },
+        },
+      ]),
+    ) as unknown as typeof fetch;
+    const result = await getJellyfinSessions(config);
+    globalThis.fetch = originalFetch;
+    if (!('sessions' in result)) throw new Error('expected sessions');
+    return result.sessions[0];
+  }
+
+  test('a movie uses its own poster and backdrop', async () => {
+    const s = await sessionsFor({ BackdropImageTags: ['t'] });
+    expect([s.posterId, s.backdropId]).toEqual(['item', 'item']);
+  });
+
+  test('an episode uses the series poster and the parent backdrop', async () => {
+    const s = await sessionsFor({
+      SeriesId: 'series',
+      SeriesPrimaryImageTag: 'p',
+      BackdropImageTags: [],
+      ParentBackdropItemId: 'series-bd',
+    });
+    expect([s.posterId, s.backdropId]).toEqual(['series', 'series-bd']);
+  });
+
+  test('getJellyfinArt asks Jellyfin for a cropped JPEG of the right shape', async () => {
+    const originalFetch = globalThis.fetch;
+    let url = '';
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      url = String(input);
+      return new Response(new Uint8Array([9]), { headers: { 'Content-Type': 'image/jpeg' } });
+    }) as unknown as typeof fetch;
+    const res = await getJellyfinArt(config, 'abc', 'backdrop');
+    globalThis.fetch = originalFetch;
+    expect(url).toBe(
+      'http://jellyfin.test/Items/abc/Images/Backdrop?fillWidth=432&fillHeight=243&quality=80&format=Jpg',
+    );
+    expect('bytes' in res && res.bytes.byteLength).toBe(1);
+    expect(await getJellyfinArt({}, 'abc', 'poster')).toEqual({
+      error: 'JELLYFIN_URL not configured',
+    });
   });
 });

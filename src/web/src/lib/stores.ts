@@ -57,6 +57,8 @@ export type JellyfinData = {
     device: string;
     progress: number;
     posterUrl?: string;
+    posterId?: string;
+    backdropId?: string;
     isTranscoding: boolean;
   }>;
   playing: number;
@@ -72,6 +74,7 @@ export type RecentMediaItem = {
   subtitle: string;
   addedAt: string;
   posterUrl?: string;
+  posterId?: string;
 };
 
 export type SabnzbdData = {

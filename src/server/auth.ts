@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import {
   getAuth,
   getAuthorizationServer,
@@ -60,6 +61,8 @@ export type AuthConfig = {
   /** Lowercased. */
   allowedEmails: string[];
   allowedGroups: string[];
+  /** Lets a display device fetch the panel without a browser session. */
+  panelToken?: string;
 };
 
 type Env = Record<string, string | undefined>;
@@ -135,11 +138,23 @@ export function readAuthConfig(env: Env): AuthConfig | null {
     sessionSecret: providedSecret ?? randomSecret(),
     allowedEmails: list(env.LABBY_OIDC_ALLOWED_EMAILS).map((e) => e.toLowerCase()),
     allowedGroups: list(env.LABBY_OIDC_ALLOWED_GROUPS),
+    panelToken: value(env, 'LABBY_PANEL_TOKEN'),
   };
 }
 
 const SESSION_COOKIE = 'oidc-auth'; // library default name
 const PUBLIC_PATH = /^\/(assets|fonts|icons)\/|^\/(manifest\.webmanifest|sw\.js)$/;
+const PANEL_PATH = /^\/api\/panel(\.jpg|\/layout)$/;
+
+/** `?token=` or `Authorization: Bearer`, compared in constant time. */
+export function panelTokenMatches(c: Context, expected: string): boolean {
+  const auth = c.req.header('authorization');
+  const given = c.req.query('token') ?? (auth?.startsWith('Bearer ') ? auth.slice(7) : undefined);
+  if (!given) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 function str(v: unknown): string {
   return typeof v === 'string' ? v : '';
@@ -225,6 +240,9 @@ function gate(cfg: AuthConfig): MiddlewareHandler {
   return async (c, next) => {
     const path = c.req.path;
     if (PUBLIC_PATH.test(path)) return next();
+    // Display devices can't do an OIDC login; a shared token stands in for one.
+    if (cfg.panelToken && PANEL_PATH.test(path) && panelTokenMatches(c, cfg.panelToken))
+      return next();
 
     // ponytail: SSE auth is checked at connect; an open stream outlives session
     // expiry until it reconnects. Close streams at ssnexp if that ever matters.

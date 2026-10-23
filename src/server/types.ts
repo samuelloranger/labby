@@ -60,6 +60,9 @@ export type JellyfinSession = {
   device: string;
   progress: number;
   posterUrl?: string;
+  /** Jellyfin item ids for the ESP32 panel's artwork (poster: 2:3, backdrop: 16:9). */
+  posterId?: string;
+  backdropId?: string;
   isTranscoding: boolean;
 };
 
@@ -78,6 +81,8 @@ export type RecentMediaItem = {
   subtitle: string;
   addedAt: string;
   posterUrl?: string;
+  /** Jellyfin item id of the 2:3 poster, for the ESP32 panel. */
+  posterId?: string;
 };
 
 export type RecentMediaPayload = { items: RecentMediaItem[] };

@@ -23,6 +23,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config & credentials** — stored in SQLite (`config/labby.db`), Zod-validated; edit service URLs/keys from the in-app Manage Services page
 - **Theming** — named color schemes saved to the DB; no flash on first paint
+- **Display panel** — an adaptive 800x480 JPEG (`/api/panel.jpg`) for a small ESP32 screen; see the [display panel guide](docs/guide/panel.md)
 
 ## Security
 

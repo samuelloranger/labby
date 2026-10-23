@@ -238,3 +238,29 @@ test('unknown /api paths return 404 JSON instead of the SPA shell', async () => 
   expect(res.status).toBe(404);
   expect(await res.json()).toEqual({ error: 'Not found' });
 });
+
+test('GET /api/panel.jpg serves a JPEG and answers 304 to a matching ETag', async () => {
+  const res = await app.request('/api/panel.jpg');
+  expect(res.status).toBe(200);
+  expect(res.headers.get('content-type')).toBe('image/jpeg');
+  const etag = res.headers.get('etag');
+  expect(etag).toBeTruthy();
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  expect([bytes[0], bytes[1]]).toEqual([0xff, 0xd8]);
+
+  const again = await app.request('/api/panel.jpg', {
+    headers: { 'if-none-match': etag as string },
+  });
+  // The clock is part of the frame, so a minute boundary between requests yields a new frame.
+  expect([200, 304]).toContain(again.status);
+  if (again.status === 304) expect(await again.text()).toBe('');
+});
+
+test('GET /api/panel/layout explains the current layout', async () => {
+  const res = await app.request('/api/panel/layout');
+  expect(res.status).toBe(200);
+  const body = (await res.json()) as { mode: string; placements: unknown[]; issues: unknown[] };
+  expect(['grid', 'night']).toContain(body.mode);
+  expect(Array.isArray(body.placements)).toBe(true);
+  expect(Array.isArray(body.issues)).toBe(true);
+});

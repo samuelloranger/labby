@@ -7,6 +7,9 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["bun"],
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
     "paths": {
       "@server/*": ["./src/server/*"]
     }

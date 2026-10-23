@@ -408,3 +408,38 @@ test('logout without a provider end-session endpoint shows a signed-out page', a
   expect(res.status).toBe(200);
   expect(await res.text()).toMatch(/"kind":"signed-out"|Signed out/);
 });
+
+test('readAuthConfig reads an optional panel token', () => {
+  const env = {
+    LABBY_OIDC_ISSUER: ISSUER,
+    LABBY_OIDC_CLIENT_ID: 'labby',
+    LABBY_OIDC_CLIENT_SECRET: 'secret',
+    LABBY_URL: 'https://labby.example.com',
+  };
+  expect(readAuthConfig(env)?.panelToken).toBeUndefined();
+  expect(readAuthConfig({ ...env, LABBY_PANEL_TOKEN: ' tok ' })?.panelToken).toBe('tok');
+});
+
+test('panel endpoints accept the panel token instead of a session', async () => {
+  const inner = stubApp();
+  inner.get('/api/panel.jpg', (c) => c.text('frame'));
+  inner.get('/api/panel/layout', (c) => c.json({ ok: true }));
+  const app = withAuth(inner, cfg({ panelToken: 'device-token' }));
+
+  expect((await app.request('/api/panel.jpg')).status).toBe(401);
+  expect((await app.request('/api/panel.jpg?token=wrong')).status).toBe(401);
+  expect((await app.request('/api/panel.jpg?token=device-token')).status).toBe(200);
+  const bearer = await app.request('/api/panel/layout', {
+    headers: { authorization: 'Bearer device-token' },
+  });
+  expect(bearer.status).toBe(200);
+  // The token opens the panel, nothing else.
+  expect((await app.request('/api/data?token=device-token')).status).toBe(401);
+});
+
+test('panel endpoints stay gated when no panel token is configured', async () => {
+  const inner = stubApp();
+  inner.get('/api/panel.jpg', (c) => c.text('frame'));
+  const res = await withAuth(inner, cfg()).request('/api/panel.jpg?token=');
+  expect(res.status).toBe(401);
+});

@@ -58,6 +58,15 @@ export async function getJellyfinSessions(
         ? `${series} — ${episode || String(nowPlaying.Name ?? 'Unknown')}`
         : String(nowPlaying.Name ?? 'Unknown');
 
+      const itemId = typeof nowPlaying.Id === 'string' ? nowPlaying.Id : undefined;
+      const seriesId = typeof nowPlaying.SeriesId === 'string' ? nowPlaying.SeriesId : undefined;
+      const ownBackdrop =
+        Array.isArray(nowPlaying.BackdropImageTags) && nowPlaying.BackdropImageTags.length > 0;
+      const parentBackdrop =
+        typeof nowPlaying.ParentBackdropItemId === 'string'
+          ? nowPlaying.ParentBackdropItemId
+          : undefined;
+
       sessions.push({
         id: String(s.Id ?? crypto.randomUUID()),
         title,
@@ -71,6 +80,10 @@ export async function getJellyfinSessions(
         posterUrl: nowPlaying.Id
           ? `/api/jellyfin/image/${encodeURIComponent(String(nowPlaying.Id))}`
           : undefined,
+        // An episode's own Primary image is a 16:9 still, so posters come from
+        // the series; backdrops fall back to the series (ParentBackdropItemId).
+        posterId: seriesId && nowPlaying.SeriesPrimaryImageTag ? seriesId : itemId,
+        backdropId: ownBackdrop ? itemId : (parentBackdrop ?? seriesId),
         isTranscoding: transcode,
       });
     }
@@ -141,6 +154,7 @@ export async function getJellyfinRecent(
                 : '',
           addedAt: Number.isNaN(added) ? '' : new Date(added).toISOString(),
           posterUrl: posterId ? `/api/jellyfin/image/${encodeURIComponent(posterId)}` : undefined,
+          posterId: posterId ? String(posterId) : undefined,
           season,
         },
       ];
@@ -173,6 +187,44 @@ export async function getJellyfinImage(
     );
     if (!res.ok) return { error: `Jellyfin image error: ${res.status}` };
     return res;
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Jellyfin image failed' };
+  }
+}
+
+/** Panel artwork sizes: 2:3 posters for small cards, 16:9 backdrops for the tall card. */
+const ART_SIZE = {
+  poster: { type: 'Primary', fillWidth: 200, fillHeight: 300 },
+  backdrop: { type: 'Backdrop', fillWidth: 432, fillHeight: 243 },
+} as const;
+
+/** Fetches one image for the ESP32 panel, already downscaled by Jellyfin. */
+export async function getJellyfinArt(
+  config: JellyfinConfig,
+  itemId: string,
+  kind: keyof typeof ART_SIZE,
+): Promise<{ bytes: ArrayBuffer; contentType: string } | { error: string }> {
+  const base = normalizeBase(config.url);
+  const key = config.apiKey ?? null;
+  if (!base) return { error: 'JELLYFIN_URL not configured' };
+  if (!key) return { error: 'JELLYFIN_API_KEY not configured' };
+  const size = ART_SIZE[kind];
+  const params = new URLSearchParams({
+    fillWidth: String(size.fillWidth),
+    fillHeight: String(size.fillHeight),
+    quality: '80',
+    format: 'Jpg',
+  });
+  try {
+    const res = await fetch(
+      `${base}/Items/${encodeURIComponent(itemId)}/Images/${size.type}?${params}`,
+      { headers: { Authorization: authHeader(key) }, signal: AbortSignal.timeout(TIMEOUT_MS) },
+    );
+    if (!res.ok) return { error: `Jellyfin image error: ${res.status}` };
+    return {
+      bytes: await res.arrayBuffer(),
+      contentType: res.headers.get('Content-Type') ?? 'image/jpeg',
+    };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Jellyfin image failed' };
   }
