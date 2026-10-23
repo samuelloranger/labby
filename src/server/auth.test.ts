@@ -443,3 +443,13 @@ test('panel endpoints stay gated when no panel token is configured', async () =>
   const res = await withAuth(inner, cfg()).request('/api/panel.jpg?token=');
   expect(res.status).toBe(401);
 });
+
+test('the panel bearer token scheme is case-insensitive', async () => {
+  const inner = stubApp();
+  inner.get('/api/panel.jpg', (c) => c.text('frame'));
+  const app = withAuth(inner, cfg({ panelToken: 'device-token' }));
+  const res = await app.request('/api/panel.jpg', {
+    headers: { authorization: 'bearer device-token' },
+  });
+  expect(res.status).toBe(200);
+});

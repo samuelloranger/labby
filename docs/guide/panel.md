@@ -42,6 +42,10 @@ its size, its score and why it was chosen.
 | `LABBY_PANEL_NIGHT` | `23-7` | Night-clock hours as `from-to` (24 h, local time). `off` disables it. |
 | `LABBY_PANEL_TOKEN` | unset | With [OIDC login](./security#oidc-login-optional) on, lets a device fetch the panel with `?token=…` or `Authorization: Bearer …` instead of a browser session. It opens the two panel endpoints only. |
 
+The query-string form ends up in reverse-proxy access logs, so use a dedicated
+token for the panel (not one reused elsewhere), rotate it if a log leaks, and
+prefer the `Authorization` header when your device firmware can set one.
+
 Times use the container's time zone, so set `TZ` (for example `TZ=America/Toronto`)
 if the clock is off.
 

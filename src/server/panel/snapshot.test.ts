@@ -145,7 +145,10 @@ test('downloads keep only active transfers and merge clients', () => {
           torrents: [
             torrent('a', 40, 'downloading'),
             torrent('b', 100, 'uploading'),
-            torrent('c', 10, 'pausedDL'),
+            { ...torrent('c', 10, 'pausedDL'), dlSpeed: 0 },
+            { ...torrent('d', 0, 'queuedDL'), dlSpeed: 0 },
+            { ...torrent('e', 5, 'check'), dlSpeed: 0 },
+            torrent('f', 20, 'stalledDL'),
           ],
           aggregateDlSpeed: 1000,
           aggregateUpSpeed: 500,
@@ -167,14 +170,23 @@ test('downloads keep only active transfers and merge clients', () => {
               timeLeft: '1:02:03',
               status: 'Downloading',
             },
+            {
+              id: 'q',
+              name: 'waiting',
+              progress: 0,
+              sizeLeftMb: 1,
+              timeLeft: '0:00:00',
+              status: 'Queued',
+            },
           ],
         },
       ],
     ]),
     NOW,
   );
-  expect(s.downloads?.items.map((d) => d.name)).toEqual(['a', 'nzb']);
-  expect(s.downloads?.items[1].eta).toBe(3723);
+  // f is stalled but still moving bytes, so it counts; queued, checking and paused ones don't.
+  expect(s.downloads?.items.map((d) => d.name)).toEqual(['a', 'f', 'nzb']);
+  expect(s.downloads?.items[2].eta).toBe(3723);
   expect(s.downloads?.dl).toBe(3000);
   expect(s.downloads?.up).toBe(500);
 });

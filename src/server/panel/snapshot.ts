@@ -66,7 +66,9 @@ export function condFromIcon(icon: string): Cond {
   return 'cloud';
 }
 
-const INACTIVE_TORRENT = /paus|stop|error|seed|upload|complete/i;
+// Queued, checking and stalled transfers aren't moving; only these (or any
+// transfer with actual speed) count as active.
+const ACTIVE_TORRENT = /^(downloading|forcedDL|metaDL|forcedMetaDL)$/;
 
 /** SABnzbd's "h:mm:ss" time left → seconds. */
 function hmsToSeconds(v: string): number | null {
@@ -153,7 +155,7 @@ export function buildSnapshot(
         const d = snap.downloads ?? { items: [], dl: 0, up: 0 };
         d.items.push(
           ...p.torrents
-            .filter((t) => t.progress < 100 && !INACTIVE_TORRENT.test(t.state))
+            .filter((t) => t.progress < 100 && (t.dlSpeed > 0 || ACTIVE_TORRENT.test(t.state)))
             .map((t) => ({
               name: t.name,
               progress: t.progress,
@@ -172,7 +174,8 @@ export function buildSnapshot(
         if (!p.paused) {
           d.items.push(
             ...p.slots
-              .filter((s) => !/paus/i.test(s.status))
+              // SABnzbd downloads one job at a time; the rest of the queue waits.
+              .filter((s) => /^downloading/i.test(s.status))
               .map((s) => ({
                 name: s.name,
                 progress: s.progress,

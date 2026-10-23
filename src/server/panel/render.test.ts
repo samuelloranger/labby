@@ -87,3 +87,30 @@ test('resolveArt fetches jellyfin artwork once and caches misses', async () => {
   await resolveArt(refs, rows);
   expect(calls).toHaveLength(2);
 });
+
+test('concurrent renders share one artwork fetch', async () => {
+  let calls = 0;
+  globalThis.fetch = mock(async () => {
+    calls++;
+    await new Promise((r) => setTimeout(r, 20));
+    return new Response(new Uint8Array([1]), { headers: { 'Content-Type': 'image/jpeg' } });
+  }) as unknown as typeof fetch;
+  const rows = new Map<number, IntegrationRow>([
+    [
+      8,
+      {
+        id: 8,
+        name: 'jf',
+        type: 'jellyfin',
+        config: { url: 'http://jf.test', apiKey: 'k' },
+        enabled: true,
+        refreshSeconds: null,
+        position: 0,
+      },
+    ],
+  ]);
+  const refs = [{ integrationId: 8, itemId: 'shared-art', kind: 'poster' as const }];
+  const [a, b] = await Promise.all([resolveArt(refs, rows), resolveArt(refs, rows)]);
+  expect(calls).toBe(1);
+  expect(a.get('8:shared-art:poster')).toBe(b.get('8:shared-art:poster'));
+});

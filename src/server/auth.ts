@@ -149,7 +149,8 @@ const PANEL_PATH = /^\/api\/panel(\.jpg|\/layout)$/;
 /** `?token=` or `Authorization: Bearer`, compared in constant time. */
 export function panelTokenMatches(c: Context, expected: string): boolean {
   const auth = c.req.header('authorization');
-  const given = c.req.query('token') ?? (auth?.startsWith('Bearer ') ? auth.slice(7) : undefined);
+  const bearer = auth && /^bearer /i.test(auth) ? auth.slice(7).trim() : undefined;
+  const given = c.req.query('token') ?? bearer;
   if (!given) return false;
   const a = Buffer.from(given);
   const b = Buffer.from(expected);

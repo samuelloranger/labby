@@ -18,6 +18,18 @@ function remember(key: string, dataUri: string | null): void {
   while (cache.size > MAX_ENTRIES) cache.delete(cache.keys().next().value as string);
 }
 
+const pending = new Map<string, Promise<string | null>>();
+
+async function fetchArt(config: JellyfinConfig, ref: ArtRef): Promise<string | null> {
+  const res = await getJellyfinArt(config, ref.itemId, ref.kind);
+  const dataUri =
+    'error' in res
+      ? null
+      : `data:${res.contentType};base64,${Buffer.from(res.bytes).toString('base64')}`;
+  remember(artKey(ref), dataUri);
+  return dataUri;
+}
+
 /**
  * Resolves artwork refs to data URIs Satori can embed, fetching what isn't
  * cached. Failures resolve to nothing, so the card falls back to a placeholder.
@@ -37,12 +49,13 @@ export async function resolveArt(
       }
       const row = rows.get(ref.integrationId);
       if (row?.type !== 'jellyfin') return;
-      const res = await getJellyfinArt(row.config as JellyfinConfig, ref.itemId, ref.kind);
-      const dataUri =
-        'error' in res
-          ? null
-          : `data:${res.contentType};base64,${Buffer.from(res.bytes).toString('base64')}`;
-      remember(key, dataUri);
+      // Concurrent renders share one upstream fetch per image.
+      let fetching = pending.get(key);
+      if (!fetching) {
+        fetching = fetchArt(row.config as JellyfinConfig, ref).finally(() => pending.delete(key));
+        pending.set(key, fetching);
+      }
+      const dataUri = await fetching;
       if (dataUri) out.set(key, dataUri);
     }),
   );

@@ -3,7 +3,7 @@ import { hub } from '../sse/hub';
 import { artKey, resolveArt } from './art';
 import { Panel } from './cards';
 import { type Decision, decide, parseNightHours } from './layout';
-import { renderFrame } from './render';
+import { type Frame, renderFrame } from './render';
 import { type ArtRef, buildSnapshot, type PanelSnapshot } from './snapshot';
 
 export type { Frame } from './render';
@@ -32,7 +32,26 @@ function artNeeded(s: PanelSnapshot, d: Decision): ArtRef[] {
   return refs.filter((r): r is ArtRef => r !== undefined);
 }
 
-export async function renderPanel(now = new Date()) {
+type Rendered = { frame: Frame; decision: Decision };
+
+// Nothing on the panel changes faster than this, so devices (or a device and a
+// browser tab) polling at the same time share one render instead of each
+// paying for Satori and the rasteriser.
+const REUSE_MS = 1000;
+let latest: { at: number; result: Promise<Rendered> } | null = null;
+
+export function renderPanel(): Promise<Rendered> {
+  if (latest && Date.now() - latest.at < REUSE_MS) return latest.result;
+  const result = render(new Date());
+  latest = { at: Date.now(), result };
+  // A failed render must not be served to the next caller.
+  result.catch(() => {
+    if (latest?.result === result) latest = null;
+  });
+  return result;
+}
+
+async function render(now: Date): Promise<Rendered> {
   const { snapshot, decision } = currentPanel(now);
   const rows = new Map(listIntegrations().map((r) => [r.id, r]));
   const art = await resolveArt(artNeeded(snapshot, decision), rows);
