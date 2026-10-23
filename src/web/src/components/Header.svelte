@@ -42,6 +42,20 @@
   let panelHeight = $state(480);
   let panelPreset = $state<string>('800x480');
   let panelError = $state('');
+  let saveError = $state('');
+
+  /** Same rules as the server's PanelConfigSchema, checked before anything is saved. */
+  function panelSizeProblem(width: number, height: number): string | null {
+    if (!Number.isInteger(width) || !Number.isInteger(height)) return 'Enter a whole-pixel width and height';
+    if (width < 320 || width > 1920 || height < 240 || height > 1200) {
+      return 'Width must be 320–1920 px and height 240–1200 px';
+    }
+    const aspect = width / height;
+    if (aspect < 1.25 || aspect > 2.4) {
+      return 'Panel must be landscape, between 5:4 and 12:5 (e.g. 800x480, 1024x600)';
+    }
+    return null;
+  }
 
   function choosePanelPreset(next: string) {
     panelPreset = next;
@@ -228,6 +242,7 @@
     panelHeight = config.panel?.height ?? 480;
     panelPreset = presetFor(panelWidth, panelHeight);
     panelError = '';
+    saveError = '';
     settingsOpen = true;
   }
 
@@ -267,7 +282,14 @@
   }
 
   async function saveSettings() {
+    // Reject a bad panel size before saving anything, so Save never half-applies.
+    const problem = panelSizeProblem(Number(panelWidth), Number(panelHeight));
+    if (problem) {
+      panelError = problem;
+      return;
+    }
     saving = true;
+    saveError = '';
     try {
       const next = themeId;
       const res = await fetch('/api/theme', {
@@ -297,9 +319,12 @@
           localStorage.setItem('labby-glass', glass ? 'on' : 'off');
         } catch {}
         if (await savePanelSize()) settingsOpen = false;
+      } else {
+        saveError = 'Could not save settings. Try again.';
       }
     } catch (err) {
       console.error('Failed to save settings:', err);
+      saveError = 'Could not reach Labby to save settings. Check the connection and try again.';
     } finally {
       saving = false;
     }
@@ -465,6 +490,9 @@
       </div>
 
       <div class="settings-actions">
+        {#if saveError}
+          <p class="settings-error" role="alert">{saveError}</p>
+        {/if}
         <button class="settings-btn save" onclick={saveSettings} disabled={saving}>
           {saving ? 'Saving…' : 'Save'}
         </button>

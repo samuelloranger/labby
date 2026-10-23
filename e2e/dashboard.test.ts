@@ -826,3 +826,32 @@ e2e('reduced motion removes movement but keeps feedback', async () => {
   expect(full).toBe('slide-down');
   await lively.close();
 }, 30_000);
+
+e2eLocalOnly('An invalid panel size blocks Save before anything is persisted', async () => {
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.locator('.card').first().waitFor({ state: 'visible', timeout: 10_000 });
+  const before = (await (await fetch(`${BASE}/api/config`)).json()) as {
+    theme: { default: string };
+    panel: { width: number; height: number };
+  };
+
+  await page.getByRole('button', { name: 'Customize interface' }).click();
+  const dialog = page.locator('dialog[open]');
+  await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+  const otherMode = before.theme.default.startsWith('dark') ? 'Light' : 'Dark';
+  await dialog.getByRole('radio', { name: otherMode }).check();
+  await dialog.getByRole('combobox', { name: 'Display panel size' }).click();
+  await page.getByRole('option', { name: 'Custom size' }).click();
+  await dialog.getByLabel('Panel width in pixels').fill('1000');
+  await dialog.getByLabel('Panel height in pixels').fill('1000');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+
+  await expect(dialog.locator('.settings-error').first().textContent()).resolves.toContain('landscape');
+  const after = (await (await fetch(`${BASE}/api/config`)).json()) as typeof before;
+  expect(after.theme.default).toBe(before.theme.default);
+  expect(after.panel).toEqual(before.panel);
+
+  await page.keyboard.press('Escape');
+  await page.close();
+}, 30_000);

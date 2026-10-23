@@ -2693,7 +2693,9 @@ body::before {
 
 .settings-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 12px;
   margin-top: 10px;
   border-top: 1px solid var(--glass-brd);
   padding-top: 16px;

@@ -69,12 +69,16 @@ export async function renderFrame(
   const svg = await satori(tree as any, { width: designWidth(screen), height: HEIGHT, fonts });
   const key = Bun.hash(`${screen.width}x${screen.height}\n${svg}`);
   if (last?.key === key) return last.frame;
-  // Satori already converted text to paths, so resvg needs no fonts of its own;
-  // the zoom scales the 480 px-tall layout to the screen's real height.
-  const image = new Resvg(svg, {
-    font: { loadSystemFonts: false },
-    fitTo: { mode: 'zoom', value: screen.height / HEIGHT },
-  }).render();
+  // Render at exactly the screen size: the root keeps its 480 px-tall viewBox
+  // and stretches to fit. Scaling with resvg's zoom instead rounds the width a
+  // second time and lands a pixel off for many sizes; the stretch here is
+  // under a pixel across the whole frame.
+  const sized = svg.replace(
+    /^<svg width="[^"]*" height="[^"]*"/,
+    `<svg width="${screen.width}" height="${screen.height}" preserveAspectRatio="none"`,
+  );
+  // Satori already converted text to paths, so resvg needs no fonts of its own.
+  const image = new Resvg(sized, { font: { loadSystemFonts: false } }).render();
   const encoded = jpeg.encode(
     { data: image.pixels, width: image.width, height: image.height },
     JPEG_QUALITY,

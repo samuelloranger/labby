@@ -117,11 +117,18 @@ test('concurrent renders share one artwork fetch', async () => {
 
 test('frames come out at exactly the configured screen size', async () => {
   const s = snap(0);
+  // Odd sizes whose 480 px-tall design width is fractional used to come out a
+  // pixel off; the common presets are in here too.
   for (const screen of [
     { width: 480, height: 320 },
     { width: 1024, height: 600 },
     { width: 1280, height: 800 },
     { width: 1920, height: 800 },
+    { width: 1115, height: 536 },
+    { width: 903, height: 573 },
+    { width: 1168, height: 573 },
+    { width: 903, height: 610 },
+    { width: 850, height: 647 },
   ]) {
     const f = await renderFrame(
       Panel(s, decide(s, null), () => undefined, designWidth(screen)),

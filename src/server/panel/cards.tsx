@@ -21,7 +21,8 @@ import type { ArtRef, Cond, PanelSnapshot } from './snapshot';
  */
 export const HEIGHT = 480;
 export const designWidth = (screen: { width: number; height: number }) =>
-  (HEIGHT * screen.width) / screen.height;
+  // Satori rounds the canvas to whole pixels, so lay out on the same grid.
+  Math.round((HEIGHT * screen.width) / screen.height);
 
 const C = {
   bg: '#0c0a08',
