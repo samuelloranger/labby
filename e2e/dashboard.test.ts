@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { type Browser, chromium } from 'playwright';
+import { PALETTES, resolveConcreteTheme } from '../src/web/src/lib/theme';
 
 const EXTERNAL = process.env.LABBY_E2E_URL;
 const PORT = 8099;
@@ -247,6 +248,45 @@ e2e('C411 Progress shows XP, avatars, retained stars and nullable classes on des
     await page.waitForFunction(() => (document.querySelector('.c411 img.avatar') as HTMLImageElement)?.naturalWidth > 0);
     expect(await card.locator('img.avatar').getAttribute('src')).toContain('/api/integrations/999991/c411-avatar');
     expect(await card.getByRole('img', { name: 'C411', exact: true }).getAttribute('src')).toBe('/icons/c411.png');
+    const themes = PALETTES.flatMap(([palette]) => [
+      resolveConcreteTheme('light', palette, false), resolveConcreteTheme('dark', palette, true),
+    ]);
+    const themeFailures = await page.evaluate((themeIds) => {
+      const root = document.documentElement;
+      const original = ['data-theme', 'data-density', 'data-glass'].map(key => [key, root.getAttribute(key)] as const);
+      const reference = document.createElement('section');
+      reference.className = 'card';
+      const accent = document.createElement('span');
+      accent.style.color = 'var(--accent-ink)';
+      accent.style.backgroundColor = 'var(--accent)';
+      reference.append(accent);
+      document.querySelector('.grid')!.append(reference);
+      const motion = document.createElement('style');
+      motion.textContent = '* { transition: none !important; animation: none !important; }';
+      document.head.append(motion);
+      const widget = document.querySelector('.c411')!;
+      const properties = ['background-color', 'background-image', 'backdrop-filter', 'border-top-color', 'border-top-width', 'border-radius', 'box-shadow', 'padding-top', 'padding-left', 'color', 'font-family', 'font-size'];
+      const failures: Array<{ theme: string; density: string; glass: string; properties: string[] }> = [];
+      try {
+        for (const theme of themeIds) for (const density of ['default', 'compact']) for (const glass of ['on', 'off']) {
+          root.dataset.theme = theme;
+          root.dataset.density = density;
+          root.dataset.glass = glass;
+          const actual = getComputedStyle(widget), expected = getComputedStyle(reference);
+          const mismatches = properties.filter(property => actual.getPropertyValue(property) !== expected.getPropertyValue(property));
+          if (getComputedStyle(widget.querySelector('.zen')!).color !== getComputedStyle(accent).color) mismatches.push('accent text');
+          if (getComputedStyle(widget.querySelector('.xp-track > span')!).backgroundColor !== getComputedStyle(accent).backgroundColor) mismatches.push('accent progress');
+          if (mismatches.length) failures.push({ theme, density, glass, properties: mismatches });
+        }
+      } finally {
+        for (const [key, value] of original) { if (value === null) root.removeAttribute(key); else root.setAttribute(key, value); }
+        reference.remove();
+        motion.remove();
+      }
+      return failures;
+    }, themes);
+    expect(themeFailures.slice(0, 4)).toEqual([]);
+    expect(themeFailures).toHaveLength(0);
     const quests = card.locator('summary');
     await quests.focus();
     await page.keyboard.press('Enter');
