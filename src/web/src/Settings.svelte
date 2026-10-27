@@ -30,6 +30,7 @@
     radarr: 'di:radarr',
     sonarr: 'di:sonarr',
     rawkoon: '/icons/rawkoon.png',
+    c411: '/icons/c411.png',
     reddit: 'di:reddit',
     hackernews: 'di:hacker-news',
     weather: '/icons/openweather.png',

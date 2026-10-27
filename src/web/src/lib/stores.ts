@@ -214,6 +214,48 @@ export type RawkoonData = {
   };
 };
 
+export type C411Path = {
+  star: boolean;
+  questsCompleted: number;
+  questsTotal: number;
+};
+
+export type C411Class = {
+  slug: string;
+  effectiveSlug: string;
+  foundation: string;
+  treeBonusBp: number;
+  progress: {
+    questsCompleted: number;
+    questsTotal: number;
+    stars: number;
+    grade: { tier: 'bronze' | 'argent' | 'or'; level: number } | null;
+  };
+  voies: Record<'seed' | 'upload' | 'specialization' | 'competitivity', C411Path>;
+};
+
+export type C411Volume = { actual: number; credit: number; total: number };
+
+export type C411Data = {
+  username: string;
+  avatarUrl: string | null;
+  level: number;
+  xpIntoLevel: number;
+  xpToNextLevel: number;
+  updatedAt: number;
+  zen: number;
+  uploaded: number;
+  downloaded: number;
+  ratio: number | null;
+  downloadAllowed: boolean;
+  freeleech: boolean;
+  class: C411Class | null;
+  team: { name: string; slug: string; tag: string; role: string } | null;
+  transfer: { uploaded: C411Volume; downloaded: C411Volume };
+  blockedReason: string | null;
+  freeleechSources: Array<'personal' | 'campaign' | 'window'>;
+};
+
 export type SpeedtestResult = {
   id: number;
   ping: number;

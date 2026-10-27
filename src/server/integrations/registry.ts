@@ -2,6 +2,7 @@ import type { RecentMediaPayload } from '../types';
 import { type AdGuardConfig, getAdGuardStats, setAdGuardProtection } from './adguard';
 import { type ArrConfig, getArrSummary } from './arr';
 import { type BeszelConfig, getBeszelSystems } from './beszel';
+import { type C411Config, getC411Profile } from './c411';
 import { type CalendarConfig, getCalendarEvents } from './calendar';
 import { containerAction, containerLogs, type DockerConfig, listContainers } from './docker-client';
 import { type EmbyConfig, getEmbySessions } from './emby';
@@ -35,6 +36,7 @@ export type IntegrationType =
   | 'radarr'
   | 'sonarr'
   | 'rawkoon'
+  | 'c411'
   | 'reddit'
   | 'hackernews'
   | 'weather'
@@ -255,6 +257,12 @@ export const INTEGRATIONS: Record<IntegrationType, IntegrationDef> = {
       MAX_FIELD,
     ],
     fetch: (c) => getRawkoonSummary(c as RawkoonConfig),
+  },
+  c411: {
+    label: 'C411',
+    defaultRefreshSeconds: 300,
+    fields: [{ key: 'apiToken', label: 'API Token (profile:read)', secret: true }],
+    fetch: (c) => getC411Profile(c as C411Config),
   },
   reddit: {
     label: 'Reddit',
