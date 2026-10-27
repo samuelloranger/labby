@@ -16,10 +16,11 @@ Labby can require sign-in through any OpenID Connect provider. Setting **any** `
 | `LABBY_OIDC_ALLOWED_EMAILS` | no | Comma-separated emails allowed in (case-insensitive) |
 | `LABBY_OIDC_ALLOWED_GROUPS` | no | Comma-separated groups allowed in (from the `groups` claim) |
 | `LABBY_OIDC_SESSION_SECRET` | no | ≥ 32 characters. Keeps sessions valid across restarts. Unset: a restart sends users back through the provider (silent while their provider session is valid). |
+| `OIDC_AUTH_REFRESH_INTERVAL` | no | Seconds between session checks with the provider. Default `900`. Without `offline_access` the session ends at the first check, so raise it (up to `86400`, the session lifetime) to sign in less often. |
 
 - Register the redirect URI `<LABBY_URL>/auth/callback` with the provider, and `<LABBY_URL>/` as the post-logout redirect URI.
 - `LABBY_URL` must be `https://` (session cookies are `Secure`); `http://` only works on `localhost`. Open Labby through `LABBY_URL` itself — signing in from a LAN IP or another hostname won't complete, since cookies are bound to that host.
-- `offline_access` keeps sessions alive with the provider's refresh token; many providers only issue it when requested, and it must be listed in the provider's supported scopes or login fails with a scope error. Without it, users pass back through the provider about every 15 minutes (silent while the provider session is valid, but the page reloads) — any unsaved form or in-progress action is lost when that happens. Even with `offline_access` and refresh-token rotation, many tabs refreshing at the same moment can occasionally send one tab back through sign-in.
+- `offline_access` keeps sessions alive with the provider's refresh token; many providers only issue it when requested, and it must be listed in the provider's supported scopes or login fails with a scope error. Without it, users pass back through the provider every `OIDC_AUTH_REFRESH_INTERVAL` (15 minutes by default; silent while the provider session is valid, but the page reloads) — any unsaved form or in-progress action is lost when that happens. A longer interval also means a user removed from the allowlist or the provider keeps access until then. Even with `offline_access` and refresh-token rotation, many tabs refreshing at the same moment can occasionally send one tab back through sign-in.
 - With neither allowlist set, anyone your provider authenticates for this client gets in — restrict access in the provider, or set an allowlist. A user matching either list is allowed.
 - The email allowlist trusts the email claim your provider sends; if users can register themselves or change their email without verification, use `LABBY_OIDC_ALLOWED_GROUPS` instead.
 - If any `LABBY_OIDC_*` variable is set but the configuration is incomplete or invalid, Labby refuses to start and logs which variable is wrong. It never falls back to running without login.
@@ -49,13 +50,15 @@ identity_providers:
         authorization_policy: 'two_factor'
         claims_policy: 'labby'
         redirect_uris: ['https://labby.example.com/auth/callback']
-        scopes: ['openid', 'email', 'profile', 'groups', 'offline_access']
-        grant_types: ['authorization_code', 'refresh_token']
+        consent_mode: 'implicit'
+        scopes: ['openid', 'email', 'profile', 'groups']
+        grant_types: ['authorization_code']
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 - `LABBY_OIDC_ISSUER` is your Authelia URL, e.g. `https://auth.example.com`.
-- Set `LABBY_OIDC_SCOPES=openid email profile groups offline_access` to use group allowlists. `offline_access` must be listed in the provider's supported scopes.
+- Set `LABBY_OIDC_SCOPES=openid email profile groups` to use group allowlists.
+- Leave out `offline_access`. Authelia shows its consent screen on every sign-in that requests it, with no option to remember the choice. Set `OIDC_AUTH_REFRESH_INTERVAL=86400` instead so sessions last a day.
 - Labby reads email and groups from the ID token; recent Authelia versions only put them there when a `claims_policy` lists them, as above.
 
 ## Cross-site requests

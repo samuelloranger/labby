@@ -13,5 +13,5 @@ services:
     #   LABBY_OIDC_CLIENT_ID: labby
     #   LABBY_OIDC_CLIENT_SECRET: change-me
     #   LABBY_OIDC_SESSION_SECRET: at-least-32-random-characters-here
-    #   LABBY_OIDC_SCOPES: openid email profile offline_access
+    #   LABBY_OIDC_SCOPES: openid email profile offline_access  # Authelia: drop offline_access, see docs
     #   LABBY_OIDC_ALLOWED_GROUPS: admins
