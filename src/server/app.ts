@@ -27,6 +27,7 @@ import {
   setSetting,
   updateIntegration,
 } from './db';
+import { type C411Config, getC411Avatar } from './integrations/c411';
 import { containerLogs, type DockerConfig } from './integrations/docker-client';
 import { type EmbyConfig, getEmbyImage } from './integrations/emby';
 import { resolveFavicon } from './integrations/favicon';
@@ -163,6 +164,20 @@ app.post('/api/integrations/:id/action/:action', async (c) => {
   if (result && typeof result === 'object' && 'error' in result) return c.json(result, 502);
   await refreshIntegration(row.id).catch(() => {});
   return c.json({ ok: true });
+});
+
+app.get('/api/integrations/:id/c411-avatar', async (c) => {
+  const row = getIntegration(Number(c.req.param('id')));
+  if (row?.type !== 'c411') return c.json({ error: 'Not found' }, 404);
+  const result = await getC411Avatar(row.config as C411Config);
+  if ('error' in result) return c.json(result, 502);
+  return new Response(result.body, {
+    headers: {
+      'Content-Type': result.headers.get('Content-Type')!,
+      'Cache-Control': 'private, max-age=300',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 });
 
 app.get('/api/integrations/:id/jellyfin-image/:itemId', async (c) => {

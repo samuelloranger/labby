@@ -98,6 +98,7 @@ Each enabled integration renders as a dashboard widget. You can add multiple int
 | [Radarr](https://radarr.video/) | `radarr` | URL, API key |
 | [Sonarr](https://sonarr.tv/) | `sonarr` | URL, API key |
 | [Rawkoon](https://github.com/samuelloranger/rawkoon) | `rawkoon` | URL, API key |
+| [C411](https://c411.org/) | `c411` | API token with `profile:read` scope |
 | [OpenWeather](https://openweathermap.org/) | `weather` | OpenWeather API key, city or latitude/longitude, units |
 | [iCalendar](https://icalendar.org/) | `calendar` | ICS feed URLs |
 | [Speedtest Tracker](https://docs.speedtest-tracker.dev/) | `speedtest` | Speedtest Tracker URL, API token |
@@ -123,3 +124,17 @@ The `icon` field accepts prefixed strings:
 Docker integrations accept either a TCP endpoint, such as `tcp://host:2375`, or a mounted unix socket such as `/var/run/docker.sock`.
 
 The Docker socket grants root-equivalent control of the Docker daemon. For read/write separation, use a Docker socket proxy and point Labby's read and write hosts at proxies with different permissions.
+
+### C411
+
+Add **C411** from Manage Services and enter an API token created with the **Profil (lecture)** (`profile:read`) scope in [C411 Integrations](https://c411.org/user/integrations). Existing keys cannot have scopes changed; create a new key if needed.
+
+The Progress card shows your avatar, username, class and grade, XP toward the next level, Zen balance, credited upload/download totals, ratio, download permission, and freeleech status. Expand **Class quests** to see all four paths, earned stars, and the tree bonus. An unavailable avatar falls back to your initial. Transfer sizes use decimal units (1 TB = 1,000,000,000,000 bytes). It refreshes every five minutes by default. Tokens stay in Labby’s server-side database and are omitted from browser responses; avatars load through Labby’s backend so their authentication never reaches the browser.
+
+C411 refreshes profile data at most once every 30 seconds. Labby shares requests and cached results across widgets using the same API key, enforcing at least 30 seconds between upstream requests even with faster polling or manual refreshes. The endpoint allows 30 requests per minute per key; these also count toward the key's shared 120 requests per minute with Torznab. Other applications using that key consume the same allowance.
+
+On `429`, Labby waits at least one minute before another upstream request (longer when C411 supplies a longer `Retry-After`). `401` reports a missing or invalid key; `403` reports that `profile:read` permission is required. Existing data stays visible when a refresh fails.
+
+Profile data also retains nullable `class` and `team`, all four class paths (including inactive `0 / 0` paths), earned stars, grade (`bronze`, `argent`, `or`; levels 1–4), and `treeBonusBp` in basis points (250 means +2.50%). Stars are taken from the API even when new quests have reopened a path. Transfer breakdowns preserve measured `actual`, purchased/gifted `credit`, and credited `total` values in bytes: uploaded total adds credit; downloaded total subtracts credit and is never negative. The ratio uses these credited totals. Blocked download reasons and Freeleech sources (`personal`, `campaign`, `window`) are preserved separately from their boolean status.
+
+C411’s `/api/auth/me` checks browser sessions and does not accept API keys. Labby uses the documented `GET https://c411.org/api/user/profile` endpoint with `Authorization: Bearer <token>`; see the [C411 integrations guide](https://c411.org/user/integrations/guide).

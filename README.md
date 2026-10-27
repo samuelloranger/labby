@@ -18,7 +18,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 
 ## Features
 
-- **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, weather, calendar, speedtest, bookmarks, Reddit, Hacker News
+- **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, C411, weather, calendar, speedtest, bookmarks, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
 - **Config & credentials** — stored in SQLite (`config/labby.db`), Zod-validated; edit service URLs/keys from the in-app Manage Services page

@@ -213,6 +213,64 @@ e2e('Jellyfin card shows recently added media and scrolls the poster strip', asy
   await page.close();
 });
 
+e2e('C411 Progress shows XP, avatars, retained stars and nullable classes on desktop and phone', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const pageErrors: string[] = [];
+  page.on('pageerror', e => pageErrors.push(e.message));
+  const inactive = { star: false, questsCompleted: 0, questsTotal: 0 };
+  let payload: Record<string, unknown> = {
+    username: 'C411 member', avatarUrl: 'https://c411.org/uploads/avatars/member.png',
+    level: 37, xpIntoLevel: 310, xpToNextLevel: 239, updatedAt: Date.now(), zen: 1840,
+    uploaded: 6000, downloaded: 2000, ratio: 3, downloadAllowed: true, blockedReason: null,
+    freeleech: false, freeleechSources: [], team: null,
+    class: { slug: 'tanker', effectiveSlug: 'tanker', foundation: 'seed', treeBonusBp: 250,
+      progress: { questsCompleted: 7, questsTotal: 20, stars: 1, grade: { tier: 'bronze', level: 4 } },
+      voies: { seed: { star: true, questsCompleted: 7, questsTotal: 20 }, upload: inactive, specialization: inactive, competitivity: inactive } },
+  };
+  try {
+    await page.route('**/api/integrations', route => route.fulfill({
+      contentType: 'application/json', body: JSON.stringify([
+        { id: 999991, name: 'C411', type: 'c411', config: {}, enabled: true, refreshSeconds: 300, position: 0 },
+      ]),
+    }));
+    await page.route('**/api/integrations/999991/data', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(payload) }));
+    await page.route('**/api/integrations/999991/c411-avatar*', route => route.fulfill({
+      contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNoaGgAAAMEAYFL09IQAAAAAElFTkSuQmCC', 'base64'),
+    }));
+    await page.goto(BASE);
+    const card = page.locator('.c411');
+    await card.getByText('C411 member', { exact: true }).waitFor();
+    expect(await card.getByText('Tanker · Bronze IV', { exact: true }).isVisible()).toBe(true);
+    expect(await card.getByText('239 XP to go', { exact: true }).isVisible()).toBe(true);
+    expect(await card.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('310');
+    expect(await card.getByRole('progressbar').getAttribute('aria-valuemax')).toBe('549');
+    await page.waitForFunction(() => (document.querySelector('.c411 img.avatar') as HTMLImageElement)?.naturalWidth > 0);
+    expect(await card.locator('img.avatar').getAttribute('src')).toContain('/api/integrations/999991/c411-avatar');
+    expect(await card.getByRole('img', { name: 'C411', exact: true }).getAttribute('src')).toBe('/icons/c411.png');
+    const quests = card.locator('summary');
+    await quests.focus();
+    await page.keyboard.press('Enter');
+    expect(await card.getByRole('img', { name: 'Seed star earned' }).isVisible()).toBe(true);
+    expect(await card.getByText('No active quests', { exact: true }).count()).toBe(3);
+    expect(await card.getByText('+2.50%', { exact: true }).isVisible()).toBe(true);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.route('**/api/integrations/999991/c411-avatar*', route => route.fulfill({ status: 404 }));
+    await page.reload();
+    await card.getByRole('img', { name: "C411 member's avatar unavailable" }).waitFor();
+    payload = { ...payload, class: null, avatarUrl: null, xpIntoLevel: 0, xpToNextLevel: 0, downloadAllowed: false, blockedReason: 'insufficient_balance' };
+    await page.reload();
+    await card.getByText('No class chosen', { exact: true }).waitFor();
+    expect(await card.locator('details').count()).toBe(0);
+    expect(await card.getByText('No next-level target', { exact: true }).isVisible()).toBe(true);
+    expect(await card.getByText('Insufficient balance', { exact: true }).isVisible()).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(pageErrors).toEqual([]);
+  } finally {
+    await page.close();
+  }
+}, 30_000);
+
 e2e('an unreachable service degrades to a down state, not a crash', async () => {
   const page = await browser.newPage();
   await page.goto(BASE, { waitUntil: 'load' });
@@ -391,7 +449,9 @@ e2e('Canceling the Customize dialog discards the unsaved custom CSS preview', as
   expect(liveWhileOpen).toContain('rgb(1, 2, 3)');
 
   await page.keyboard.press('Escape');
-  await page.locator('dialog[open]').waitFor({ state: 'detached', timeout: 5_000 });
+  // The open attribute clears before the closing transition unmounts the dialog.
+  // Wait for removal before reopening so we get a fresh dialog component.
+  await page.locator('dialog').waitFor({ state: 'detached', timeout: 5_000 });
 
   const liveAfterCancel = await page.evaluate(
     () => document.getElementById('labby-custom-css-dynamic')?.textContent ?? '',

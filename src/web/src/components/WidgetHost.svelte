@@ -7,6 +7,7 @@
   import Beszel from '../widgets/Beszel.svelte';
   import Arr from '../widgets/Arr.svelte';
   import Rawkoon from '../widgets/Rawkoon.svelte';
+  import C411 from '../widgets/C411.svelte';
   import Feed from '../widgets/Feed.svelte';
   import Weather from '../widgets/Weather.svelte';
   import Calendar from '../widgets/Calendar.svelte';
@@ -39,6 +40,8 @@
   <Arr {title} integrationId={id} kind={integration.type} max={c.max} />
 {:else if integration.type === 'rawkoon'}
   <Rawkoon {title} integrationId={id} max={c.max} />
+{:else if integration.type === 'c411'}
+  <C411 {title} integrationId={id} />
 {:else if integration.type === 'reddit'}
   <Feed {title} integrationId={id} icon="di:reddit" fallback="message-square" max={c.max} />
 {:else if integration.type === 'hackernews'}

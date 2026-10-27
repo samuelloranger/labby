@@ -1,8 +1,54 @@
 import { expect, test } from 'bun:test';
 import { app } from './app';
-import { deleteIntegration, listIntegrations } from './db';
+import { createIntegration, deleteIntegration, listIntegrations } from './db';
 
 const TEST_NAME = '__test_app_integration__';
+
+test('C411 avatar route validates the integration and proxies only its account image', async () => {
+  expect((await app.request('/api/integrations/999999/c411-avatar')).status).toBe(404);
+  const row = createIntegration({
+    name: '__test_c411_avatar__',
+    type: 'c411',
+    config: { apiToken: 'route-avatar-secret' },
+    enabled: false,
+    refreshSeconds: 300,
+  });
+  const originalFetch = globalThis.fetch;
+  const image = new Uint8Array([1, 2, 3]);
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer route-avatar-secret');
+    if (String(input).endsWith('/api/user/profile')) {
+      return Response.json({
+        username: 'member',
+        avatarUrl: '/uploads/avatars/member.webp',
+        level: { level: 71, xpIntoLevel: 3, xpToNextLevel: 982 },
+        zen: { balance: 0 },
+        class: null,
+        team: null,
+        transfer: {
+          uploaded: { actual: 0, credit: 0, total: 0 },
+          downloaded: { actual: 0, credit: 0, total: 0 },
+        },
+        download: { allowed: true, blockedReason: null },
+        freeleech: { active: false, sources: [] },
+      });
+    }
+    expect(String(input)).toBe('https://c411.org/uploads/avatars/member.webp');
+    return new Response(image, { headers: { 'Content-Type': 'image/webp' } });
+  }) as typeof fetch;
+  try {
+    const res = await app.request(`/api/integrations/${row.id}/c411-avatar?url=https://other.test`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('image/webp');
+    expect(res.headers.get('Cache-Control')).toBe('private, max-age=300');
+    expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(res.headers.get('Authorization')).toBeNull();
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(image);
+  } finally {
+    globalThis.fetch = originalFetch;
+    deleteIntegration(row.id);
+  }
+});
 
 function cleanup() {
   for (const row of listIntegrations().filter((r) => r.name === TEST_NAME)) {
@@ -14,7 +60,7 @@ test('GET /api/integrations/types returns metadata without fetch', async () => {
   const res = await app.request('/api/integrations/types');
   expect(res.status).toBe(200);
   const body = (await res.json()) as any[];
-  expect(body.length).toBe(19);
+  expect(body.length).toBe(20);
   for (const item of body) {
     expect(item).toHaveProperty('type');
     expect(item).toHaveProperty('label');
@@ -189,5 +235,38 @@ test('PUT updates name; DELETE removes it from list', async () => {
   } finally {
     if (id !== undefined) deleteIntegration(id);
     cleanup();
+  }
+});
+
+test('C411 tokens are redacted and preserved when editing settings', async () => {
+  const name = '__test_c411_secrets__';
+  let id: number | undefined;
+  try {
+    const res = await app.request('/api/integrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        type: 'c411',
+        config: { apiToken: 'private-token' },
+        enabled: false,
+      }),
+    });
+    expect(res.status).toBe(200);
+    const row = await res.json();
+    id = row.id;
+    expect(row.config).not.toHaveProperty('apiToken');
+    const list = await (await app.request('/api/integrations')).json();
+    expect(list.find((r: any) => r.id === id).config).not.toHaveProperty('apiToken');
+    const update = await app.request(`/api/integrations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, type: 'c411', config: { apiToken: '' }, enabled: false }),
+    });
+    expect(update.status).toBe(200);
+    expect((await update.json()).config).not.toHaveProperty('apiToken');
+    expect(listIntegrations().find((r) => r.id === id)?.config.apiToken).toBe('private-token');
+  } finally {
+    if (id !== undefined) deleteIntegration(id);
   }
 });

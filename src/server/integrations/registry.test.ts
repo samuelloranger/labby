@@ -15,6 +15,7 @@ const ALL_TYPES: IntegrationType[] = [
   'radarr',
   'sonarr',
   'rawkoon',
+  'c411',
   'reddit',
   'hackernews',
   'weather',
@@ -37,8 +38,8 @@ const TYPES_WITHOUT_ACTIONS: IntegrationType[] = ALL_TYPES.filter(
 );
 
 describe('INTEGRATIONS registry', () => {
-  it('has exactly 19 entries', () => {
-    expect(Object.keys(INTEGRATIONS).length).toBe(19);
+  it('has exactly 20 entries', () => {
+    expect(Object.keys(INTEGRATIONS).length).toBe(20);
   });
 
   it('every type has a truthy label', () => {
@@ -195,8 +196,8 @@ describe('display-option fields', () => {
 });
 
 describe('integrationTypes()', () => {
-  it('returns an array of 19 entries', () => {
-    expect(integrationTypes().length).toBe(19);
+  it('returns an array of 20 entries', () => {
+    expect(integrationTypes().length).toBe(20);
   });
 
   it('omits fetch and actions from entries', () => {
