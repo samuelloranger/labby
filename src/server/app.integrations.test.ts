@@ -270,3 +270,104 @@ test('C411 tokens are redacted and preserved when editing settings', async () =>
     if (id !== undefined) deleteIntegration(id);
   }
 });
+
+const post = (path: string, body: unknown, method = 'POST') =>
+  app.request(path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: typeof body === 'string' ? body : JSON.stringify(body),
+  });
+
+test('docker action and logs routes reject unsafe container ids before any fetch', async () => {
+  const row = createIntegration({
+    name: '__test_docker_ids__',
+    type: 'docker',
+    config: { roHost: 'http://ro.test', rwHost: 'http://rw.test' },
+    enabled: false,
+    refreshSeconds: 60,
+  });
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async (_input: RequestInfo | URL) => {
+    calls++;
+    return new Response('', { status: 204 });
+  }) as typeof fetch;
+  try {
+    const bad = ['../../volumes/prune?', 'a/b', '..', '', 'a b', 5, null, ['x']];
+    for (const id of bad) {
+      const res = await post(`/api/integrations/${row.id}/action/start`, { args: [id] });
+      expect(res.status).toBe(400);
+    }
+    for (const id of ['..%2F..%2Fvolumes%2Fprune%3F', '..%2Fx', 'a%20b']) {
+      const res = await app.request(`/api/integrations/${row.id}/logs/${id}`);
+      expect(res.status).toBe(400);
+    }
+    for (const tail of ['0', '-1', 'abc', '1.5', '999999']) {
+      const res = await app.request(`/api/integrations/${row.id}/logs/abc123?tail=${tail}`);
+      expect(res.status).toBe(400);
+    }
+    expect(
+      (await post(`/api/integrations/${row.id}/action/logs`, { args: ['abc', '1&x=y'] })).status,
+    ).toBe(400);
+    expect(calls).toBe(0);
+
+    // A valid id still reaches Docker, percent-encoded.
+    expect(
+      (await post(`/api/integrations/${row.id}/action/start`, { args: ['my_app-1.x'] })).status,
+    ).toBe(200);
+    expect(calls).toBeGreaterThan(0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    deleteIntegration(row.id);
+  }
+});
+
+test('action route rejects non-array args', async () => {
+  const row = createIntegration({
+    name: '__test_bad_args__',
+    type: 'docker',
+    config: {},
+    enabled: false,
+    refreshSeconds: 60,
+  });
+  try {
+    for (const args of ['abc', { 0: 'x' }, 7]) {
+      const res = await post(`/api/integrations/${row.id}/action/start`, { args });
+      expect(res.status).toBe(400);
+    }
+  } finally {
+    deleteIntegration(row.id);
+  }
+});
+
+test('integration create/update/restore reject bad refreshSeconds, types and malformed JSON', async () => {
+  cleanup();
+  const base = { name: TEST_NAME, type: 'radarr', config: {}, enabled: true };
+  for (const refreshSeconds of [0, -5, 1.5, '5', true]) {
+    expect((await post('/api/integrations', { ...base, refreshSeconds })).status).toBe(400);
+  }
+  expect((await post('/api/integrations', { ...base, type: 'nope' })).status).toBe(400);
+  expect((await post('/api/integrations', { ...base, config: 'x' })).status).toBe(400);
+  expect((await post('/api/integrations', '{not json')).status).toBe(400);
+  expect(listIntegrations().filter((r) => r.name === TEST_NAME)).toHaveLength(0);
+
+  const ok = await post('/api/integrations', { ...base, refreshSeconds: 30 });
+  expect(ok.status).toBe(200);
+  const { id } = (await ok.json()) as any;
+  try {
+    expect(
+      (await post(`/api/integrations/${id}`, { ...base, refreshSeconds: 0 }, 'PUT')).status,
+    ).toBe(400);
+    expect((await post(`/api/integrations/${id}`, '{', 'PUT')).status).toBe(400);
+    const restore = {
+      version: 1,
+      dashboard: null,
+      integrations: [
+        { id: 1, name: 'x', type: 'radarr', config: {}, enabled: true, refreshSeconds: 0 },
+      ],
+    };
+    expect((await post('/api/restore', restore)).status).toBe(400);
+  } finally {
+    deleteIntegration(id);
+  }
+});

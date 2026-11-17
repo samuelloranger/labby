@@ -12,6 +12,13 @@ import { soft } from './http';
 
 export type { DockerConfig };
 
+// Docker id / name charset. Rejects `/`, `?`, `..` so a value can't rewrite the API path.
+export const isContainerId = (v: unknown): v is string =>
+  typeof v === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(v);
+
+export const isLogTail = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 10000;
+
 export async function listContainers(
   config: DockerConfig,
   show: 'all' | 'running' = config.show ?? 'running',
@@ -78,7 +85,9 @@ export async function containerAction(
   if (!base) return { error: 'DOCKER_RW_HOST not configured' };
 
   try {
-    const res = await dockerFetch(base, `/containers/${id}/${action}`, { method: 'POST' });
+    const res = await dockerFetch(base, `/containers/${encodeURIComponent(id)}/${action}`, {
+      method: 'POST',
+    });
     if (!res.ok && res.status !== 304) {
       const text = await res.text().catch(() => '');
       return { error: `Docker ${action} failed: ${res.status} ${text}` };
@@ -100,7 +109,7 @@ export async function containerLogs(
   try {
     const res = await dockerFetch(
       base,
-      `/containers/${id}/logs?stdout=true&stderr=true&tail=${tail}&timestamps=true`,
+      `/containers/${encodeURIComponent(id)}/logs?stdout=true&stderr=true&tail=${tail}&timestamps=true`,
     );
     if (!res.ok) return { error: `Docker logs error: ${res.status}` };
     const buffer = await res.arrayBuffer();

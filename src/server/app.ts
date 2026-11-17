@@ -28,7 +28,12 @@ import {
   updateIntegration,
 } from './db';
 import { type C411Config, getC411Avatar } from './integrations/c411';
-import { containerLogs, type DockerConfig } from './integrations/docker-client';
+import {
+  containerLogs,
+  type DockerConfig,
+  isContainerId,
+  isLogTail,
+} from './integrations/docker-client';
 import { type EmbyConfig, getEmbyImage } from './integrations/emby';
 import { resolveFavicon } from './integrations/favicon';
 import { getJellyfinImage, type JellyfinConfig } from './integrations/jellyfin';
@@ -101,8 +106,8 @@ app.get('/api/integrations/types', (c) => c.json(integrationTypes()));
 app.get('/api/integrations', (c) => c.json(listIntegrations().map(publicIntegration)));
 
 app.post('/api/integrations', async (c) => {
-  const b = await c.req.json();
-  if (!b.name || !b.type) return c.json({ error: 'name and type required' }, 400);
+  const { body: b, error } = await parseIntegrationBody(c);
+  if (!b) return c.json({ error }, 400);
   const row = createIntegration({
     name: b.name,
     type: b.type,
@@ -115,8 +120,8 @@ app.post('/api/integrations', async (c) => {
 });
 
 app.put('/api/integrations/:id', async (c) => {
-  const b = await c.req.json();
-  if (!b.name || !b.type) return c.json({ error: 'name and type required' }, 400);
+  const { body: b, error } = await parseIntegrationBody(c);
+  if (!b) return c.json({ error }, 400);
   const id = Number(c.req.param('id'));
   const existing = getIntegration(id);
   if (!existing) return c.json({ error: 'Not found' }, 404);
@@ -157,10 +162,19 @@ app.post('/api/integrations/:id/action/:action', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
   if (!row) return c.json({ error: 'Not found' }, 404);
   const def = INTEGRATIONS[row.type as IntegrationType];
-  const fn = def?.actions?.[c.req.param('action')];
+  const action = c.req.param('action');
+  const fn = def?.actions?.[action];
   if (!fn) return c.json({ error: 'Unknown action' }, 400);
-  const body = await c.req.json<{ args?: unknown[] }>().catch(() => ({ args: [] }));
-  const result = await fn(row.config, ...(body.args ?? []));
+  const body = await c.req.json<{ args?: unknown }>().catch(() => ({ args: [] }));
+  const args = body?.args ?? [];
+  if (!Array.isArray(args)) return c.json({ error: 'args must be an array' }, 400);
+  if (row.type === 'docker') {
+    if (!isContainerId(args[0])) return c.json({ error: 'Invalid container id' }, 400);
+    if (action === 'logs' && args[1] !== undefined && !isLogTail(args[1])) {
+      return c.json({ error: 'Invalid tail' }, 400);
+    }
+  }
+  const result = await fn(row.config, ...args);
   if (result && typeof result === 'object' && 'error' in result) return c.json(result, 502);
   await refreshIntegration(row.id).catch(() => {});
   return c.json({ ok: true });
@@ -222,8 +236,11 @@ app.get('/api/integrations/:id/plex-image', async (c) => {
 app.get('/api/integrations/:id/logs/:containerId', async (c) => {
   const row = getIntegration(Number(c.req.param('id')));
   if (row?.type !== 'docker') return c.json({ error: 'Not found' }, 404);
+  const containerId = c.req.param('containerId');
+  if (!isContainerId(containerId)) return c.json({ error: 'Invalid container id' }, 400);
   const tail = Number(c.req.query('tail') ?? 200);
-  const result = await containerLogs(row.config as DockerConfig, c.req.param('containerId'), tail);
+  if (!isLogTail(tail)) return c.json({ error: 'Invalid tail' }, 400);
+  const result = await containerLogs(row.config as DockerConfig, containerId, tail);
   if ('error' in result) return c.json(result, 502);
   return c.json(result);
 });
@@ -376,6 +393,24 @@ app.post('/api/backup', async (c) => {
 
 const INTEGRATION_TYPES = Object.keys(INTEGRATIONS) as [IntegrationType, ...IntegrationType[]];
 
+// refreshSeconds feeds setInterval: 0, negatives and non-integers would spin the scheduler.
+const RefreshSecondsSchema = z.number().int().min(1);
+
+const IntegrationBodySchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(INTEGRATION_TYPES),
+  config: z.record(z.string(), z.unknown()).optional(),
+  enabled: z.boolean().optional(),
+  refreshSeconds: RefreshSecondsSchema.nullable().optional(),
+});
+
+async function parseIntegrationBody(c: Context) {
+  const parsed = IntegrationBodySchema.safeParse(await c.req.json().catch(() => null));
+  return parsed.success
+    ? { body: parsed.data }
+    : { body: undefined, error: parsed.error.issues[0]?.message ?? 'Invalid integration payload' };
+}
+
 const RestoreSchema = z.object({
   version: z.literal(1),
   exportedAt: z.string().optional(),
@@ -390,7 +425,7 @@ const RestoreSchema = z.object({
       type: z.enum(INTEGRATION_TYPES),
       config: z.record(z.string(), z.unknown()),
       enabled: z.boolean(),
-      refreshSeconds: z.number().int().nullable(),
+      refreshSeconds: RefreshSecondsSchema.nullable(),
       position: z.number().int().optional(),
     }),
   ),
