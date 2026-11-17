@@ -425,7 +425,12 @@ const RestoreSchema = z.object({
       type: z.enum(INTEGRATION_TYPES),
       config: z.record(z.string(), z.unknown()),
       enabled: z.boolean(),
-      refreshSeconds: RefreshSecondsSchema.nullable(),
+      // Older versions stored any integer: restore a value below 1 as the type default.
+      refreshSeconds: z
+        .number()
+        .int()
+        .nullable()
+        .transform((v) => (v !== null && v < 1 ? null : v)),
       position: z.number().int().optional(),
     }),
   ),

@@ -128,3 +128,32 @@ test('POST /api/restore round-trips a valid backup', async () => {
     });
   }
 });
+
+test('POST /api/restore turns an old backup refreshSeconds below 1 into the default', async () => {
+  const original = {
+    version: 1,
+    dashboard: JSON.parse(await (await app.request('/api/config')).text()),
+    integrations: listIntegrations(),
+  };
+  const old = {
+    ...original,
+    integrations: [
+      { id: 1, name: 'old', type: 'radarr', config: {}, enabled: false, refreshSeconds: 0 },
+    ],
+  };
+  try {
+    const res = await app.request('/api/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(old),
+    });
+    expect(res.status).toBe(200);
+    expect(listIntegrations().find((r) => r.name === 'old')?.refreshSeconds).toBeNull();
+  } finally {
+    await app.request('/api/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(original),
+    });
+  }
+});

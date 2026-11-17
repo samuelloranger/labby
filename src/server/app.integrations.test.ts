@@ -363,7 +363,7 @@ test('integration create/update/restore reject bad refreshSeconds, types and mal
       version: 1,
       dashboard: null,
       integrations: [
-        { id: 1, name: 'x', type: 'radarr', config: {}, enabled: true, refreshSeconds: 0 },
+        { id: 1, name: 'x', type: 'radarr', config: {}, enabled: true, refreshSeconds: 1.5 },
       ],
     };
     expect((await post('/api/restore', restore)).status).toBe(400);
