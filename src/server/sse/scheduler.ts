@@ -4,6 +4,13 @@ import { hub } from './hub';
 
 const timers = new Map<number, ReturnType<typeof setInterval>>();
 
+// Single-flight guard: integration ids with a run currently in flight. A fetch
+// slower than its interval must skip the tick instead of stacking a concurrent
+// request for the same integration — the in-flight run will publish fresh data
+// anyway. Interval ticks and manual refreshes both go through runIntegration,
+// so this one set covers both paths.
+const running = new Set<number>();
+
 function clearTimers(): void {
   for (const timer of timers.values()) clearInterval(timer);
   timers.clear();
@@ -18,6 +25,8 @@ async function runIntegration(id: number): Promise<void> {
     hub.publish(`int:${id}`, { error: `Unknown integration type: ${row.type}` });
     return;
   }
+  if (running.has(id)) return;
+  running.add(id);
   try {
     const data = await def.fetch(row.config);
     // fetch returns a ChannelPayload-compatible shape (or {error}); the cast bridges the registry's unknown return type.
@@ -25,6 +34,10 @@ async function runIntegration(id: number): Promise<void> {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     hub.publish(`int:${id}`, { error: message });
+  } finally {
+    // finally, not just the catch above: a throwing fetch OR a failing publish
+    // must never leave the id marked as running.
+    running.delete(id);
   }
 }
 
