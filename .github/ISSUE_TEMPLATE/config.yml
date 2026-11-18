@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/samuelloranger/labby/blob/main/CONTRIBUTING.md
+    about: Dev setup, the CI gates, and the add-an-integration walkthrough — the ideal first PR.
+  - name: Docs — getting started
+    url: https://github.com/samuelloranger/labby/blob/main/docs/guide/getting-started.md
+    about: Install, first run, and the Manage Services page.
+  - name: Security guide
+    url: https://github.com/samuelloranger/labby/blob/main/docs/guide/security.md
+    about: Login options, reverse proxies, and how credentials are stored.

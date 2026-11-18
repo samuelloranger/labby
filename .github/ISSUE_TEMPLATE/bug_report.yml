@@ -1,0 +1,75 @@
+name: Bug report
+description: Something broken in Labby
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you post: **redact secrets** — never paste credentials, tokens, or backup
+        files. The [docs](https://github.com/samuelloranger/labby/tree/main/docs/guide)
+        cover login, Docker hosts, and each integration's setup.
+  - type: input
+    id: version
+    attributes:
+      label: Labby version
+      description: Image tag (or commit) you're running.
+      placeholder: ghcr.io/samuelloranger/labby:1.12.3
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Browser + version, and whether it also happens in another browser.
+      placeholder: e.g. Firefox 142 — also happens in Chrome
+    validations:
+      required: false
+  - type: input
+    id: integrations
+    attributes:
+      label: Integration type(s) involved
+      description: The type shown on the Manage Services page, if any.
+      placeholder: e.g. docker, qbittorrent, speedtest — or "none / dashboard-wide"
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server logs
+      description: A short snippet from the Labby container around the failure (`docker logs labby`). Redact anything sensitive.
+      render: shell
+    validations:
+      required: false
+  - type: dropdown
+    id: login
+    attributes:
+      label: Login
+      options:
+        - "Off (default — behind a LAN/VPN proxy)"
+        - OIDC login enabled
+        - Other auth at the reverse proxy (forward-auth, …)
+    validations:
+      required: true
+  - type: textarea
+    id: proxy
+    attributes:
+      label: Reverse proxy setup
+      description: What fronts Labby, if anything — proxy software, TLS, extra auth.
+      placeholder: e.g. Caddy on the host, HTTPS, no extra auth
+    validations:
+      required: false

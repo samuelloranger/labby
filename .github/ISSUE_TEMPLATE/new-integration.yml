@@ -1,0 +1,74 @@
+name: New integration
+description: Propose a new service for Labby's dashboard
+labels: [integration]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Want to build it yourself? **Adding an integration is
+        the ideal first PR** — [CONTRIBUTING.md](https://github.com/samuelloranger/labby/blob/main/CONTRIBUTING.md)
+        has a step-by-step walkthrough.
+  - type: input
+    id: service
+    attributes:
+      label: Service
+      description: Which app or service, with its project URL.
+      placeholder: e.g. Uptime Kuma — https://github.com/louislam/uptime-kuma
+    validations:
+      required: true
+  - type: dropdown
+    id: hosting
+    attributes:
+      label: How does it run?
+      options:
+        - Self-hosted in my homelab
+        - Self-hostable, but I use a hosted version
+        - Cloud-only service
+    validations:
+      required: true
+  - type: input
+    id: api-docs
+    attributes:
+      label: API documentation
+      description: Link to the API docs (or the specific endpoints you'd use).
+      placeholder: https://example.com/docs/api
+    validations:
+      required: false
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Auth model
+      description: How does its API authenticate?
+      options:
+        - None (open on the LAN)
+        - API key
+        - Token (Bearer or similar)
+        - Username + password
+        - Other / a mix of these
+    validations:
+      required: true
+  - type: textarea
+    id: display
+    attributes:
+      label: What should the widget show?
+      description: Read-only status. Think card contents — counts, lists, gauges.
+      placeholder: e.g. overall status, monitors up/down, recent events
+    validations:
+      required: true
+  - type: textarea
+    id: actions
+    attributes:
+      label: Actions
+      description: Anything Labby should be able to *do* (pause, restart, …)? Leave blank if read-only is enough.
+      placeholder: e.g. pause a monitor
+    validations:
+      required: false
+  - type: dropdown
+    id: implement
+    attributes:
+      label: Do you want to implement it yourself?
+      options:
+        - Yes — point me at the walkthrough
+        - No — just requesting
+    validations:
+      required: true
