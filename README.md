@@ -266,6 +266,8 @@ bun test
 
 For frontend work, run **both** dev servers. `bun run dev` alone does not serve the SPA until you `bun run build`.
 
+Want to contribute? **Adding an integration is the ideal first PR** — [CONTRIBUTING.md](CONTRIBUTING.md) walks you through it end to end.
+
 ## Stack
 
 - **Runtime** — Bun, TypeScript (strict)
