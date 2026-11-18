@@ -67,7 +67,7 @@ Labby always rejects `POST`/`PUT`/`PATCH`/`DELETE` requests that a browser sends
 
 ## Credentials
 
-Service credentials are stored server-side in `config/labby.db`. The browser receives sanitized integration metadata and widget data, not the saved secret values.
+Service credentials are stored server-side in `config/labby.db`, encrypted at rest with AES-256-GCM. The master key comes from `LABBY_MASTER_KEY` (32 bytes, hex or base64) or, when unset, from a generated `config/master.key` (mode 600) — back that file up with your config volume: losing it means re-entering your credentials. Existing installs are encrypted automatically on the first startup after updating. The browser receives sanitized integration metadata and widget data, not the saved secret values.
 
 ## Backups
 

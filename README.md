@@ -21,7 +21,7 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 - **Widgets** — service monitor, Docker, qBittorrent/Transmission, SABnzbd, AdGuard, Jellyfin, Emby, Plex, Beszel, Radarr, Sonarr, Rawkoon, C411, weather, calendar, speedtest, bookmarks, Reddit, Hacker News
 - **Live updates** — server polls integrations and pushes changes over SSE (no client-side polling)
 - **Interactive** — start/stop containers, pause/resume torrents, toggle AdGuard protection
-- **Config & credentials** — stored in SQLite (`config/labby.db`), Zod-validated; edit service URLs/keys from the in-app Manage Services page
+- **Config & credentials** — stored in SQLite (`config/labby.db`), Zod-validated, secrets encrypted at rest (AES-256-GCM); edit service URLs/keys from the in-app Manage Services page
 - **Theming** — named color schemes saved to the DB; no flash on first paint
 
 ## Security
@@ -31,6 +31,8 @@ A self-hosted homelab dashboard — lightweight like [Glance](https://github.com
 **Optional OIDC login.** Set `LABBY_OIDC_ISSUER`, `LABBY_OIDC_CLIENT_ID`, `LABBY_OIDC_CLIENT_SECRET` and `LABBY_URL` and Labby requires sign-in through any OpenID Connect provider (Authentik, Authelia, Keycloak, Pocket ID, …). Requires HTTPS. See the [security guide](docs/guide/security.md) for provider setup and the optional email/group allowlist.
 
 Writes sent by another website through your browser (cross-site requests) are always rejected.
+
+**Secrets encrypted at rest.** Integration secrets (API keys, tokens, passwords) are encrypted in `config/labby.db` with AES-256-GCM before being written. The master key comes from `LABBY_MASTER_KEY` (32 bytes, hex or base64) or, when unset, from a generated `config/master.key` (mode 600) — back that file up with your config volume, because losing it means re-entering your credentials. Existing installs are encrypted automatically on the first startup after updating.
 
 Backups (plaintext, including credentials) are written to `config/backups/` on the server, never returned in an API response.
 
