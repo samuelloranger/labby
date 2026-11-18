@@ -51,5 +51,8 @@ docs/superpowers/
 # Local settings database (holds service credentials — never commit)
 config/*.db
 
+# Generated encryption master key (back it up with your config volume — never commit)
+config/master.key
+
 # One-off scratch scripts
 patch.js

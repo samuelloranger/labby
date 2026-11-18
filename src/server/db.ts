@@ -1,5 +1,6 @@
 import { Database } from 'bun:sqlite';
 import path from 'node:path';
+import { decryptConfig, encryptConfig, encryptExistingIntegrationSecrets } from './secrets';
 
 export const DB_PATH = process.env.LABBY_DB_PATH ?? path.join(process.cwd(), 'config', 'labby.db');
 
@@ -79,7 +80,9 @@ const SEED_MONITOR_LAUNCHER = JSON.stringify({
 const SEED_DOCKER = JSON.stringify({ roHost: '', rwHost: '', show: 'running' });
 
 // --- Migrations System ---
-const migrations = [
+type Migration = { version: number; name: string; up?: string; run?: () => void };
+
+const migrations: Migration[] = [
   {
     version: 1,
     name: 'initial_settings_table',
@@ -135,6 +138,15 @@ const migrations = [
       UPDATE integrations SET position = id WHERE position IS NULL;
     `,
   },
+  {
+    version: 6,
+    name: 'encrypt_integration_secrets',
+    // Rows written before this version hold plaintext secrets in their config
+    // JSON; rewrite them encrypted on the first startup after updating.
+    run: () => {
+      encryptExistingIntegrationSecrets(db);
+    },
+  },
 ];
 
 export function runMigrations() {
@@ -153,7 +165,8 @@ export function runMigrations() {
     for (const migration of migrations) {
       if (!appliedMigrations.has(migration.version)) {
         console.log(`Running migration: ${migration.version}_${migration.name}`);
-        db.exec(migration.up);
+        if (migration.up) db.exec(migration.up);
+        if (migration.run) migration.run();
         db.query('INSERT INTO _migrations (version, name) VALUES ($version, $name)').run({
           $version: migration.version,
           $name: migration.name,
@@ -221,7 +234,7 @@ const toRow = (r: Raw): IntegrationRow => ({
   id: r.id,
   name: r.name,
   type: r.type,
-  config: JSON.parse(r.config),
+  config: decryptConfig(r.type, JSON.parse(r.config)),
   enabled: !!r.enabled,
   refreshSeconds: r.refresh_seconds,
   position: r.position ?? r.id,
@@ -247,7 +260,7 @@ export function createIntegration(input: Omit<IntegrationRow, 'id' | 'position'>
     .run({
       $name: input.name,
       $type: input.type,
-      $config: JSON.stringify(input.config),
+      $config: JSON.stringify(encryptConfig(input.type, input.config)),
       $enabled: input.enabled ? 1 : 0,
       $rs: input.refreshSeconds,
       $pos: nextPos,
@@ -265,7 +278,7 @@ export function updateIntegration(
     $id: id,
     $name: input.name,
     $type: input.type,
-    $config: JSON.stringify(input.config),
+    $config: JSON.stringify(encryptConfig(input.type, input.config)),
     $enabled: input.enabled ? 1 : 0,
     $rs: input.refreshSeconds,
   });
@@ -316,7 +329,7 @@ export function replaceAllIntegrations(
         $id: r.id,
         $name: r.name,
         $type: r.type,
-        $config: JSON.stringify(r.config),
+        $config: JSON.stringify(encryptConfig(r.type, r.config)),
         $enabled: r.enabled ? 1 : 0,
         $rs: r.refreshSeconds,
         $pos: r.position ?? r.id,
