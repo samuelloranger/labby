@@ -7,13 +7,13 @@ description: Use when deploying, shipping, or releasing labby — cutting a vers
 
 ## Overview
 
-Labby ships as a single Docker image, `ghcr.io/samuelloranger/labby`. Publishing is **tag-triggered**: `.github/workflows/docker.yml` runs only on `push: tags: v*.*.*`. Pushing to `main` never publishes an image. The version source of truth is `version` in `package.json` (currently `1.8.0`); the tag must match it.
+Labby ships as a single Docker image, `ghcr.io/samuelloranger/labby`. Publishing is **tag-triggered**: `.github/workflows/docker.yml` runs only on `push: tags: v*.*.*`. Pushing to `main` never publishes an image. The version source of truth is `version` in `package.json`; the tag must match it.
 
 **Core invariant: the SQLite DB is host state, not image state.** All persistent data lives in `config/labby.db` (`DB_PATH` in `src/server/db.ts`, `process.cwd()/config/labby.db`, overridable with `LABBY_DB_PATH`). The container has it only through the bind mount `./config:/app/config`. Nothing in the image carries data forward — pull the wrong compose file, or `docker compose down -v` in the wrong directory, and integrations plus credentials are gone. `config/*.db` is gitignored, so there is no copy in git.
 
 ## Repo vs deploy directory
 
-Source is canonical in this repo. The deployed stack lives in a separate host-side directory — referred to below as `$DEPLOY_DIR` — which is **not** part of this repository and holds its own `docker-compose.yml`, the real `.env` (all integration secrets), and `config/` with the live `labby.db`. The compose file committed here is a bare example (no `.env`, no networks) — **never deploy from it**.
+Source is canonical in this repo. The deployed stack lives in `/home/samuelloranger/servers/labby` — referred to below as `$DEPLOY_DIR` — on the **same host** as this checkout, run locally (no SSH). It is **not** part of this repository and holds its own `docker-compose.yml`, the real `.env` (all integration secrets), and `config/` with the live `labby.db`. The compose file committed here is a bare example (no `.env`, no networks) — **never deploy from it**.
 
 The deployed compose adds: `pull_policy: always`, `container_name: labby`, `user: "1000:1000"` (the image's `labby` user is uid 999 and cannot write the host-owned bind mount), four external networks (`homelab_network`, `docker-proxy-ro`, `docker-proxy-rw`, `homelab_secure`), `no-new-privileges`, and a 256M memory limit. It publishes no ports — Caddy reaches `labby:8080` over `homelab_network`.
 
@@ -64,8 +64,8 @@ The image tags are immutable, so rollback is a pin, not a rebuild. In `$DEPLOY_D
 - `docker compose down -v` in `$DEPLOY_DIR` is not destructive today (the mount is a bind, not a named volume) — but never run it while chasing a bad deploy; `down` + `up -d` is enough.
 - `bun run build` calls `scripts/vendor-icons.ts`, which fetches from the dashboard-icons CDN. It's fine locally, but don't add it to a gate.
 - Re-tagging an existing version to "republish" overwrites a tag consumers may already have pulled. Ship the next patch instead.
+- ghcr's `latest` tag can lag several minutes behind the publish workflow going green: `docker compose pull && up -d` fired right after `gh run watch` can silently no-op on the old image and print "Container labby Running" instead of "Recreated" (seen on the v1.13.0 deploy). Re-pull, and don't trust the deploy until `up -d` says "Recreated" and `docker compose ps` shows a fresh start.
 
 ## TODO(sam)
 
-- TODO(sam): confirm which host `$DEPLOY_DIR` is deployed on and whether the deploy is run locally or over SSH — no host or deploy script is recorded anywhere in either repo.
 - TODO(sam): the `POST /api/backup` route (`src/server/app.ts:340`) writes JSON backups to `config/backups/` — decide whether that, or the manual `labby.db.pre-*` copies in `$DEPLOY_DIR/config/`, is the sanctioned pre-deploy backup. Both patterns are currently in use.
